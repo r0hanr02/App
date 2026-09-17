@@ -11,7 +11,7 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "dev": "nodemon --exec ts-node --import dotenv/config index.ts"
+    "dev": "nodemon --exec ts-node index.ts"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

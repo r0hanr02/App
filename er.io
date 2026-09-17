@@ -62,6 +62,13 @@ An organization must always have at least one OWNER.
 - createdAt should be automatically generated.
 - Organization.slug must be unique
 
+OrganizationMember:
+- A user cannot join the same organization twice.
+- user_id must reference an existing user.
+- organization_id must reference an existing organization.
+- role cannot be empty.
+- role must be a valid role.
+
 Task
 - task_name cannot be empty.
 - project_id is required.
@@ -76,14 +83,9 @@ Project:
 - organization_id must reference an existing organization.
 - createdAt should be automatically generated.
 
-OrganizationMember:
-- A user cannot join the same organization twice.
-- user_id must reference an existing user.
-- organization_id must reference an existing organization.
-- role cannot be empty.
-- role must be a valid role.
-
 ProjectMember:
 - A user cannot join the same project twice.
 - project_id must reference an existing project.
 - user_id must reference an existing user.
+
+

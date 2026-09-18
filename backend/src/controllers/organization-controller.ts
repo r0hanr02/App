@@ -77,7 +77,7 @@ export const getOrganization = async (
       });
     }
 
-    const organization = await Organization.findById( organizationId );
+    const organization = await Organization.findById(organizationId);
     if (!organization) {
       return res.status(404).json({
         message: "Organization not found",
@@ -86,6 +86,76 @@ export const getOrganization = async (
     console.log(organization);
     return res.status(200).json({
       message: "data fetched Successfully",
+      organization,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const getOrganizationMembers = async (
+  req: AuthenticatedRequest<OrganizationParams>,
+  res: Response
+) => {
+  try {
+    const { organizationId } = req.params;
+    const organizationMember = await OrganizationMember.find({
+      organization_id: organizationId,
+    }).populate("user_id", "name email");
+    //   .populate("organization_id", "organization_name slug");
+
+    return res.status(200).json({
+      message: "All Organization Member Data fetched.",
+      organizationMember,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const leaveOrganization = async (
+  req: AuthenticatedRequest<OrganizationParams>,
+  res: Response
+) => {
+  try {
+    const userId = req.user?.id;
+    const { organizationId } = req.params;
+    await OrganizationMember.findOneAndDelete({
+      user_id: userId,
+      organization_id: organizationId,
+    });
+    return res.status(200).json({
+      message: "You've leaved the Organization",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const removeOrganization = async (
+  req: AuthenticatedRequest<OrganizationParams>,
+  res: Response
+) => {
+  try {
+    const { organizationId } = req.params;
+    await Organization.findByIdAndDelete(organizationId);
+    await OrganizationMember.deleteMany({
+      organization_id: organizationId,
+    });
+    return res.status(200).json({
+      message: "Organization Deleted Successfully.",
     });
   } catch (error) {
     console.error(error);

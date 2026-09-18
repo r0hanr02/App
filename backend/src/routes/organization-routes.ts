@@ -5,7 +5,10 @@ import {
   createOrganization,
   getAllOrganization,
   getOrganization,
+  getOrganizationMembers,
+  leaveOrganization,
   removeMember,
+  removeOrganization,
 } from "../controllers/organization-controller.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
 import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
@@ -20,8 +23,27 @@ router.get(
   requireOrganizationMember,
   getOrganization
 );
+router.get(
+  "/organization/:organizationId/member",
+  authMiddleware,
+  requireOrganizationMember,
+  getOrganizationMembers
+);
+router.delete(
+  "/organization/:organizationId",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER", "ADMIN"),
+  removeOrganization
+);
+router.delete(
+  "/organization/:organizationId",
+  authMiddleware,
+  requireOrganizationMember,
+  leaveOrganization
+);
 
-//organization MEmber
+//organization Member
 
 router.post(
   "/organization/:organizationId/member",
@@ -39,3 +61,20 @@ router.delete(
 );
 
 export default router;
+
+//  POST organization
+// ✅ GET all user's organizations
+// ✅ GET one organization
+// ✅ GET organization members
+// ✅ POST member
+// ✅ DELETE member
+// ✅ DELETE organization
+// ✅ LEAVE organization
+
+// ⬜ PATCH member role
+// ⬜ PATCH organization
+
+// later
+// ⬜ Invitations
+// ⬜ Transfer ownership
+// ⬜ Organization settings

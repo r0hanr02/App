@@ -22,13 +22,13 @@ export const registerUser = async (req: Request, res: Response) => {
         dateOfBirth,
       });
 
-      return res.status(409).json({
+      return res.status(200).json({
         message: "User Created Successfully",
         data: newUser,
       });
     }
 
-    return res.status(200).json({
+    return res.status(403).json({
       message: "User Already Exists",
     });
   } catch (error) {
@@ -131,7 +131,10 @@ export const logout = async (req: Request, res: Response) => {
   }
 };
 
-export const refreshToken = async (req: AuthenticatedRequest, res: Response) => {
+export const refreshToken = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
     const refreshTokenFromCookie = req.cookies?.refreshToken;
 
@@ -162,4 +165,3 @@ export const refreshToken = async (req: AuthenticatedRequest, res: Response) => 
     });
   }
 };
-

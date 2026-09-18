@@ -1,9 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
+import type { ParamsDictionary } from "express-serve-static-core";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { User } from "../models/index.ts";
 
-export type AuthenticatedRequest = Request & {
+export type AuthenticatedRequest<TParams = ParamsDictionary> = Request<TParams> & {
   user?: any;
+  organizationMember?: any;
 };
 export type decodedPayload = JwtPayload & { id: string };
 
@@ -23,7 +25,10 @@ const authMiddleware = async (
   try {
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token!, process.env.SECRET_KEY!) as decodedPayload;
+    const decoded = jwt.verify(
+      token!,
+      process.env.SECRET_KEY!
+    ) as decodedPayload;
 
     if (typeof decoded === "string" || !decoded.id) {
       return res.status(401).json({

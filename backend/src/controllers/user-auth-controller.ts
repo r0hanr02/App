@@ -162,3 +162,4 @@ export const refreshToken = async (req: AuthenticatedRequest, res: Response) => 
     });
   }
 };
+

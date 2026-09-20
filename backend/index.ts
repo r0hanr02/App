@@ -4,6 +4,8 @@ import cors from "cors";
 import { connectDb } from "./src/db/db.ts";
 import { OrgRouter, UserRouter } from "./src/routes/index.ts";
 import cookieParser from "cookie-parser";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./src/docs/swagger.ts";
 
 dotenv.config();
 
@@ -14,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/v1", UserRouter);
 app.use("/api/v1", OrgRouter);
+
+
+app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req, res) => {
   res.send("Hello World");

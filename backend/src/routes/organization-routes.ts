@@ -15,6 +15,7 @@ import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
 
 const router = express.Router();
 
+
 router.post("/organization", authMiddleware, createOrganization);
 router.get("/organization", authMiddleware, getAllOrganization);
 router.get(
@@ -37,7 +38,7 @@ router.delete(
   removeOrganization
 );
 router.delete(
-  "/organization/:organizationId",
+  "/organization/:organizationId/leave",
   authMiddleware,
   requireOrganizationMember,
   leaveOrganization

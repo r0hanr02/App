@@ -54,9 +54,9 @@ export const getAllOrganization = async (
     const memberships = await OrganizationMember.find({
       user_id: userId,
     });
-    console.log(memberships);
     return res.status(200).json({
       message: "data fetched Successfully",
+      data: memberships,
     });
   } catch (error) {
     console.log(error);
@@ -103,6 +103,12 @@ export const getOrganizationMembers = async (
 ) => {
   try {
     const { organizationId } = req.params;
+
+    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+      return res.status(400).json({
+        message: "Invalid organization id",
+      });
+    }
     const organizationMember = await OrganizationMember.find({
       organization_id: organizationId,
     }).populate("user_id", "name email");

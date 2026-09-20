@@ -24,7 +24,13 @@ export const registerUser = async (req: Request, res: Response) => {
 
       return res.status(200).json({
         message: "User Created Successfully",
-        data: newUser,
+        data: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
+          dateOfBirth: newUser.dateOfBirth,
+        },
       });
     }
 

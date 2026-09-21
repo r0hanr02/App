@@ -11,19 +11,20 @@ export const createProject = async (
   try {
     const { project_name } = req.body;
     const organization_id = req.params.organizationId;
-    const user_id = req.user?.id;
     if (!project_name) {
-      return res.status(400).json({
-        message: "Check the response data properly!",
-      });
+        return res.status(400).json({
+            message: "Check the response data properly!",
+        });
     }
     const newProject = await Project.create({
-      project_name,
-      organization_id: organization_id!,
+        project_name,
+        organization_id: organization_id!,
     });
+    const userId = req.user?.id;
+
     await ProjectMember.create({
       project_id: newProject._id,
-      user_id,
+      user_id:userId,
     });
     
     return res.status(200).json({

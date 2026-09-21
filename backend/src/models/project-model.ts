@@ -41,7 +41,7 @@ const projectMemberSchema = new mongoose.Schema({
     validate: {
       validator: async function (value: mongoose.Types.ObjectId) {
         const organization = await mongoose
-          .model("Organization")
+          .model("Project")
           .findById(value);
         return organization !== null;
       },
@@ -54,8 +54,8 @@ const projectMemberSchema = new mongoose.Schema({
     required: [true, "User Id is Required"],
     validate: {
       validator: async function (value: mongoose.Types.ObjectId) {
-        const organization = await mongoose.model("User").findById(value);
-        return organization !== null;
+        const user = await mongoose.model("User").findById(value);
+        return user  !== null;
       },
       message: "Referenced User Does Not Exist",
     },

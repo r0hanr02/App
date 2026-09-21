@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { connectDb } from "./src/db/db.ts";
-import { OrgRouter, UserRouter } from "./src/routes/index.ts";
+import { OrgRouter, ProjectRouter, UserRouter } from "./src/routes/index.ts";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./src/docs/swagger.ts";
@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/v1", UserRouter);
 app.use("/api/v1", OrgRouter);
+app.use("/api/v1", ProjectRouter);
 
 
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { Organization, OrganizationMember } from "../models/index.ts";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 
-interface OrganizationParams {
+export interface OrganizationParams {
   organizationId?: string;
   userId?: string;
 }
@@ -37,7 +37,7 @@ export const createOrganization = async (
     });
     return res.status(200).json({
       message: "Organization created Successfully",
-      organization,
+      data: organization,
     });
   } catch (error) {
     console.log(error);
@@ -86,7 +86,7 @@ export const getOrganization = async (
     console.log(organization);
     return res.status(200).json({
       message: "data fetched Successfully",
-      organization,
+      data: organization,
     });
   } catch (error) {
     console.error(error);
@@ -116,7 +116,7 @@ export const getOrganizationMembers = async (
 
     return res.status(200).json({
       message: "All Organization Member Data fetched.",
-      org_member: organizationMember,
+      data: organizationMember,
     });
   } catch (error) {
     console.error(error);
@@ -179,13 +179,10 @@ export const updateOrganizationData = async (
   try {
     const { organizationId } = req.params;
     const { organization_name, slug } = req.body;
-    await Organization.findByIdAndUpdate(
-      organizationId,
-      {
-        ...(organization_name && { organization_name }),
-        ...(slug && { slug }),
-      },
-    );
+    await Organization.findByIdAndUpdate(organizationId, {
+      ...(organization_name && { organization_name }),
+      ...(slug && { slug }),
+    });
     return res.status(200).json({
       message: "Organization data has been changed.",
     });
@@ -244,7 +241,7 @@ export const addMember = async (
 
     return res.status(201).json({
       message: "User added successfully",
-      member,
+      data: member,
     });
   } catch (error) {
     console.log(error);

@@ -653,8 +653,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             403: {
-              description:
-                "User is not a member or does not have permission",
+              description: "User is not a member or does not have permission",
             },
 
             500: {
@@ -667,8 +666,7 @@ export const swaggerSpec = swaggerJsdoc({
       "/api/v1/organization/{organizationId}/leave": {
         delete: {
           summary: "Leave an organization",
-          description:
-            "Removes the authenticated user from the organization.",
+          description: "Removes the authenticated user from the organization.",
           tags: ["Organization"],
 
           security: [
@@ -722,6 +720,104 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
+      "/api/v1/organization/{organizationId}/update": {
+        patch: {
+          summary: "Update organization data",
+          description:
+            "Updates the organization name and/or slug. Only the organization owner can update the organization.",
+          tags: ["Organization"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          requestBody: {
+
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+
+                  properties: {
+                    organization_name: {
+                      type: "string",
+                      example: "My Updated Organization",
+                    },
+
+                    slug: {
+                      type: "string",
+                      example: "my-updated-organization",
+                    },
+                  },
+                },
+
+                example: {
+                  organization_name: "My Updated Organization",
+                  slug: "my-updated-organization",
+                },
+              },
+            },
+          },
+
+          responses: {
+            200: {
+              description: "Organization data updated successfully",
+
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Organization data has been changed.",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Invalid organization data",
+            },
+
+            401: {
+              description: "Authentication token is missing or invalid",
+            },
+
+            403: {
+              description: "User is not the owner of the organization",
+            },
+
+            404: {
+              description: "Organization not found",
+            },
+
+            500: {
+              description: "Internal server error",
+            },
+          },
+        },
+      },
+
       // ============================================================
       // ORGANIZATION MEMBERS
       // ============================================================
@@ -765,8 +861,7 @@ export const swaggerSpec = swaggerJsdoc({
                     properties: {
                       message: {
                         type: "string",
-                        example:
-                          "All Organization Member Data fetched.",
+                        example: "All Organization Member Data fetched.",
                       },
 
                       organizationMember: {
@@ -872,8 +967,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             400: {
-              description:
-                "Missing user/role or invalid organization/user ID",
+              description: "Missing user/role or invalid organization/user ID",
             },
 
             401: {
@@ -881,13 +975,90 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             403: {
-              description:
-                "User is not a member or does not have permission",
+              description: "User is not a member or does not have permission",
             },
 
             409: {
-              description:
-                "User is already a member of this organization",
+              description: "User is already a member of this organization",
+            },
+
+            500: {
+              description: "Internal server error",
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/change-role": {
+        patch: {
+          summary: "Change a Member Role in Organization",
+          description:
+            "Change the Role of the user. Only OWNER or ADMIN can perform this operation.",
+          tags: ["Organization Members"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+          requestBody: {
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    user_id: {
+                      type: "string",
+                      example: "68c555555555abcdef555555",
+                    },
+
+                    role: {
+                      type: "string",
+
+                      enum: ["OWNER", "ADMIN", "MEMBER"],
+
+                      example: "MEMBER",
+                    },
+                  },
+                },
+              },
+            },
+          },
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              example: "68c123456789abcdef123456",
+            },
+          ],
+          responses: {
+            201: {
+              description: "User role changed successfully",
+
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "User role changed successfully",
+                      },
+
+                      member: {
+                        $ref: "#/components/schemas/OrganizationMember",
+                      },
+                    },
+                  },
+                },
+              },
             },
 
             500: {
@@ -965,8 +1136,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             403: {
-              description:
-                "User is not a member or does not have permission",
+              description: "User is not a member or does not have permission",
             },
 
             404: {

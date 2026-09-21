@@ -116,7 +116,7 @@ export const getOrganizationMembers = async (
 
     return res.status(200).json({
       message: "All Organization Member Data fetched.",
-      organizationMember,
+      org_member: organizationMember,
     });
   } catch (error) {
     console.error(error);
@@ -162,6 +162,32 @@ export const removeOrganization = async (
     });
     return res.status(200).json({
       message: "Organization Deleted Successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const updateOrganizationData = async (
+  req: AuthenticatedRequest<OrganizationParams>,
+  res: Response
+) => {
+  try {
+    const { organizationId } = req.params;
+    const { organization_name, slug } = req.body;
+    await Organization.findByIdAndUpdate(
+      organizationId,
+      {
+        ...(organization_name && { organization_name }),
+        ...(slug && { slug }),
+      },
+    );
+    return res.status(200).json({
+      message: "Organization data has been changed.",
     });
   } catch (error) {
     console.error(error);
@@ -234,6 +260,35 @@ export const addMember = async (
         message: "User is already a member of this organization",
       });
     }
+
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
+export const changeMemberRole = async (
+  req: AuthenticatedRequest<OrganizationParams>,
+  res: Response
+) => {
+  try {
+    const { user_id, role } = req.body;
+    if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
+      return res.status(400).json({
+        message: "User Not Found",
+      });
+    }
+    await OrganizationMember.findOneAndUpdate(
+      { user_id: user_id },
+      {
+        role,
+      }
+    );
+    return res.status(200).json({
+      message: "Role has been changed for the user",
+    });
+  } catch (error) {
+    console.log(error);
 
     return res.status(500).json({
       message: "Internal server error",

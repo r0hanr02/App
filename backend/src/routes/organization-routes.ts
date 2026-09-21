@@ -2,6 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/auth-middleware.ts";
 import {
   addMember,
+  changeMemberRole,
   createOrganization,
   getAllOrganization,
   getOrganization,
@@ -9,12 +10,12 @@ import {
   leaveOrganization,
   removeMember,
   removeOrganization,
+  updateOrganizationData,
 } from "../controllers/organization-controller.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
 import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
 
 const router = express.Router();
-
 
 router.post("/organization", authMiddleware, createOrganization);
 router.get("/organization", authMiddleware, getAllOrganization);
@@ -43,6 +44,13 @@ router.delete(
   requireOrganizationMember,
   leaveOrganization
 );
+router.patch(
+  "/organization/:organizationId/update",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER"),
+  updateOrganizationData
+);
 
 //organization Member
 
@@ -52,6 +60,14 @@ router.post(
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),
   addMember
+);
+
+router.patch(
+  "/organization/:organizationId/change-role",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER"),
+  changeMemberRole
 );
 router.delete(
   "/organization/:organizationId/member/:userId",
@@ -71,9 +87,9 @@ export default router;
 // ✅ DELETE member
 // ✅ DELETE organization
 // ✅ LEAVE organization
+// ✅ PATCH member role
+// ✅ PATCH organization
 
-// ⬜ PATCH member role
-// ⬜ PATCH organization
 
 // later
 // ⬜ Invitations

@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
         },
       ],
     },
+    email_bindex: {
+      type: String,
+      index: true,
+      unique: true,
+    },
     password: {
       type: String,
       required: [true, "password is Required"],
@@ -44,6 +49,11 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    phone_bindex: {
+      type: String,
+      index: true,
+      unique: true,
+    },
     dateOfBirth: {
       type: String,
     },
@@ -57,3 +67,5 @@ const userSchema = new mongoose.Schema(
 );
 
 export const User = mongoose.model("User", userSchema);
+
+// userSchema.pre

@@ -6,6 +6,7 @@ import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 export interface OrganizationParams {
   organizationId?: string;
   userId?: string;
+  projectId?:string
 }
 
 const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "MEMBER"] as const;

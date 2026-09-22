@@ -6,6 +6,7 @@ import { User } from "../models/index.ts";
 export type AuthenticatedRequest<TParams = ParamsDictionary> = Request<TParams> & {
   user?: any;
   organizationMember?: any;
+  projectMember?:any
 };
 export type decodedPayload = JwtPayload & { id: string };
 

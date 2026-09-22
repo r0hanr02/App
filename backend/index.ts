@@ -10,14 +10,19 @@ import { swaggerSpec } from "./src/docs/swagger.ts";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders:["Content-Type","Authorization"]
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use("/api/v1", UserRouter);
 app.use("/api/v1", OrgRouter);
 app.use("/api/v1", ProjectRouter);
-
 
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

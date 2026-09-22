@@ -19,7 +19,7 @@ export const createProject = async (
       project_name,
       organization_id: organization_id,
     });
-    const userId = req.user?.id;
+    const userId = req.userId;
 
     await ProjectMember.create({
       project_id: newProject._id,

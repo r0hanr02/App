@@ -10,7 +10,7 @@ export const requireProjectMember = async (
   try {
     const membership = await ProjectMember.findOne({
       project_id: req.params.projectId,
-      user_id: req.user?.id,
+      user_id: req.userId,
     });
     req.projectMember = membership;
     next();

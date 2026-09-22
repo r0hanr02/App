@@ -1,37 +1,16 @@
-[
-  {
-    "name": "Rohan Sharma",
-    "email": "rohan.sharma@example.com",
-    "password": "Rohan@123",
-    "phone": "9876543210",
-    "dateOfBirth": "1998-05-15"
-  },
-  {
-    "name": "Amit Patel",
-    "email": "amit.patel@example.com",
-    "password": "Amit@456",
-    "phone": "9823456710",
-    "dateOfBirth": "1996-08-22"
-  },
-  {
-    "name": "Priya Mehta",
-    "email": "priya.mehta@example.com",
-    "password": "Priya@789",
-    "phone": "9765432180",
-    "dateOfBirth": "1999-02-10"
-  },
-  {
-    "name": "Neha Verma",
-    "email": "neha.verma@example.com",
-    "password": "Neha@321",
-    "phone": "9898765432",
-    "dateOfBirth": "1997-11-28"
-  },
-  {
-    "name": "Arjun Singh",
-    "email": "arjun.singh@example.com",
-    "password": "Arjun@654",
-    "phone": "9812345678",
-    "dateOfBirth": "1995-07-03"
-  }
-]
+200 → Request succeeded
+201 → Resource created
+204 → Request succeeded, nothing to return
+
+400 → Client sent invalid data
+401 → User is not logged in / token invalid
+403 → User is logged in but doesn't have permission
+404 → Resource doesn't exist
+409 → Resource/state conflict
+422 → Validation failed
+429 → Too many requests
+
+500 → Something unexpectedly broke on the server
+502 → Upstream service failed
+503 → Server/service unavailable
+504 → Upstream service timed out

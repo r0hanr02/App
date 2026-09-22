@@ -4,7 +4,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import { User } from "../models/index.ts";
 
 export type AuthenticatedRequest<TParams = ParamsDictionary> = Request<TParams> & {
-  user?: any;
+  userId?: any;
   organizationMember?: any;
   projectMember?:any
 };
@@ -45,7 +45,7 @@ const authMiddleware = async (
       });
     }
 
-    req.user = user;
+    req.userId = user._id;
 
     next();
   } catch (error) {

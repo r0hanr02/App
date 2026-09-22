@@ -6,7 +6,7 @@ import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 export interface OrganizationParams {
   organizationId?: string;
   userId?: string;
-  projectId?:string
+  projectId?: string;
 }
 
 const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "MEMBER"] as const;
@@ -16,31 +16,49 @@ export const createOrganization = async (
   req: AuthenticatedRequest<OrganizationParams>,
   res: Response
 ) => {
+  const session = await mongoose.startSession();
   try {
     const { organization_name, slug } = req.body;
-    if (!organization_name) {
-      return res.status(409).json({
+    if (!organization_name?.trim()) {
+      return res.status(400).json({
         message: "Organization Name cannot be Empty",
       });
     }
+    const normalizedSlug: string = slug
+      ? slug.trim().toLowerCase()
+      : organization_name.trim().toLowerCase().replaceAll(" ", "_");
 
     const organization = await Organization.create({
       organization_name,
-      slug,
+      slug: normalizedSlug,
     });
 
-    const userId = req.user?.id;
-
-    await OrganizationMember.create({
+    const userId = req.userId;
+    const organizationMember = await OrganizationMember.create({
       organization_id: organization.id,
       user_id: userId,
       role: "OWNER",
     });
+
+    if (
+      !organizationMember ||
+      !mongoose.Types.ObjectId.isValid(organizationMember._id)
+    ) {
+      return res.status(400).json({
+        message: "Failed to create Organization",
+      });
+    }
+
     return res.status(200).json({
       message: "Organization created Successfully",
       data: organization,
     });
   } catch (error) {
+    if ((error as any).code === 11000) {
+      return res.status(409).json({
+        message: "Organization slug already exists",
+      });
+    }
     console.log(error);
     return res.status(500).json(error);
   }
@@ -51,7 +69,7 @@ export const getAllOrganization = async (
   res: Response
 ) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     const memberships = await OrganizationMember.find({
       user_id: userId,
     });
@@ -133,7 +151,7 @@ export const leaveOrganization = async (
   res: Response
 ) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     const { organizationId } = req.params;
     await OrganizationMember.findOneAndDelete({
       user_id: userId,

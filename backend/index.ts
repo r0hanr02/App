@@ -14,7 +14,7 @@ app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    allowedHeaders:["Content-Type","Authorization"]
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
@@ -33,5 +33,6 @@ app.get("/", (req, res) => {
 connectDb().then(() => {
   app.listen(process.env.PORT || 8000, () => {
     console.log(`Server is running on port ${process.env.PORT || 8000}`);
+    console.log(`For Documentation : http://localhost:8000/api/v1/docs`);
   });
 });

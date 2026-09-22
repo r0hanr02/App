@@ -10,7 +10,7 @@ export const requireOrganizationMember = async (
   try {
     const membership = await OrganizationMember.findOne({
       organization_id: req.params.organizationId,
-      user_id: req.user?.id,
+      user_id: req.userId,
     });
     req.organizationMember = membership;
     next()

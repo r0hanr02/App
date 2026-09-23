@@ -20,9 +20,26 @@ app.use(
   })
 );
 
+//pino serializer
 app.use(
   pinoHttp({
     logger,
+    serializers: {
+      req(req) {
+        return {
+          method: req.method,
+          url: req.url,
+          userAgent: req.headers?.["user-agent"],
+          remoteAddress: req.remoteAddress,
+          remotePort: req.remotePort,
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
   })
 );
 

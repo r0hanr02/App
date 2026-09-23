@@ -35,7 +35,7 @@ router.delete(
   "/organization/:organizationId",
   authMiddleware,
   requireOrganizationMember,
-  requireOrganizationRole("OWNER", "ADMIN"),
+  requireOrganizationRole("OWNER"),
   removeOrganization
 );
 router.delete(
@@ -48,7 +48,7 @@ router.patch(
   "/organization/:organizationId/update",
   authMiddleware,
   requireOrganizationMember,
-  requireOrganizationRole("OWNER"),
+  requireOrganizationRole("OWNER","ADMIN"),
   updateOrganizationData
 );
 

@@ -6,6 +6,7 @@ const organizationSchema = new mongoose.Schema(
       type: String,
       required: [true, "Organization Name is Required"],
       trim: true,
+      unique:true,
       validate: {
         validator: (value: string) => value.trim().length > 0,
         message: "Organization Name cannot be Empty",
@@ -13,7 +14,7 @@ const organizationSchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      required: [true, "Slug is Required"],
+      // required: [true, "Slug is Required"],
       unique: true,
       trim: true,
       lowercase: true,
@@ -41,15 +42,6 @@ const orgMemberSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
       required: [true, "Organization is Required"],
-      validate: {
-        validator: async function (value: mongoose.Types.ObjectId) {
-          const organization = await mongoose
-            .model("Organization")
-            .findById(value);
-          return organization !== null;
-        },
-        message: "Referenced Organization Does Not Exist",
-      },
     },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,

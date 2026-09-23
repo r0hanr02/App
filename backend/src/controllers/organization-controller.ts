@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import mongoose from "mongoose";
-import { Organization, OrganizationMember } from "../models/index.ts";
+import { Organization, OrganizationMember, User } from "../models/index.ts";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 
 export interface OrganizationParams {
@@ -16,51 +16,65 @@ export const createOrganization = async (
   req: AuthenticatedRequest<OrganizationParams>,
   res: Response
 ) => {
+  const { organization_name, slug } = req.body;
+  if (!organization_name?.trim()) {
+    return res.status(400).json({
+      message: "Organization Name cannot be Empty",
+    });
+  }
+
   const session = await mongoose.startSession();
   try {
-    const { organization_name, slug } = req.body;
-    if (!organization_name?.trim()) {
-      return res.status(400).json({
-        message: "Organization Name cannot be Empty",
-      });
-    }
+    await session.startTransaction();
     const normalizedSlug: string = slug
       ? slug.trim().toLowerCase()
       : organization_name.trim().toLowerCase().replaceAll(" ", "_");
 
-    const organization = await Organization.create({
-      organization_name,
-      slug: normalizedSlug,
-    });
+    const [organization] = await Organization.create(
+      [
+        {
+          organization_name,
+          slug: normalizedSlug,
+        },
+      ],
+      { session }
+    );
 
     const userId = req.userId;
-    const organizationMember = await OrganizationMember.create({
-      organization_id: organization.id,
-      user_id: userId,
-      role: "OWNER",
-    });
+    const [organizationMember] = await OrganizationMember.create(
+      [
+        {
+          organization_id: organization?._id,
+          user_id: userId,
+          role: "OWNER",
+        },
+      ],
+      { session }
+    );
 
-    if (
-      !organizationMember ||
-      !mongoose.Types.ObjectId.isValid(organizationMember._id)
-    ) {
-      return res.status(400).json({
-        message: "Failed to create Organization",
-      });
+    if (!organizationMember) {
+      throw new Error("Failed to create organization member");
     }
 
-    return res.status(200).json({
+    await session.commitTransaction();
+
+    return res.status(201).json({
       message: "Organization created Successfully",
       data: organization,
     });
   } catch (error) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     if ((error as any).code === 11000) {
       return res.status(409).json({
-        message: "Organization slug already exists",
+        message: "Organization name already exists",
       });
     }
     console.log(error);
     return res.status(500).json(error);
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -250,6 +264,24 @@ export const addMember = async (
       return res.status(400).json({
         message: `Role must be one of: ${ORGANIZATION_ROLES.join(", ")}`,
       });
+    }
+
+    // [4] Spec: Ownership via separate transfer-ownership operation, not normal POST /member
+    if (normalizedRole === "OWNER") {
+      return res.status(400).json({
+        message: "Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership",
+      });
+    }
+
+    // [4] Spec: Only OWNER can assign ADMIN (ADMIN cannot assign ADMIN)
+    if (normalizedRole === "ADMIN" && req.organizationMember?.role !== "OWNER") {
+      return res.status(403).json({ message: "Only OWNER can assign ADMIN" });
+    }
+
+    // Verify target user exists explicitly (404) before relying on validator
+    const targetUser = await User.findById(user_id);
+    if (!targetUser) {
+      return res.status(404).json({ message: "Target user not found" });
     }
 
     const member = await OrganizationMember.create({

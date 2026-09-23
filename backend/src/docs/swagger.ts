@@ -5,7 +5,7 @@ export const swaggerSpec = swaggerJsdoc({
     openapi: "3.0.0",
 
     info: {
-      title: "Multi Tenant SaaS API",
+      title: "Multi-Tenant Developer Collaboration Platform",
       version: "1.0.0",
       description: "API documentation for the Multi Tenant SaaS application",
     },

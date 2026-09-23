@@ -5,6 +5,7 @@ import { User } from "../models/index.ts";
 
 export type AuthenticatedRequest<TParams = ParamsDictionary> = Request<TParams> & {
   userId?: any;
+  user?: any;
   organizationMember?: any;
   projectMember?:any
 };
@@ -46,6 +47,12 @@ const authMiddleware = async (
     }
 
     req.userId = user._id;
+    (req as any).user = {
+      _id: user._id,
+      id: user._id.toString(),
+      email: (user as any).email,
+      name: (user as any).name,
+    };
 
     next();
   } catch (error) {

@@ -3,171 +3,142 @@ import { User } from "../models/index.ts";
 import bcrypt from "bcryptjs";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt.ts";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
+import { AppError, asyncHandler } from "../middlewares/error-middleware.ts";
 
-const saltRound = process.env.SALT_ROUND
-  ? parseInt(process.env.SALT_ROUND)
-  : 10;
+const saltRound = process.env.SALT_ROUND ? parseInt(process.env.SALT_ROUND) : 10;
 
-export const registerUser = async (req: Request, res: Response) => {
-  try {
-    const { name, email, password, phone, dateOfBirth } = req.body;
-    const isUserExist = await User.findOne({ email });
-    if (!isUserExist) {
-      const hashPassword = await bcrypt.hash(password, saltRound);
-      const newUser = await User.create({
-        name,
-        email,
-        password: hashPassword,
-        phone,
-        dateOfBirth,
-      });
+export const registerUser = asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, password, phone, dateOfBirth } = req.body;
 
-      return res.status(200).json({
-        message: "User Created Successfully",
-        data: {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          phone: newUser.phone,
-          dateOfBirth: newUser.dateOfBirth,
-        },
-      });
-    }
-
-    return res.status(403).json({
-      message: "User Already Exists",
-    });
-  } catch (error) {
-    req.log.error({ error });
-    return res.status(500).json(error);
+  if (!name?.trim() || !email?.trim() || !password) {
+    throw new AppError("Name, email and password are required", 400);
   }
-};
 
-export const loginUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required",
-      });
-    }
-
-    const isUserExist = await User.findOne({ email }).select("+password");
-
-    if (!isUserExist) {
-      return res.status(404).json({
-        message: "User not found",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, isUserExist.password);
-
-    if (!isMatch) {
-      return res.status(401).json({
-        message: "Invalid credentials",
-      });
-    }
-
-    const accessToken = generateAccessToken(isUserExist.id);
-    const refreshToken = generateRefreshToken(isUserExist.id);
-
-    isUserExist.refreshToken = refreshToken;
-    await isUserExist.save();
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    return res.status(200).json({
-      message: "Logged in successfully",
-      accessToken,
-      user: {
-        id: isUserExist.id,
-        name: isUserExist.name,
-        email: isUserExist.email,
-      },
-    });
-  } catch (error) {
-    req.log.error({ error }, "failed to Loggedin");
-    return res.status(500).json(error);
+  const isUserExist = await User.findOne({ email: email.trim().toLowerCase() });
+  if (isUserExist) {
+    throw new AppError("User Already Exists", 409);
   }
-};
 
-export const logout = async (req: Request, res: Response) => {
-  try {
-    const refreshToken = req.cookies?.refreshToken;
+  const hashPassword = await bcrypt.hash(password, saltRound);
+  const newUser = await User.create({
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    password: hashPassword,
+    phone,
+    dateOfBirth,
+  });
 
-    if (!refreshToken) {
-      res.clearCookie("refreshToken", {
-        httpOnly: true,
-        sameSite: "strict",
-        secure: process.env.NODE_ENV === "production",
-      });
+  res.status(201).json({
+    success: true,
+    message: "User Created Successfully",
+    data: {
+      id: newUser.id,
+      name: newUser.name,
+      email: newUser.email,
+      phone: newUser.phone,
+      dateOfBirth: newUser.dateOfBirth,
+    },
+  });
+});
 
-      return res.status(200).json({
-        message: "No refresh token found",
-      });
-    }
+export const loginUser = asyncHandler(async (req: Request, res: Response) => {
+  const { email, password } = req.body;
 
-    const user = await User.findOne({ refreshToken });
+  if (!email || !password) {
+    throw new AppError("Email and password are required", 400);
+  }
 
-    if (user) {
-      user.refreshToken = "";
-      await user.save();
-    }
+  const isUserExist = await User.findOne({ email: email.trim().toLowerCase() }).select("+password");
 
+  if (!isUserExist) {
+    throw new AppError("User not found", 404);
+  }
+
+  const isMatch = await bcrypt.compare(password, isUserExist.password);
+
+  if (!isMatch) {
+    throw new AppError("Invalid credentials", 401);
+  }
+
+  const accessToken = generateAccessToken(isUserExist.id);
+  const refreshToken = generateRefreshToken(isUserExist.id);
+
+  isUserExist.refreshToken = refreshToken;
+  await isUserExist.save();
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged in successfully",
+    accessToken,
+    user: {
+      id: isUserExist.id,
+      name: isUserExist.name,
+      email: isUserExist.email,
+    },
+  });
+});
+
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const refreshToken = req.cookies?.refreshToken;
+
+  if (!refreshToken) {
     res.clearCookie("refreshToken", {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
 
-    return res.status(200).json({
-      message: "Logged out successfully",
+    res.status(200).json({
+      success: true,
+      message: "No refresh token found",
     });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+    return;
   }
-};
 
-export const refreshToken = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    const refreshTokenFromCookie = req.cookies?.refreshToken;
+  const user = await User.findOne({ refreshToken });
 
-    if (!refreshTokenFromCookie) {
-      return res.status(401).json({
-        message: "Refresh token missing",
-      });
-    }
-
-    const user = await User.findOne({ refreshToken: refreshTokenFromCookie });
-
-    if (!user) {
-      return res.status(403).json({
-        message: "Invalid refresh token",
-      });
-    }
-
-    const accessToken = generateAccessToken(user.id);
-
-    return res.status(200).json({
-      message: "Token refreshed successfully",
-      accessToken,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  if (user) {
+    user.refreshToken = "";
+    await user.save();
   }
-};
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+});
+
+export const refreshToken = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const refreshTokenFromCookie = req.cookies?.refreshToken;
+
+  if (!refreshTokenFromCookie) {
+    throw new AppError("Refresh token missing", 401);
+  }
+
+  const user = await User.findOne({ refreshToken: refreshTokenFromCookie });
+
+  if (!user) {
+    throw new AppError("Invalid refresh token", 403);
+  }
+
+  const accessToken = generateAccessToken(user.id);
+
+  res.status(200).json({
+    success: true,
+    message: "Token refreshed successfully",
+    accessToken,
+  });
+});

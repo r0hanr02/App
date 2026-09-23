@@ -2,6 +2,7 @@ import type { Response } from "express";
 import mongoose from "mongoose";
 import { Organization, OrganizationMember, User } from "../models/index.ts";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
+import { AppError, asyncHandler } from "../middlewares/error-middleware.ts";
 
 export interface OrganizationParams {
   organizationId?: string;
@@ -12,15 +13,10 @@ export interface OrganizationParams {
 const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "MEMBER"] as const;
 type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
-export const createOrganization = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
+export const createOrganization = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
   const { organization_name, slug } = req.body;
   if (!organization_name?.trim()) {
-    return res.status(400).json({
-      message: "Organization Name cannot be Empty",
-    });
+    throw new AppError("Organization Name cannot be Empty", 400);
   }
 
   const session = await mongoose.startSession();
@@ -40,7 +36,7 @@ export const createOrganization = async (
       { session }
     );
 
-    const userId = req.userId;
+    const userId = (req as any).userId || (req as any).user?.id;
     const [organizationMember] = await OrganizationMember.create(
       [
         {
@@ -53,339 +49,299 @@ export const createOrganization = async (
     );
 
     if (!organizationMember) {
-      throw new Error("Failed to create organization member");
+      throw new AppError("Failed to create organization member", 500);
     }
 
     await session.commitTransaction();
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "Organization created Successfully",
       data: organization,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
-    if ((error as any).code === 11000) {
-      return res.status(409).json({
-        message: "Organization name already exists",
-      });
+    if (error instanceof AppError) throw error;
+    if (error.code === 11000) {
+      throw new AppError("Organization name already exists", 409);
     }
-    req.log.error({ error }, "Failed to create organization");
-    return res.status(500).json(error);
+    throw error;
   } finally {
     await session.endSession();
   }
-};
+});
 
-export const getAllOrganization = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const userId = req.userId;
-    const memberships = await OrganizationMember.find({
-      user_id: userId,
-    });
-    return res.status(200).json({
-      message: "data fetched Successfully",
-      data: memberships,
-    });
-  } catch (error) {
-    req.log.error({ error }, "failed to Fetch Data");
-    return res.status(500).json(error);
+export const getAllOrganization = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const userId = (req as any).userId || (req as any).user?.id;
+  const memberships = await OrganizationMember.find({
+    user_id: userId,
+  });
+  res.status(200).json({
+    message: "data fetched Successfully",
+    data: memberships,
+  });
+});
+
+export const getOrganization = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { organizationId } = req.params;
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
   }
-};
 
-export const getOrganization = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { organizationId } = req.params;
-
-    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
-      return res.status(400).json({
-        message: "Invalid organization id",
-      });
-    }
-
-    const organization = await Organization.findById(organizationId);
-    if (!organization) {
-      return res.status(404).json({
-        message: "Organization not found",
-      });
-    }
-    console.log(organization);
-    return res.status(200).json({
-      message: "data fetched Successfully",
-      data: organization,
-    });
-  } catch (error) {
-    req.log.error({ error }, "failed to Fetch Data");
-
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  const organization = await Organization.findById(organizationId);
+  if (!organization) {
+    throw new AppError("Organization not found", 404);
   }
-};
+  res.status(200).json({
+    message: "data fetched Successfully",
+    data: organization,
+  });
+});
 
-export const getOrganizationMembers = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { organizationId } = req.params;
+export const getOrganizationMembers = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { organizationId } = req.params;
 
-    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
-      return res.status(400).json({
-        message: "Invalid organization id",
-      });
-    }
-    const organizationMember = await OrganizationMember.find({
-      organization_id: organizationId,
-    }).populate("user_id", "name email");
-    //   .populate("organization_id", "organization_name slug");
-
-    return res.status(200).json({
-      message: "All Organization Member Data fetched.",
-      data: organizationMember,
-    });
-  } catch (error) {
-    req.log.error({ error }, "failed to Fetch Data");
-
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
   }
-};
+  const organizationMember = await OrganizationMember.find({
+    organization_id: organizationId,
+  }).populate("user_id", "name email");
 
-export const leaveOrganization = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const userId = req.userId;
-    const { organizationId } = req.params;
-    await OrganizationMember.findOneAndDelete({
-      user_id: userId,
-      organization_id: organizationId,
-    });
-    return res.status(200).json({
-      message: "You've leaved the Organization",
-    });
-  } catch (error) {
-    console.error(error);
+  res.status(200).json({
+    message: "All Organization Member Data fetched.",
+    data: organizationMember,
+  });
+});
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+export const leaveOrganization = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const userId = (req as any).userId || (req as any).user?.id;
+  const { organizationId } = req.params;
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId as string)) {
+    throw new AppError("Invalid organization id", 400);
   }
-};
 
-export const removeOrganization = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { organizationId } = req.params;
-    await Organization.findByIdAndDelete(organizationId);
-    await OrganizationMember.deleteMany({
-      organization_id: organizationId,
-    });
-    return res.status(200).json({
-      message: "Organization Deleted Successfully.",
-    });
-  } catch (error) {
-    console.error(error);
+  const result = await OrganizationMember.findOneAndDelete({
+    user_id: userId,
+    organization_id: organizationId,
+  });
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!result) {
+    throw new AppError("Membership not found", 404);
   }
-};
 
-export const updateOrganizationData = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { organizationId } = req.params;
-    const { organization_name, slug } = req.body;
-    await Organization.findByIdAndUpdate(organizationId, {
-      ...(organization_name && { organization_name }),
-      ...(slug && { slug }),
-    });
-    return res.status(200).json({
-      message: "Organization data has been changed.",
-    });
-  } catch (error) {
-    console.error(error);
+  res.status(200).json({
+    message: "You've leaved the Organization",
+  });
+});
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+export const removeOrganization = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { organizationId } = req.params;
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
   }
-};
+
+  await Organization.findByIdAndDelete(organizationId);
+  await OrganizationMember.deleteMany({
+    organization_id: organizationId,
+  });
+  res.status(200).json({
+    message: "Organization Deleted Successfully.",
+  });
+});
+
+export const updateOrganizationData = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { organizationId } = req.params;
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
+  }
+
+  const { organization_name, slug } = req.body;
+
+  if (!organization_name && !slug) {
+    throw new AppError("At least one field (organization_name or slug) is required", 400);
+  }
+
+  const update: any = {};
+  if (organization_name) update.organization_name = organization_name;
+  if (slug) update.slug = slug.trim().toLowerCase();
+
+  const updated = await Organization.findByIdAndUpdate(organizationId, update, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updated) {
+    throw new AppError("Organization not found", 404);
+  }
+
+  res.status(200).json({
+    message: "Organization data has been changed.",
+    data: updated,
+  });
+});
 
 //Organization Member
 
-export const addMember = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
+export const addMember = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { user_id, role } = req.body;
+  const { organizationId } = req.params;
+
+  if (!user_id || !role) {
+    throw new AppError("User and role are required", 400);
+  }
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(user_id)) {
+    throw new AppError("Invalid user id", 400);
+  }
+
+  const normalizedRole = String(role).trim().toUpperCase() as OrganizationRole;
+
+  if (!ORGANIZATION_ROLES.includes(normalizedRole)) {
+    throw new AppError(`Role must be one of: ${ORGANIZATION_ROLES.join(", ")}`, 400);
+  }
+
+  // [4] Spec: Ownership via separate transfer-ownership operation, not normal POST /member
+  if (normalizedRole === "OWNER") {
+    throw new AppError("Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership", 400);
+  }
+
+  // [4] Spec: Only OWNER can assign ADMIN (ADMIN cannot assign ADMIN)
+  if (normalizedRole === "ADMIN" && (req as any).organizationMember?.role !== "OWNER") {
+    throw new AppError("Only OWNER can assign ADMIN", 403);
+  }
+
+  // Verify target user exists explicitly (404) before relying on validator
+  const targetUser = await User.findById(user_id);
+  if (!targetUser) {
+    throw new AppError("Target user not found", 404);
+  }
+
   try {
-    const { user_id, role } = req.body;
-    const { organizationId } = req.params;
-
-    if (!user_id || !role) {
-      return res.status(400).json({
-        message: "User and role are required",
-      });
-    }
-
-    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
-      return res.status(400).json({
-        message: "Invalid organization id",
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(user_id)) {
-      return res.status(400).json({
-        message: "Invalid user id",
-      });
-    }
-
-    const normalizedRole = String(role)
-      .trim()
-      .toUpperCase() as OrganizationRole;
-
-    if (!ORGANIZATION_ROLES.includes(normalizedRole)) {
-      return res.status(400).json({
-        message: `Role must be one of: ${ORGANIZATION_ROLES.join(", ")}`,
-      });
-    }
-
-    // [4] Spec: Ownership via separate transfer-ownership operation, not normal POST /member
-    if (normalizedRole === "OWNER") {
-      return res.status(400).json({
-        message:
-          "Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership",
-      });
-    }
-
-    // [4] Spec: Only OWNER can assign ADMIN (ADMIN cannot assign ADMIN)
-    if (
-      normalizedRole === "ADMIN" &&
-      req.organizationMember?.role !== "OWNER"
-    ) {
-      return res.status(403).json({ message: "Only OWNER can assign ADMIN" });
-    }
-
-    // Verify target user exists explicitly (404) before relying on validator
-    const targetUser = await User.findById(user_id);
-    if (!targetUser) {
-      return res.status(404).json({ message: "Target user not found" });
-    }
-
     const member = await OrganizationMember.create({
       organization_id: organizationId,
       user_id,
       role: normalizedRole,
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       message: "User added successfully",
       data: member,
     });
-  } catch (error) {
-    req.log.error({ error }, "failed to add Data");
-
-    if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(400).json({
-        message: error.message,
-      });
+  } catch (error: any) {
+    if (error.code === 11000) {
+      throw new AppError("User is already a member of this organization", 409);
     }
-
-    if ((error as { code?: number }).code === 11000) {
-      return res.status(409).json({
-        message: "User is already a member of this organization",
-      });
-    }
-
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+    throw error;
   }
-};
+});
 
-export const changeMemberRole = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { user_id, role } = req.body;
-    if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
-      return res.status(400).json({
-        message: "User Not Found",
-      });
-    }
-    await OrganizationMember.findOneAndUpdate(
-      { user_id: user_id },
-      {
-        role,
-      }
-    );
-    return res.status(200).json({
-      message: "Role has been changed for the user",
-    });
-  } catch (error) {
-    req.log.error({ error });
+export const changeMemberRole = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { user_id, role } = req.body;
+  const { organizationId } = req.params as any;
 
-    return res.status(500).json({
-      message: "Internal server error",
-    });
+  if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
+    throw new AppError("User Not Found", 400);
   }
-};
 
-export const removeMember = async (
-  req: AuthenticatedRequest<OrganizationParams>,
-  res: Response
-) => {
-  try {
-    const { organizationId, userId } = req.params;
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId as string)) {
+    throw new AppError("Invalid organization id", 400);
+  }
 
-    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
-      return res.status(400).json({
-        message: "Invalid organization id",
-      });
-    }
+  if (!role) {
+    throw new AppError("Role is required", 400);
+  }
 
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        message: "Invalid user id",
-      });
-    }
+  const normalizedRole = String(role).trim().toUpperCase() as OrganizationRole;
 
-    const result = await OrganizationMember.deleteOne({
+  if (!ORGANIZATION_ROLES.includes(normalizedRole)) {
+    throw new AppError(`Role must be one of: ${ORGANIZATION_ROLES.join(", ")}`, 400);
+  }
+
+  if (normalizedRole === "OWNER") {
+    throw new AppError("Cannot assign OWNER via this endpoint. Use transfer-ownership", 400);
+  }
+
+  // Ensure target is member of this org
+  const targetMembership = await OrganizationMember.findOne({
+    organization_id: organizationId,
+    user_id,
+  });
+
+  if (!targetMembership) {
+    throw new AppError("Target user is not a member of this organization", 404);
+  }
+
+  // Prevent demoting last OWNER (normalizedRole is already blocked from being OWNER, so any change is a demotion)
+  if (targetMembership.role === "OWNER") {
+    const otherOwners = await OrganizationMember.countDocuments({
       organization_id: organizationId,
-      user_id: userId,
+      role: "OWNER",
+      _id: { $ne: targetMembership._id },
     });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({
-        message: "Organization member not found",
-      });
+    if (otherOwners === 0) {
+      throw new AppError("Cannot demote the last owner of an organization", 400);
     }
-
-    return res.status(200).json({
-      message: "User removed successfully",
-    });
-  } catch (error) {
-    console.log(error);
-
-    return res.status(500).json({
-      message: "Internal server error",
-    });
   }
-};
+
+  if (normalizedRole === "ADMIN" && (req as any).organizationMember?.role !== "OWNER") {
+    throw new AppError("Only OWNER can assign ADMIN", 403);
+  }
+
+  targetMembership.role = normalizedRole;
+  await targetMembership.save();
+
+  res.status(200).json({
+    message: "Role has been changed for the user",
+    data: targetMembership,
+  });
+});
+
+export const removeMember = asyncHandler(async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+  const { organizationId, userId } = req.params;
+
+  if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+    throw new AppError("Invalid organization id", 400);
+  }
+
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    throw new AppError("Invalid user id", 400);
+  }
+
+  // Prevent self-removal via this endpoint - use leave
+  const currentUserId = (req as any).userId?.toString() || (req as any).user?.id;
+  if (currentUserId && currentUserId === userId) {
+    throw new AppError("Use DELETE /organization/:organizationId/leave to remove yourself", 400);
+  }
+
+  // Prevent removing last OWNER
+  const target = await OrganizationMember.findOne({ organization_id: organizationId, user_id: userId });
+  if (!target) {
+    throw new AppError("Organization member not found", 404);
+  }
+  if (target.role === "OWNER") {
+    const otherOwners = await OrganizationMember.countDocuments({
+      organization_id: organizationId,
+      role: "OWNER",
+      _id: { $ne: target._id },
+    });
+    if (otherOwners === 0) {
+      throw new AppError("Cannot remove the last owner of an organization", 400);
+    }
+  }
+
+  await target.deleteOne();
+
+  res.status(200).json({
+    message: "User removed successfully",
+  });
+});

@@ -1230,7 +1230,7 @@ export const swaggerSpec = swaggerJsdoc({
         post: {
           summary: "Create a project",
           description:
-            "Creates a new project under the specified organization and adds the authenticated user as a project member. Requires authentication and organization membership with role OWNER or ADMIN. Matches `POST /api/v1/organization/:organizationId/project/create` in `backend/src/routes/project-routes.ts:9` and `backend/src/controllers/project-controller.ts:6`.",
+            "Creates a new project under the specified organization and adds the authenticated user as a project member. Requires authentication and organization membership with role OWNER or ADMIN. Matches `POST /api/v1/organization/:organizationId/project/create` in `backend/src/routes/project-routes.ts:15` and `backend/src/controllers/project-controller.ts:8`. Uses a mongoose transaction to create `Project` and `ProjectMember` atomically.",
           tags: ["Project"],
 
           security: [
@@ -1267,7 +1267,7 @@ export const swaggerSpec = swaggerJsdoc({
                   properties: {
                     project_name: {
                       type: "string",
-                      description: "Name of the project",
+                      description: "Name of the project (trimmed, non-empty)",
                       example: "My Project",
                     },
                   },
@@ -1281,7 +1281,7 @@ export const swaggerSpec = swaggerJsdoc({
           },
 
           responses: {
-            200: {
+            201: {
               description: "Project created successfully",
 
               content: {
@@ -1306,7 +1306,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - project_name missing or referenced organization/user validation failed",
+                "Bad request - project_name missing/empty, invalid organizationId, or validation failed (e.g., referenced Organization does not exist)",
               content: {
                 "application/json": {
                   schema: {
@@ -1314,7 +1314,11 @@ export const swaggerSpec = swaggerJsdoc({
                     properties: {
                       message: {
                         type: "string",
-                        example: "Check the response data properly!",
+                        example: "Project name is required",
+                      },
+                      errors: {
+                        type: "array",
+                        items: { type: "object" },
                       },
                     },
                   },
@@ -1323,12 +1327,33 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             401: {
-              description: "Authentication token is missing or invalid",
+              description: "Authentication token is missing or invalid (Token Not Found / Session Expired / User Not Found)",
             },
 
             403: {
               description:
-                "User is not a member or does not have permission (requires OWNER or ADMIN)",
+                "Forbidden - user is not a member of the organization or does not have permission (requires OWNER or ADMIN via `requireOrganizationMember` + `requireOrganizationRole`)",
+            },
+
+            404: {
+              description: "Organization not found",
+            },
+
+            409: {
+              description: "Project already exists (duplicate key)",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Project already exists",
+                      },
+                    },
+                  },
+                },
+              },
             },
 
             500: {
@@ -1342,7 +1367,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get all projects for an organization",
           description:
-            "Retrieves all projects belonging to the specified organization. Requires authentication and organization membership with role OWNER or ADMIN. Matches `GET /api/v1/organization/:organizationId/projects` in `backend/src/routes/project-routes.ts:22` and `backend/src/controllers/project-controller.ts:42`. Note: `requireProjectMember` is commented out for this route, so only organization membership + role check applies.",
+            "Retrieves all projects belonging to the specified organization. Requires authentication and organization membership with role OWNER or ADMIN. Matches `GET /api/v1/organization/:organizationId/projects` in `backend/src/routes/project-routes.ts:23` and `backend/src/controllers/project-controller.ts:43`. Note: `requireProjectMember` is commented out for this route, so only organization membership + role check applies.",
           tags: ["Project"],
 
           security: [
@@ -1393,13 +1418,21 @@ export const swaggerSpec = swaggerJsdoc({
               },
             },
 
+            400: {
+              description: "Invalid organization id",
+            },
+
             401: {
-              description: "Authentication token is missing or invalid",
+              description: "Authentication token is missing or invalid (Token Not Found / Session Expired)",
             },
 
             403: {
               description:
-                "User is not a member or does not have permission (requires OWNER or ADMIN)",
+                "Forbidden - user is not a member or does not have permission (requires OWNER or ADMIN)",
+            },
+
+            404: {
+              description: "Organization not found",
             },
 
             500: {
@@ -1413,7 +1446,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get a specific project",
           description:
-            "Retrieves a specific project by ID within an organization. Requires authentication, organization membership with role OWNER or ADMIN, and project membership. Matches `GET /api/v1/organization/:organizationId/projects/:projectId` in `backend/src/routes/project-routes.ts:31` and `backend/src/controllers/project-controller.ts:66` (`getProject`) + `backend/src/middlewares/auth-project-member.ts:5` (`requireProjectMember`). Canonical singular path — alias plural `/organizations` also supported (see below) to prevent 404. Controller fixed at `backend/src/controllers/project-controller.ts:66` to return `Project` (previously only `console.log` and hung).",
+            "Retrieves a specific project by ID within an organization with tenant isolation. Requires authentication, organization membership with role OWNER or ADMIN. `requireProjectMember` (`backend/src/middlewares/auth-project-member.ts:7`) only populates `req.projectMember` but does not block; controller `backend/src/controllers/project-controller.ts:59` enforces: if user is not a project member and org role is MEMBER -> 403, but OWNER/ADMIN are allowed even without project membership. Also checks that project.organization_id matches organizationId (403 if not). Matches `GET /api/v1/organization/:organizationId/projects/:projectId` in `backend/src/routes/project-routes.ts:32` and `backend/src/controllers/project-controller.ts:59`.",
           tags: ["Project"],
 
           security: [
@@ -1473,17 +1506,34 @@ export const swaggerSpec = swaggerJsdoc({
               },
             },
 
+            400: {
+              description: "Invalid organization id or invalid project id",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Invalid project id",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
             401: {
               description: "Authentication token is missing or invalid",
             },
 
             403: {
               description:
-                "User is not a member or does not have permission (requires OWNER or ADMIN + project membership via `requireProjectMember`)",
+                "Forbidden - Project does not belong to this organization, or user is not a project member (when org role is MEMBER), or requires OWNER/ADMIN role, or not an organization member",
             },
 
             404: {
-              description: "Project not found",
+              description: "Project not found or Organization not found",
             },
 
             500: {
@@ -1497,7 +1547,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get a specific project (alias - plural)",
           description:
-            "Alias for `GET /api/v1/organization/{organizationId}/projects/{projectId}` using plural `/organizations`. Kept for backwards compatibility — previously documented as plural and caused 404 when clients used singular. Both paths map to same handler in `backend/src/routes/project-routes.ts:31` and `backend/src/routes/project-routes.ts:40`. Deprecated: use singular `/organization` instead.",
+            "Alias for `GET /api/v1/organization/{organizationId}/projects/{projectId}` using plural `/organizations`. Kept for backwards compatibility -- previously documented as plural and caused 404 when clients used singular. Both paths map to same handler in `backend/src/routes/project-routes.ts:32` and `backend/src/routes/project-routes.ts:40`. Deprecated: use singular `/organization` instead.",
           tags: ["Project"],
           deprecated: true,
 
@@ -1569,6 +1619,151 @@ export const swaggerSpec = swaggerJsdoc({
 
             404: {
               description: "Project not found",
+            },
+
+            500: {
+              description: "Internal server error",
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/projects/{projectId}/update": {
+        patch: {
+          summary: "Update a project",
+          description:
+            "Updates a project name. Requires authentication, organization membership with role OWNER or ADMIN. Tenant isolation is enforced: project must belong to the given organization. Matches `PATCH /api/v1/organization/:organizationId/projects/:projectId/update` in `backend/src/routes/project-routes.ts:41` and `backend/src/controllers/project-controller.ts:95`. Note: `requireProjectMember` is commented out for this route, so project membership is not required -- only organization role OWNER/ADMIN.",
+          tags: ["Project"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              description: "Organization ID the project belongs to",
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              description: "Project ID to update",
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          requestBody: {
+            required: true,
+
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+
+                  required: ["project_name"],
+
+                  properties: {
+                    project_name: {
+                      type: "string",
+                      description: "New name for the project (trimmed, non-empty)",
+                      example: "My Updated Project",
+                    },
+                  },
+                },
+
+                example: {
+                  project_name: "My Updated Project",
+                },
+              },
+            },
+          },
+
+          responses: {
+            200: {
+              description: "Project updated successfully",
+
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Project Name has been Updated",
+                      },
+
+                      data: {
+                        $ref: "#/components/schemas/Project",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description:
+                "Bad request - project_name missing/empty, invalid project id, invalid organization id, or validation failed",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Project name is required",
+                      },
+                      errors: {
+                        type: "array",
+                        items: { type: "object" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Authentication token is missing or invalid (Token Not Found / Session Expired / User Not Found)",
+            },
+
+            403: {
+              description:
+                "Forbidden - Project does not belong to this organization, or user is not an organization member / lacks OWNER/ADMIN role",
+            },
+
+            404: {
+              description: "Project not found or Organization not found",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Project not found",
+                      },
+                    },
+                  },
+                },
+              },
             },
 
             500: {

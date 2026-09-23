@@ -2,30 +2,25 @@ import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "./auth-middleware";
 import { Organization, OrganizationMember } from "../models/index.ts";
 import mongoose from "mongoose";
+import { AppError } from "./error-middleware.ts";
 
 export const requireOrganizationMember = async (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
     const organizationId = (req.params as any).organizationId as string;
 
     if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId as string)) {
-      return res.status(400).json({
-        message: "Invalid organization id",
-      });
+      return next(new AppError("Invalid organization id", 400));
     }
 
-    // Spec [5]: verify org exists first (404), then membership (403)
     const organization = await Organization.findById(organizationId);
     if (!organization) {
-      return res.status(404).json({
-        message: "Organization not found",
-      });
+      return next(new AppError("Organization not found", 404));
     }
 
-    // Support both req.userId (current) and req.user.id (spec)
     const currentUserId = (req as any).userId || (req as any).user?.id || (req as any).user?._id;
 
     const membership = await OrganizationMember.findOne({
@@ -34,14 +29,12 @@ export const requireOrganizationMember = async (
     });
 
     if (!membership) {
-      return res.status(403).json({
-        message: "Forbidden: You are not a member of this organization",
-      });
+      return next(new AppError("Forbidden: You are not a member of this organization", 403));
     }
 
     req.organizationMember = membership;
-    next()
+    next();
   } catch (error) {
-    return res.status(500).json(error);
+    next(error);
   }
 };

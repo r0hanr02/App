@@ -8,6 +8,7 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./src/docs/swagger.ts";
 import pinoHttp from "pino-http";
 import { logger } from "./src/utils/logger.ts";
+import { errorHandler, notFound } from "./src/middlewares/error-middleware.ts";
 dotenv.config();
 
 const app = express();
@@ -35,9 +36,16 @@ app.use("/api/v1", ProjectRouter);
 
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.send("Hello World");
 });
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({ success: true, message: "OK" });
+});
+
+app.use(notFound);
+app.use(errorHandler);
 
 connectDb().then(() => {
   app.listen(process.env.PORT || 8000, () => {

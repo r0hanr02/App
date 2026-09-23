@@ -13,7 +13,7 @@ import { requireProjectMember } from "../middlewares/auth-project-member.ts";
 const router = express.Router();
 
 router.post(
-  "/organization/:organizationId/project/create",
+  "/organization/:organizationId/project",
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),

@@ -16,7 +16,7 @@ export const swaggerSpec = swaggerJsdoc({
         description: "Local development server",
       },
       {
-        url: "http://10.10.10.61:8000",
+        url: "http://10.10.10.15:8000",
         description: " development server",
       },
     ],

@@ -38,7 +38,7 @@ export const registerUser = async (req: Request, res: Response) => {
       message: "User Already Exists",
     });
   } catch (error) {
-    console.log(error);
+    req.log.error({ error });
     return res.status(500).json(error);
   }
 };
@@ -92,7 +92,7 @@ export const loginUser = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.log(error);
+    req.log.error({ error }, "failed to Loggedin");
     return res.status(500).json(error);
   }
 };

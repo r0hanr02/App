@@ -6,10 +6,12 @@ import { OrgRouter, ProjectRouter, UserRouter } from "./src/routes/index.ts";
 import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./src/docs/swagger.ts";
-
+import pinoHttp from "pino-http";
+import { logger } from "./src/utils/logger.ts";
 dotenv.config();
 
 const app = express();
+
 app.use(
   cors({
     origin: "*",
@@ -17,6 +19,13 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.use(
+  pinoHttp({
+    logger,
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

@@ -71,7 +71,7 @@ export const createOrganization = async (
         message: "Organization name already exists",
       });
     }
-    console.log(error);
+    req.log.error({ error }, "Failed to create organization");
     return res.status(500).json(error);
   } finally {
     await session.endSession();
@@ -92,7 +92,7 @@ export const getAllOrganization = async (
       data: memberships,
     });
   } catch (error) {
-    console.log(error);
+    req.log.error({ error }, "failed to Fetch Data");
     return res.status(500).json(error);
   }
 };
@@ -122,7 +122,7 @@ export const getOrganization = async (
       data: organization,
     });
   } catch (error) {
-    console.error(error);
+    req.log.error({ error }, "failed to Fetch Data");
 
     return res.status(500).json({
       message: "Internal server error",
@@ -152,7 +152,7 @@ export const getOrganizationMembers = async (
       data: organizationMember,
     });
   } catch (error) {
-    console.error(error);
+    req.log.error({ error }, "failed to Fetch Data");
 
     return res.status(500).json({
       message: "Internal server error",
@@ -269,12 +269,16 @@ export const addMember = async (
     // [4] Spec: Ownership via separate transfer-ownership operation, not normal POST /member
     if (normalizedRole === "OWNER") {
       return res.status(400).json({
-        message: "Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership",
+        message:
+          "Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership",
       });
     }
 
     // [4] Spec: Only OWNER can assign ADMIN (ADMIN cannot assign ADMIN)
-    if (normalizedRole === "ADMIN" && req.organizationMember?.role !== "OWNER") {
+    if (
+      normalizedRole === "ADMIN" &&
+      req.organizationMember?.role !== "OWNER"
+    ) {
       return res.status(403).json({ message: "Only OWNER can assign ADMIN" });
     }
 
@@ -295,7 +299,7 @@ export const addMember = async (
       data: member,
     });
   } catch (error) {
-    console.log(error);
+    req.log.error({ error }, "failed to add Data");
 
     if (error instanceof mongoose.Error.ValidationError) {
       return res.status(400).json({
@@ -336,7 +340,7 @@ export const changeMemberRole = async (
       message: "Role has been changed for the user",
     });
   } catch (error) {
-    console.log(error);
+    req.log.error({ error });
 
     return res.status(500).json({
       message: "Internal server error",

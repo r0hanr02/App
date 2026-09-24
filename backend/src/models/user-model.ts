@@ -57,6 +57,9 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: {
       type: String,
     },
+    profilepic: {
+      type: String,
+    },
     refreshToken: {
       type: String,
     },

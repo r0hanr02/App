@@ -1,40 +1,24 @@
-import axios from "axios";
-import { useState } from "react";
+import { useValue } from "@legendapp/state/react";
+import { authStore } from "./store/auth.store";
+import { RouterProvider } from "@tanstack/react-router";
+import { queryClient, router } from "./router";
+import { QueryClientProvider } from "@tanstack/react-query";
 
-function App() {
-  const [img, setImg] = useState<File | null>(null);
-  const [text, setText] = useState("");
-
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const formData = new FormData();
-    if (img) {
-      formData.append("file", img);
-    }
-    formData.append("text", text);
-
-    axios.post("http://localhost:8000/api/v1/me", formData);
-  }
+const App = () => {
+  const isLoggedIn = useValue(() => authStore.isLoggedIn.get());
+  const user = useValue(() => authStore.user.get());
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="file"
-          onChange={(e) => {
-            const selectedFile = e.target.files?.[0] ?? null;
-            setImg(selectedFile);
-          }}
-        />
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button type="submit">Upload</button>
-      </form>
-    </>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider
+        router={router}
+        context={{
+          queryClient,
+          isLoggedIn,
+          user,
+        }}
+      />
+    </QueryClientProvider>
   );
-}
+};
 
 export default App;

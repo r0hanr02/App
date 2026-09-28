@@ -86,9 +86,9 @@ export const getAllOrganization = asyncHandler(
     const userId = (req as any).userId || (req as any).user?.id;
     const memberships = await OrganizationMember.find({
       user_id: userId,
-    });
+    })
+    .populate("organization_id", "organization_name");
     // .populate("user_id", "name email")
-    // .populate("organization_id", "organization_name");
     res.status(200).json({
       message: "data fetched Successfully",
       data: memberships,
@@ -201,9 +201,8 @@ export const deleteOrganization = asyncHandler(
     try {
       session.startTransaction();
 
-      const organization = await Organization.findById(organizationId).session(
-        session
-      );
+      const organization =
+        await Organization.findById(organizationId).session(session);
       if (!organization) {
         throw new AppError("Organization not found", 404);
       }
@@ -236,9 +235,6 @@ export const deleteOrganization = asyncHandler(
       await session.commitTransaction();
       res.status(200).json({
         message: "Organization Deleted Successfully.",
-        data: {
-          deletedProjects: projectIds.length,
-        },
       });
     } catch (error: any) {
       if (session.inTransaction()) await session.abortTransaction();

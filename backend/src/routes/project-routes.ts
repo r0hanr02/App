@@ -3,17 +3,21 @@ import authMiddleware from "../middlewares/auth-middleware.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
 import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
 import {
+  addMemberInProject,
   createProject,
   getAllProject,
   getProject,
   updateProject,
+  getAllMemberInProject,
+  removeMemberFromProject,
+  deleteProject,
 } from "../controllers/project-controller.ts";
-import { requireProjectMember } from "../middlewares/auth-project-member.ts";
+import { requireProjectAccess } from "../middlewares/auth-project-member.ts";
 
 const router = express.Router();
 
 router.post(
-  "/organization/:organizationId/project",
+  "/organization/:organizationId/projects",
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),
@@ -33,13 +37,12 @@ router.get(
   "/organization/:organizationId/projects/:projectId",
   authMiddleware,
   requireOrganizationMember,
-  requireOrganizationRole("OWNER", "ADMIN"),
-  requireProjectMember,
+  requireProjectAccess,
   getProject
 );
 
 router.patch(
-  "/organization/:organizationId/projects/:projectId/update",
+  "/organization/:organizationId/projects/:projectId",
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),
@@ -47,33 +50,42 @@ router.patch(
   updateProject
 );
 
+// Project Member
+
+router.post(
+  "/organization/:organizationId/projects/:projectId/members",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER", "ADMIN"),
+  requireProjectAccess,
+  addMemberInProject
+);
+
+router.get(
+  "/organization/:organizationId/projects/:projectId/members",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER", "ADMIN"),
+  requireProjectAccess,
+  getAllMemberInProject
+);
+
+router.delete(
+  "/organization/:organizationId/projects/:projectId/members/:userId",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER", "ADMIN"),
+  requireProjectAccess,
+  removeMemberFromProject
+);
+
+router.delete(
+  "/organization/:organizationId/projects/:projectId",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER"),
+  requireProjectAccess,
+  deleteProject
+);
 
 export default router;
-
-// Informational responses (100 – 199)
-// Successful responses (200 – 299)
-// Redirection messages (300 – 399)
-// Client error responses (400 – 499)
-// Server error responses (500 – 599)
-
-// Projects
-// │
-// ├── POST   /organizations/:organizationId/projects
-// ├── GET    /organizations/:organizationId/projects //get all project of the organization
-// ├── GET    /organizations/:organizationId/projects/:projectId //get specific project of that organization
-// ├── PATCH  /organizations/:organizationId/projects/:projectId
-// └── DELETE /organizations/:organizationId/projects/:projectId
-
-// Project Members
-// │
-// ├── GET    /organizations/:organizationId/projects/:projectId/members
-//get all member who is working on this project
-// ├── POST   /organizations/:organizationId/projects/:projectId/members
-//add a user in the Project
-{
-  // later update
-  // ├── PATCH  /organizations/:organizationId/projects/:projectId/members/:userId
-  //Modify information about that user's membership in the project.
-}
-// └── DELETE /organizations/:organizationId/projects/:projectId/members/:userId
-//Remove a user from a specific project.

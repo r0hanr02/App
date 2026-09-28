@@ -12,7 +12,10 @@ export const requireOrganizationMember = async (
   try {
     const organizationId = (req.params as any).organizationId as string;
 
-    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId as string)) {
+    if (
+      !organizationId ||
+      !mongoose.Types.ObjectId.isValid(organizationId as string)
+    ) {
       return next(new AppError("Invalid organization id", 400));
     }
 
@@ -21,7 +24,12 @@ export const requireOrganizationMember = async (
       return next(new AppError("Organization not found", 404));
     }
 
-    const currentUserId = (req as any).userId || (req as any).user?.id || (req as any).user?._id;
+    const currentUserId =
+      (req as any).userId || (req as any).user?.id || (req as any).user?._id;
+
+    if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
+      return next(new AppError("Forbidden: Invalid User Id", 400));
+    }
 
     const membership = await OrganizationMember.findOne({
       organization_id: organizationId,
@@ -29,7 +37,12 @@ export const requireOrganizationMember = async (
     });
 
     if (!membership) {
-      return next(new AppError("Forbidden: You are not a member of this organization", 403));
+      return next(
+        new AppError(
+          "Forbidden: You are not a member of this organization",
+          403
+        )
+      );
     }
 
     req.organizationMember = membership;

@@ -1,5 +1,6 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
 import cors from "cors";
 import { connectDb } from "./src/db/db.ts";
 import { OrgRouter, ProjectRouter, UserRouter } from "./src/routes/index.ts";
@@ -9,7 +10,7 @@ import { swaggerSpec } from "./src/docs/swagger.ts";
 import pinoHttp from "pino-http";
 import { logger } from "./src/utils/logger.ts";
 import { errorHandler, notFound } from "./src/middlewares/error-middleware.ts";
-dotenv.config();
+
 
 const app = express();
 

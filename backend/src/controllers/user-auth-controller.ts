@@ -15,13 +15,13 @@ const saltRound = process.env.SALT_ROUND
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
-    const { name, email, password, phone, dateOfBirth, profilepic } = req.body;
+    const { name, email, password, phone, dateOfBirth } = req.body;
 
     if (!name?.trim() || !email?.trim() || !password) {
       throw new AppError("Name, email and password are required", 400);
     }
-    // if (profilepic) {
-    // }
+
+    const profilePicUrl = req.file ? req.file.path : "";
 
     const isUserExist = await User.findOne({
       email: email.trim().toLowerCase(),
@@ -37,7 +37,7 @@ export const registerUser = asyncHandler(
       password: hashPassword,
       phone,
       dateOfBirth,
-      profilepic: profilepic ? profilepic : "",
+      profilepic: profilePicUrl,
     });
 
     res.status(201).json({
@@ -166,6 +166,10 @@ export const authMe = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const refreshTokenFromCookies = req.cookies?.refreshToken;
 
+    if (!refreshTokenFromCookies) {
+      throw new AppError("Token not found", 401);
+    }
+
     const decoded = jwt.verify(
       refreshTokenFromCookies,
       process.env.REFRESH_TOKEN_KEY!
@@ -198,11 +202,64 @@ export const authMe = asyncHandler(
         id: user.id,
         name: user.name,
         email: user.email,
+        profilepic: user.profilepic,
       },
     });
   }
 );
 
-export const updateMe = asyncHandler(async (req, res) => {
-  console.log(req.body)
-});
+export const updateMe = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req?.userId;
+    const { name, email, phone, dateOfBirth } = req.body;
+
+    const updateData: Record<string, unknown> = {};
+
+    if (typeof name === "string" && name.trim()) {
+      updateData.name = name.trim();
+    }
+
+    if (typeof email === "string" && email.trim()) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const emailTaken = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: userId },
+      });
+      if (emailTaken) {
+        throw new AppError("Email already in use", 409);
+      }
+      updateData.email = normalizedEmail;
+    }
+
+    if (typeof phone === "string" && phone.trim()) {
+      updateData.phone = phone.trim();
+    }
+
+    if (typeof dateOfBirth === "string" && dateOfBirth.trim()) {
+      updateData.dateOfBirth = dateOfBirth.trim();
+    }
+
+    if (req.file?.path) {
+      updateData.profilepic = req.file.path;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new AppError("No valid fields provided for update", 400);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      throw new AppError("User not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User Updated successfully",
+      data: updatedUser,
+    });
+  }
+);

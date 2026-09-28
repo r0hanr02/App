@@ -1,3 +1,4 @@
+import type { NextFunction } from "express";
 import mongoose from "mongoose";
 
 const organizationSchema = new mongoose.Schema(
@@ -6,7 +7,7 @@ const organizationSchema = new mongoose.Schema(
       type: String,
       required: [true, "Organization Name is Required"],
       trim: true,
-      unique:true,
+      unique: true,
       validate: {
         validator: (value: string) => value.trim().length > 0,
         message: "Organization Name cannot be Empty",
@@ -29,10 +30,7 @@ const organizationSchema = new mongoose.Schema(
   }
 );
 
-export const Organization = mongoose.model(
-  "Organization",
-  organizationSchema
-);
+export const Organization = mongoose.model("Organization", organizationSchema);
 
 const VALID_ROLES = ["OWNER", "ADMIN", "MEMBER"] as const;
 
@@ -73,47 +71,14 @@ const orgMemberSchema = new mongoose.Schema(
 // A user cannot join the same organization twice
 orgMemberSchema.index({ organization_id: 1, user_id: 1 }, { unique: true });
 
-// Prevent removing/demoting the last remaining OWNER of an organization
 // orgMemberSchema.pre(
-//   "deleteOne",
-//   { document: true, query: false },
-//   async function (next) {
-//     if (this.role === "OWNER") {
-//       const otherOwners = await mongoose.model("OrganizationMember").countDocuments({
-//         organization_id: this.organization_id,
-//         role: "OWNER",
-//         _id: { $ne: this._id },
-//       });
-//       if (otherOwners === 0) {
-//         return next(
-//           new Error("Cannot remove the last owner of an organization")
-//         );
-//       }
-//     }
-//     next();
+//   "findOneAndDelete",
+//   { document: false, query: true },
+//   async function (this, next) {
+//     const docsToUpdate = this.model?.role
+//     console.log(docsToUpdate)
 //   }
 // );
-
-// orgMemberSchema.pre("save", async function (next) {
-//   if (!this.isNew && this.isModified("role") && this.role !== "OWNER") {
-//     const existing = await mongoose
-//       .model("OrganizationMember")
-//       .findById(this._id);
-//     if (existing?.role === "OWNER") {
-//       const otherOwners = await mongoose.model("OrganizationMember").countDocuments({
-//         organization_id: this.organization_id,
-//         role: "OWNER",
-//         _id: { $ne: this._id },
-//       });
-//       if (otherOwners === 0) {
-//         return next(
-//           new Error("Cannot demote the last owner of an organization")
-//         );
-//       }
-//     }
-//   }
-//   next();
-// });
 
 export const OrganizationMember = mongoose.model(
   "OrganizationMember",

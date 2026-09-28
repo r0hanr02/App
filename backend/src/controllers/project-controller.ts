@@ -1,7 +1,13 @@
 import type { Response } from "express";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 import type { OrganizationParams } from "./organization-controller.ts";
-import { Project, ProjectMember } from "../models/index.ts";
+import {
+  Project,
+  ProjectMember,
+  OrganizationMember,
+  User,
+  Task,
+} from "../models/index.ts";
 import { AppError, asyncHandler } from "../middlewares/error-middleware.ts";
 import mongoose from "mongoose";
 
@@ -22,6 +28,17 @@ export const createProject = asyncHandler(
     }
 
     const userId = (req as any).userId || (req as any).user?.id;
+    const existingProject = await Project.findOne({
+      project_name: project_name.trim(),
+      organization_id,
+    });
+
+    if (existingProject) {
+      throw new AppError(
+        "A project with this name already exists in this organization",
+        409
+      );
+    }
 
     const session = await mongoose.startSession();
     try {
@@ -41,7 +58,6 @@ export const createProject = asyncHandler(
         data: newProject,
       });
     } catch (error: any) {
-      if (session.inTransaction()) await session.abortTransaction();
       if (error instanceof AppError) throw error;
       if (error.code === 11000)
         throw new AppError("Project already exists", 409);
@@ -161,4 +177,214 @@ export const updateProject = asyncHandler(
   }
 );
 
-// export const
+// Add Member in Project — inline tenant checks (no separate middleware)
+export const addMemberInProject = asyncHandler(
+  async (
+    req: AuthenticatedRequest<{
+      organizationId?: string;
+      projectId?: string;
+    }>,
+    res: Response
+  ) => {
+    const { organizationId, projectId } = req.params;
+    const { user_id } = req.body;
+
+    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+      throw new AppError("Invalid organization id", 400);
+    }
+
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      throw new AppError("Invalid project id", 400);
+    }
+
+    if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
+      throw new AppError("Invalid user id", 400);
+    }
+
+    // Tenant isolation: project must belong to org (no separate middleware)
+    const project = await Project.findById(projectId);
+    if (!project) {
+      throw new AppError("Project not found", 404);
+    }
+    if (project.organization_id.toString() !== organizationId) {
+      throw new AppError("Project does not belong to this organization", 403);
+    }
+
+    // Target must exist
+    const targetUser = await User.findById(user_id);
+    if (!targetUser) {
+      throw new AppError("Target user not found", 404);
+    }
+
+    // Target must be org member
+    const orgMembership = await OrganizationMember.findOne({
+      organization_id: organizationId,
+      user_id,
+    });
+    if (!orgMembership) {
+      throw new AppError(
+        "Target user is not a member of this organization",
+        400
+      );
+    }
+
+    // Prevent duplicate (also guarded by unique index)
+    const existing = await ProjectMember.findOne({
+      project_id: projectId,
+      user_id,
+    });
+    if (existing) {
+      throw new AppError("User is already a member of this project", 409);
+    }
+
+    try {
+      const newMember = await ProjectMember.create({
+        project_id: projectId,
+        user_id,
+      });
+
+      return res.status(201).json({
+        message: "User Added Successfully",
+        data: newMember,
+      });
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new AppError("User is already a member of this project", 409);
+      }
+      throw error;
+    }
+  }
+);
+
+export const getAllMemberInProject = asyncHandler(
+  async (
+    req: AuthenticatedRequest<
+      OrganizationParams & {
+        organizationId?: string;
+        projectId?: string;
+      }
+    >,
+    res: Response
+  ) => {
+    const { organizationId, projectId } = req.params;
+
+    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+      throw new AppError("Invalid organization id", 400);
+    }
+
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      throw new AppError("Invalid project id", 400);
+    }
+
+    // Tenant isolation inline (no separate middleware)
+    const project = await Project.findById(projectId);
+    if (!project) {
+      throw new AppError("Project not found", 404);
+    }
+    if (project.organization_id.toString() !== organizationId) {
+      throw new AppError("Project does not belong to this organization", 403);
+    }
+
+    const members = await ProjectMember.find({
+      project_id: projectId,
+    }).populate("user_id", "name email");
+    return res.status(200).json({
+      message: "Project members fetched successfully",
+      data: members,
+    });
+  }
+);
+
+export const removeMemberFromProject = asyncHandler(
+  async (
+    req: AuthenticatedRequest<{
+      organizationId?: string;
+      projectId?: string;
+      userId?: string;
+    }>,
+    res: Response
+  ) => {
+    const { organizationId, projectId, userId } = req.params as any;
+
+    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+      throw new AppError("Invalid organization id", 400);
+    }
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      throw new AppError("Invalid project id", 400);
+    }
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      throw new AppError("Invalid user id", 400);
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      throw new AppError("Project not found", 404);
+    }
+    if (project.organization_id.toString() !== organizationId) {
+      throw new AppError("Project does not belong to this organization", 403);
+    }
+
+    const membership = await ProjectMember.findOne({
+      project_id: projectId,
+      user_id: userId,
+    });
+    if (!membership) {
+      throw new AppError("Project member not found", 404);
+    }
+
+    await membership.deleteOne();
+
+    return res.status(200).json({
+      message: "User removed from project successfully",
+    });
+  }
+);
+
+export const deleteProject = asyncHandler(
+  async (
+    req: AuthenticatedRequest<{
+      organizationId?: string;
+      projectId?: string;
+    }>,
+    res: Response
+  ) => {
+    const { organizationId, projectId } = req.params as any;
+
+    if (!organizationId || !mongoose.Types.ObjectId.isValid(organizationId)) {
+      throw new AppError("Invalid organization id", 400);
+    }
+    if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
+      throw new AppError("Invalid project id", 400);
+    }
+
+    const session = await mongoose.startSession();
+    try {
+      session.startTransaction();
+
+      const project = await Project.findById(projectId).session(session);
+      if (!project) {
+        throw new AppError("Project not found", 404);
+      }
+      if (project.organization_id.toString() !== organizationId) {
+        throw new AppError("Project does not belong to this organization", 403);
+      }
+
+      await Task.deleteMany({ project_id: projectId }).session(session);
+      await ProjectMember.deleteMany({ project_id: projectId }).session(
+        session
+      );
+      await Project.findByIdAndDelete(projectId).session(session);
+
+      await session.commitTransaction();
+      return res.status(200).json({
+        message: "Project deleted successfully",
+      });
+    } catch (error: any) {
+      if (session.inTransaction()) await session.abortTransaction();
+      if (error instanceof AppError) throw error;
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+);

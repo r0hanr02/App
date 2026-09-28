@@ -44,6 +44,7 @@ const authMiddleware = async (
       id: user._id.toString(),
       email: (user as any).email,
       name: (user as any).name,
+      profilepic:(user as any).profilepic
     };
 
     next();

@@ -4,12 +4,12 @@ import {
   addMember,
   changeMemberRole,
   createOrganization,
+  deleteOrganization,
   getAllOrganization,
   getOrganization,
   getOrganizationMembers,
   leaveOrganization,
   removeMember,
-  removeOrganization,
   updateOrganizationData,
 } from "../controllers/organization-controller.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
@@ -36,16 +36,23 @@ router.delete(
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER"),
-  removeOrganization
+  deleteOrganization
 );
 router.delete(
-  "/organization/:organizationId/leave",
+  "/organization/:organizationId/me",
+  authMiddleware,
+  requireOrganizationMember,
+  leaveOrganization
+);
+// Spec alias: DELETE /organization/:organizationId/member/me (keep /me for backward compat)
+router.delete(
+  "/organization/:organizationId/member/me",
   authMiddleware,
   requireOrganizationMember,
   leaveOrganization
 );
 router.patch(
-  "/organization/:organizationId/update",
+  "/organization/:organizationId",
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER","ADMIN"),
@@ -63,7 +70,7 @@ router.post(
 );
 
 router.patch(
-  "/organization/:organizationId/change-role",
+  "/organization/:organizationId/member/:userId",
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER"),

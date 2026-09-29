@@ -4,6 +4,7 @@ import type { OrganizationParams } from "./organization-controller.ts";
 import { Task, User } from "../models/index.ts";
 import type { AuthenticatedRequest } from "../middlewares/auth-middleware.ts";
 import mongoose from "mongoose";
+import { VALID_TASK_STATUSES } from "../models/task-model.ts";
 
 export const createTask = asyncHandler(
   async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
@@ -70,8 +71,14 @@ export const getTaskDetails = asyncHandler(
 
 export const getAllTask = asyncHandler(
   async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
-    const { projectId } = req.params;
+    const { projectId, organizationId } = req.params;
+    const { status, priority, assignee_id } = req.query;
 
+    // if(typeof status === "string"){
+    //     if(!VALID_TASK_STATUSES.includes(status.toUpperCase())){
+
+    //     }
+    // }
     const taskData = await Task.find({
       project_id: projectId,
     })

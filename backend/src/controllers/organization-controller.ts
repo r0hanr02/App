@@ -86,8 +86,7 @@ export const getAllOrganization = asyncHandler(
     const userId = (req as any).userId || (req as any).user?.id;
     const memberships = await OrganizationMember.find({
       user_id: userId,
-    })
-    .populate("organization_id", "organization_name");
+    }).populate("organization_id", "organization_name");
     // .populate("user_id", "name email")
     res.status(200).json({
       message: "data fetched Successfully",

@@ -8,7 +8,7 @@ export const swaggerSpec = swaggerJsdoc({
       title: "Multi-Tenant Developer Collaboration Platform",
       version: "1.0.0",
       description:
-        "API documentation for the Multi Tenant SaaS application. All error responses are standardized by `backend/src/middlewares/error-middleware.ts:29` -> `errorHandler` with shape `{ success: false, message, errors? }`. See schemas `ErrorResponse` / `ValidationErrorResponse`.",
+        "API documentation for the Multi Tenant SaaS application. All error responses are standardized by `backend/src/middlewares/error-middleware.ts:29` -> `errorHandler` with shape `{ success: false, message, errors? }`. See schemas `ErrorResponse` / `ValidationErrorResponse`. NOTE: user-auth controllers return `{ success, message, ... }` but organization/project controllers return `{ message, data }` with NO `success` field — documented per-controller below.",
     },
 
     servers: [
@@ -25,7 +25,11 @@ export const swaggerSpec = swaggerJsdoc({
     tags: [
       {
         name: "Authentication",
-        description: "User authentication APIs",
+        description: "User authentication APIs (register/login/logout/refresh/me)",
+      },
+      {
+        name: "User",
+        description: "Current-user profile APIs (GET /me, PATCH /me)",
       },
       {
         name: "Organization",
@@ -38,6 +42,10 @@ export const swaggerSpec = swaggerJsdoc({
       {
         name: "Project",
         description: "Project management APIs",
+      },
+      {
+        name: "Project Members",
+        description: "Project member management APIs",
       },
     ],
 
@@ -151,6 +159,21 @@ export const swaggerSpec = swaggerJsdoc({
               type: "string",
               example: "2000-01-15",
             },
+            profilepic: {
+              type: "string",
+              example: "uploads/profile-123.jpg",
+              description: "Multer file path (`req.file.path`) or empty string",
+            },
+          },
+        },
+        AuthUser: {
+          type: "object",
+          description: "Shape returned by login / authMe (user-auth-controller.ts:96,201) — note: no phone/dateOfBirth",
+          properties: {
+            id: { type: "string", example: "68c123456789abcdef123456" },
+            name: { type: "string", example: "Rohan" },
+            email: { type: "string", format: "email", example: "rohan@example.com" },
+            profilepic: { type: "string", example: "uploads/profile-123.jpg" },
           },
         },
 
@@ -298,6 +321,35 @@ export const swaggerSpec = swaggerJsdoc({
               type: "string",
               example: "68c555555555abcdef555555",
             },
+            createdAt: {
+              type: "string",
+              format: "date-time",
+              example: "2026-09-20T12:00:00.000Z",
+            },
+            updatedAt: {
+              type: "string",
+              format: "date-time",
+              example: "2026-09-20T12:00:00.000Z",
+            },
+          },
+        },
+
+        ProjectMemberWithUser: {
+          type: "object",
+          description: "Populated by `getAllMemberInProject` (.populate('user_id','name email'))",
+          properties: {
+            _id: { type: "string", example: "68c987654321abcdef654321" },
+            project_id: { type: "string", example: "68c123456789abcdef123456" },
+            user_id: {
+              type: "object",
+              properties: {
+                _id: { type: "string", example: "68c555555555abcdef555555" },
+                name: { type: "string", example: "Rohan" },
+                email: { type: "string", format: "email", example: "rohan@example.com" },
+              },
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
           },
         },
       },
@@ -308,18 +360,18 @@ export const swaggerSpec = swaggerJsdoc({
       // AUTHENTICATION
       // ============================================================
 
-      "/api/v1/register": {
+      "/api/v1/auth/register": {
         post: {
           summary: "Register a new user",
           description:
-            "Creates a new user account. Controller `backend/src/controllers/user-auth-controller.ts:10` throws AppError 400 for missing name/email/password, 409 for duplicate email, and relies on `error-middleware.ts:41-62` for Mongoose ValidationError (400 Validation failed + errors[]) and duplicate key 11000 (409 Duplicate value). Success is 201.",
+            "Creates a new user account. Route `backend/src/routes/user-routes.ts:16` -> `upload.single('profilepic')` -> `registerUser` `backend/src/controllers/user-auth-controller.ts:16`. Controller throws AppError 400 for missing name/email/password, 409 for duplicate email; model requires phone (ValidationError 400 if missing). `error-middleware.ts:41-62` maps Mongoose ValidationError (400) and duplicate key 11000 (409). Success is 201 with `profilepic` = `req.file.path` or empty string.",
           tags: ["Authentication"],
 
           requestBody: {
             required: true,
 
             content: {
-              "application/json": {
+              "multipart/form-data": {
                 schema: {
                   type: "object",
 
@@ -346,11 +398,18 @@ export const swaggerSpec = swaggerJsdoc({
                     phone: {
                       type: "string",
                       example: "9876543210",
+                      description: "Required by user-model.ts (unique, sparse). Missing -> 400 Validation failed.",
                     },
 
                     dateOfBirth: {
                       type: "string",
                       example: "2000-01-15",
+                    },
+
+                    profilepic: {
+                      type: "string",
+                      format: "binary",
+                      description: "Optional profile image file (multer field `profilepic`)",
                     },
                   },
                 },
@@ -376,6 +435,7 @@ export const swaggerSpec = swaggerJsdoc({
                           email: { type: "string", example: "rohan@example.com" },
                           phone: { type: "string", example: "9876543210" },
                           dateOfBirth: { type: "string", example: "2000-01-15" },
+                          profilepic: { type: "string", example: "uploads/profile-123.jpg" },
                         },
                       },
                     },
@@ -386,7 +446,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - missing fields or validation failed. AppError `Name, email and password are required` (400) or Mongoose ValidationError mapped by `error-middleware.ts:41` to 400 `Validation failed` with errors[]. CastError also 400 `Invalid path: value`. ZodError 400 `Validation failed` with issues.",
+                "Bad request - AppError `Name, email and password are required` (400) or Mongoose ValidationError mapped by `error-middleware.ts:41` to 400 `Validation failed` with errors[] (e.g. phone required, invalid email).",
               content: {
                 "application/json": {
                   schema: {
@@ -401,16 +461,12 @@ export const swaggerSpec = swaggerJsdoc({
                       value: { success: false, message: "Name, email and password are required" },
                     },
                     validation: {
-                      summary: "Mongoose ValidationError",
+                      summary: "Mongoose ValidationError (phone required)",
                       value: {
                         success: false,
                         message: "Validation failed",
-                        errors: [{ field: "email", message: "Email must be a valid email address" }],
+                        errors: [{ field: "phone", message: "phone is Required" }],
                       },
-                    },
-                    cast: {
-                      summary: "CastError",
-                      value: { success: false, message: "Invalid _id: 123" },
                     },
                   },
                 },
@@ -419,7 +475,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             409: {
               description:
-                "Conflict - duplicate. AppError `User Already Exists` (409) when email exists or Duplicate key 11000 mapped by `error-middleware.ts:57` to 409 `Duplicate value for email/phone` with errors: keyValue.",
+                "Conflict - AppError `User Already Exists` (409) when email exists or Duplicate key 11000 mapped by `error-middleware.ts:57` to 409 `Duplicate value for email/phone`.",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
@@ -454,11 +510,11 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
-      "/api/v1/login": {
+      "/api/v1/auth/login": {
         post: {
           summary: "Login user",
           description:
-            "Authenticates a user and returns an access token. The refresh token is stored in an HTTP-only cookie. Controller `backend/src/controllers/user-auth-controller.ts:44` + error-middleware mapping.",
+            "Authenticates a user and returns an access token. The refresh token is stored in an HTTP-only cookie. Controller `backend/src/controllers/user-auth-controller.ts:58` + error-middleware mapping. Response `user` contains only `{ id, name, email, profilepic }`.",
           tags: ["Authentication"],
 
           requestBody: {
@@ -511,7 +567,7 @@ export const swaggerSpec = swaggerJsdoc({
                       },
 
                       user: {
-                        $ref: "#/components/schemas/User",
+                        $ref: "#/components/schemas/AuthUser",
                       },
                     },
                   },
@@ -520,7 +576,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             400: {
-              description: "Bad request - AppError `Email and password are required` (400) from `user-auth-controller.ts:48`. Also ValidationError/ZodError/CastError 400 via error-middleware.",
+              description: "Bad request - AppError `Email and password are required` (400) from `user-auth-controller.ts:62`.",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -530,7 +586,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             401: {
-              description: "Unauthorized - AppError `Invalid credentials` (401) when password mismatch (`user-auth-controller.ts:60`). Standard shape `error-middleware.ts:95`",
+              description: "Unauthorized - AppError `Invalid credentials` (401) when password mismatch (`user-auth-controller.ts:76`). Standard shape `error-middleware.ts:95`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -540,7 +596,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - AppError `User not found` (404) when email not found (`user-auth-controller.ts:54`)",
+              description: "Not found - AppError `User not found` (404) when email not found (`user-auth-controller.ts:70`)",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -562,11 +618,11 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
-      "/api/v1/logout": {
+      "/api/v1/auth/logout": {
         post: {
           summary: "Logout user",
           description:
-            "Logs out the current user and clears the refresh token cookie. Controller `backend/src/controllers/user-auth-controller.ts:88` never throws AppError - always 200 even if no cookie. Errors only via `error-middleware.ts` 500 fallback. No auth required.",
+            "Logs out the current user and clears the refresh token cookie. Controller `backend/src/controllers/user-auth-controller.ts:105` never throws AppError - always 200 even if no cookie. Errors only via `error-middleware.ts` 500 fallback. No auth required.",
           tags: ["Authentication"],
 
           security: [
@@ -605,11 +661,11 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
-      "/api/v1/refresh": {
+      "/api/v1/auth/refresh": {
         post: {
           summary: "Refresh access token",
           description:
-            "Generates a new access token using the refresh token stored in the HTTP-only cookie. Controller `backend/src/controllers/user-auth-controller.ts:124` + error-middleware.",
+            "Generates a new access token using the refresh token stored in the HTTP-only cookie. Controller `backend/src/controllers/user-auth-controller.ts:141` + error-middleware. Does NOT rotate the refresh token (unlike GET /me).",
           tags: ["Authentication"],
 
           security: [
@@ -645,7 +701,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             401: {
-              description: "Unauthorized - AppError `Refresh token missing` (401) when cookie absent (`user-auth-controller.ts:128`) or JWT errors `Invalid token`/`Token expired` via `error-middleware.ts:65-71`",
+              description: "Unauthorized - AppError `Refresh token missing` (401) when cookie absent (`user-auth-controller.ts:146`) or JWT errors `Invalid token`/`Token expired` via `error-middleware.ts:65-71`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -655,11 +711,187 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             403: {
-              description: "Forbidden - AppError `Invalid refresh token` (403) when token not found in DB (`user-auth-controller.ts:133`)",
+              description: "Forbidden - AppError `Invalid refresh token` (403) when token not found in DB (`user-auth-controller.ts:152`)",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
                   example: { success: false, message: "Invalid refresh token" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // ============================================================
+      // CURRENT USER
+      // ============================================================
+
+      "/api/v1/auth/me": {
+        get: {
+          summary: "Get authenticated user (rotates tokens)",
+          description:
+            "Verifies the refresh token cookie, rotates both tokens and returns the user. Route `backend/src/routes/user-routes.ts:20` -> `authMe` `backend/src/controllers/user-auth-controller.ts:165`. Uses `jwt.verify(cookie, REFRESH_TOKEN_KEY)` directly (no Bearer auth). Sets a new `refreshToken` HTTP-only cookie. JWT errors map via `error-middleware.ts:65` to 401 `Invalid token` / `Token expired`.",
+          tags: ["User", "Authentication"],
+
+          security: [
+            {
+              refreshTokenCookie: [],
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Authenticated user",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      success: { type: "boolean", example: true },
+                      message: { type: "string", example: "Authenticated User" },
+                      accessToken: { type: "string", example: "eyJhbGciOiJIUzI1NiIs..." },
+                      user: { $ref: "#/components/schemas/AuthUser" },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - AppError `Token not found` (401) when cookie absent (`user-auth-controller.ts:170`), or `Invalid token` / `Token expired` (401) from jwt.verify via error-middleware",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token not found" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - AppError `User not found` (404) when decoded id has no user (`user-auth-controller.ts:181`)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "User not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        patch: {
+          summary: "Update current user",
+          description:
+            "Updates name/email/phone/dateOfBirth/profilepic for the Bearer-authenticated user. Route `backend/src/routes/user-routes.ts:21` -> `authMiddleware` (401) -> `upload.single('profilepic')` -> `updateMe` `backend/src/controllers/user-auth-controller.ts:211`. Only non-empty fields are applied; empty body -> 400 `No valid fields provided for update`. Email is lowercased and checked for uniqueness -> 409 `Email already in use`. Uses `findByIdAndUpdate(runValidators:true)` so ValidationError 400 / duplicate 409 apply.",
+          tags: ["User"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          requestBody: {
+            required: true,
+            content: {
+              "multipart/form-data": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: "string", example: "Rohan Updated" },
+                    email: { type: "string", format: "email", example: "rohan.new@example.com" },
+                    phone: { type: "string", example: "9876543210" },
+                    dateOfBirth: { type: "string", example: "2000-01-15" },
+                    profilepic: {
+                      type: "string",
+                      format: "binary",
+                      description: "Optional new profile image (multer field `profilepic`, saved as `req.file.path`)",
+                    },
+                  },
+                },
+              },
+            },
+          },
+
+          responses: {
+            200: {
+              description: "User updated successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      success: { type: "boolean", example: true },
+                      message: { type: "string", example: "User Updated successfully" },
+                      data: { $ref: "#/components/schemas/User" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `No valid fields provided for update` (400) when body empty/blank, or ValidationError 400 `Validation failed`, CastError 400",
+              content: {
+                "application/json": {
+                  schema: {
+                    oneOf: [
+                      { $ref: "#/components/schemas/ErrorResponse" },
+                      { $ref: "#/components/schemas/ValidationErrorResponse" },
+                    ],
+                  },
+                  example: { success: false, message: "No valid fields provided for update" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `User not found` (404) when userId has no user",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "User not found" },
+                },
+              },
+            },
+
+            409: {
+              description: "Conflict - `Email already in use` (409) or duplicate key 11000 via error-middleware",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
+                  example: { success: false, message: "Email already in use" },
                 },
               },
             },
@@ -685,7 +917,7 @@ export const swaggerSpec = swaggerJsdoc({
         post: {
           summary: "Create an organization",
           description:
-            "Creates a new organization and makes the authenticated user its owner. Route `backend/src/routes/organization-routes.ts:20` -> `authMiddleware` (401) -> `createOrganization` `backend/src/controllers/organization-controller.ts:16`. error-middleware maps ValidationError 400, duplicate 409, CastError 400, AppError codes.",
+            "Creates a new organization and makes the authenticated user its OWNER in a mongoose transaction. Route `backend/src/routes/organization-routes.ts:20` -> `authMiddleware` (401) -> `createOrganization` `backend/src/controllers/organization-controller.ts:23`. Slug defaults to `organization_name.trim().toLowerCase().replaceAll(' ','_')`. Duplicate slug/name caught in-session -> 409 `Organization name already exists`. NOTE: success response has NO `success` field: `{ message, data }`. error-middleware maps ValidationError 400, duplicate 409, CastError 400, AppError codes.",
           tags: ["Organization"],
 
           security: [
@@ -723,7 +955,7 @@ export const swaggerSpec = swaggerJsdoc({
 
           responses: {
             201: {
-              description: "Organization created successfully",
+              description: "Organization created successfully (shape `{ message, data }`, no `success` field)",
 
               content: {
                 "application/json": {
@@ -731,7 +963,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Organization created Successfully",
@@ -748,7 +979,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - AppError `Organization Name cannot be Empty` (400) or Mongoose ValidationError 400 `Validation failed` (e.g., `organization_name` required, `Slug cannot be Empty`) via `error-middleware.ts:41`, or CastError 400 `Invalid _id: value`, or ZodError 400.",
+                "Bad request - AppError `Organization Name cannot be Empty` (400) or Mongoose ValidationError 400 `Validation failed` (e.g., `organization_name` required, `Slug cannot be Empty`) via `error-middleware.ts:41`, or CastError 400, or ZodError 400.",
               content: {
                 "application/json": {
                   schema: {
@@ -792,7 +1023,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             409: {
               description:
-                "Conflict - AppError `Organization name already exists` (409) or Duplicate key 11000 `Duplicate value for organization_name/slug` via `error-middleware.ts:57`",
+                "Conflict - AppError `Organization name already exists` (409) on duplicate slug/name inside the transaction (`organization-controller.ts:75`) or Duplicate key 11000 `Duplicate value for organization_name/slug` via `error-middleware.ts:57`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
@@ -817,7 +1048,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get all user's organizations",
           description:
-            "Gets the organization memberships belonging to the authenticated user. Route `backend/src/routes/organization-routes.ts:21` -> `authMiddleware` -> `getAllOrganization` `backend/src/controllers/organization-controller.ts:75`. Only auth errors.",
+            "Gets the organization memberships belonging to the authenticated user (populates `organization_id` with `organization_name` only). Route `backend/src/routes/organization-routes.ts:21` -> `authMiddleware` -> `getAllOrganization` `backend/src/controllers/organization-controller.ts:84`. Response shape `{ message, data }` with NO `success` field. Only auth errors.",
           tags: ["Organization"],
 
           security: [
@@ -836,7 +1067,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "data fetched Successfully",
@@ -878,7 +1108,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get an organization",
           description:
-            "Gets an organization by ID. Chain `backend/src/routes/organization-routes.ts:22` -> `authMiddleware` (401) -> `requireOrganizationMember` `backend/src/middlewares/auth-organization-member.ts:7` (400 Invalid organization id, 404 Organization not found, 403 Forbidden not member) -> `getOrganization` (400,404) -> errorHandler standard shape.",
+            "Gets an organization by ID. Chain `backend/src/routes/organization-routes.ts:22` -> `authMiddleware` (401) -> `requireOrganizationMember` `backend/src/middlewares/auth-organization-member.ts:7` (400 Invalid organization id / Forbidden: Invalid User Id, 404 Organization not found, 403 Forbidden not member) -> `getOrganization` (400,404). Response `{ message, data }`, no `success` field.",
           tags: ["Organization"],
 
           security: [
@@ -912,7 +1142,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "data fetched Successfully",
@@ -928,7 +1157,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             400: {
-              description: "Bad request - AppError `Invalid organization id` (400) from `auth-organization-member.ts:16` or `organization-controller.ts:90` or CastError `Invalid _id: ...` or ValidationError 400. Also ZodError 400.",
+              description: "Bad request - AppError `Invalid organization id` (400) from `auth-organization-member.ts:19` or `organization-controller.ts:103`, or `Forbidden: Invalid User Id` (400), or CastError `Invalid _id: ...`, or ValidationError 400.",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -949,7 +1178,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - AppError `Forbidden: You are not a member of this organization` (403) from `auth-organization-member.ts:32` or `requireOrganizationRole` 403",
+                "Forbidden - AppError `Forbidden: You are not a member of this organization` (403) from `auth-organization-member.ts:43`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -959,7 +1188,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - AppError `Organization not found` (404) from `auth-organization-member.ts:21` or `organization-controller.ts:95` or `notFound` 404 `Not Found - /api/v1/...`",
+              description: "Not found - AppError `Organization not found` (404) from `auth-organization-member.ts:24` or `organization-controller.ts:108` or `notFound` 404 `Not Found - /api/v1/...`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -980,213 +1209,10 @@ export const swaggerSpec = swaggerJsdoc({
           },
         },
 
-        delete: {
-          summary: "Delete an organization",
-          description:
-            "Deletes an organization and all organization memberships. Chain `backend/src/routes/organization-routes.ts:34` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER')` `backend/src/middlewares/auth-required-role.ts:7` (403 You are not a member / You do not have permission) -> `removeOrganization` `backend/src/controllers/organization-controller.ts:141` (400 invalid id).",
-          tags: ["Organization"],
-
-          security: [
-            {
-              bearerAuth: [],
-            },
-          ],
-
-          parameters: [
-            {
-              name: "organizationId",
-              in: "path",
-              required: true,
-
-              schema: {
-                type: "string",
-              },
-
-              example: "68c123456789abcdef123456",
-            },
-          ],
-
-          responses: {
-            200: {
-              description: "Organization deleted successfully",
-
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-
-                    properties: {
-                      success: { type: "boolean", example: true },
-                      message: {
-                        type: "string",
-                        example: "Organization Deleted Successfully.",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-
-            400: {
-              description: "Bad request - `Invalid organization id` (400) via `auth-organization-member.ts:16` or controller 400, or Validation/Cast/Zod 400",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Invalid organization id" },
-                },
-              },
-            },
-
-            401: {
-              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / Invalid token / Token expired (401)",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Token Not Found" },
-                },
-              },
-            },
-
-            403: {
-              description:
-                "Forbidden - `Forbidden: You are not a member...` (403) or `You are not a member of this organization` (403) or `You do not have permission to perform this action` (403) when role != OWNER via `auth-required-role.ts:15-21`",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "You do not have permission to perform this action" },
-                },
-              },
-            },
-
-            404: {
-              description: "Not found - `Organization not found` (404) via requireOrganizationMember",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Organization not found" },
-                },
-              },
-            },
-
-            500: {
-              description: "Internal server error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Internal server error" },
-                },
-              },
-            },
-          },
-        },
-      },
-
-      "/api/v1/organization/{organizationId}/leave": {
-        delete: {
-          summary: "Leave an organization",
-          description:
-            "Removes the authenticated user from the organization. Chain `backend/src/routes/organization-routes.ts:41` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `leaveOrganization` `backend/src/controllers/organization-controller.ts:119` (400 invalid id, 404 Membership not found). errorHandler standardizes.",
-          tags: ["Organization"],
-
-          security: [
-            {
-              bearerAuth: [],
-            },
-          ],
-
-          parameters: [
-            {
-              name: "organizationId",
-              in: "path",
-              required: true,
-
-              schema: {
-                type: "string",
-              },
-
-              example: "68c123456789abcdef123456",
-            },
-          ],
-
-          responses: {
-            200: {
-              description: "Successfully left the organization",
-
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-
-                    properties: {
-                      success: { type: "boolean", example: true },
-                      message: {
-                        type: "string",
-                        example: "You've leaved the Organization",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-
-            400: {
-              description: "Bad request - `Invalid organization id` (400) from middleware or controller, or Validation/CastError 400",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Invalid organization id" },
-                },
-              },
-            },
-
-            401: {
-              description: "Unauthorized - Token Not Found / Session Expired etc (401)",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Token Not Found" },
-                },
-              },
-            },
-
-            403: {
-              description: "Forbidden - `Forbidden: You are not a member...` (403) via requireOrganizationMember",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Forbidden: You are not a member of this organization" },
-                },
-              },
-            },
-
-            404: {
-              description: "Not found - `Organization not found` (404) or `Membership not found` (404) from `leaveOrganization.ts:133`",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Membership not found" },
-                },
-              },
-            },
-
-            500: {
-              description: "Internal server error",
-              content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/ErrorResponse" },
-                  example: { success: false, message: "Internal server error" },
-                },
-              },
-            },
-          },
-        },
-      },
-
-      "/api/v1/organization/{organizationId}/update": {
         patch: {
           summary: "Update organization data",
           description:
-            "Updates the organization name and/or slug. Chain `backend/src/routes/organization-routes.ts:47` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `updateOrganizationData` `backend/src/controllers/organization-controller.ts:157` (400 invalid id, 400 At least one field required, 404 not found). Duplicate key 11000 -> 409 via error-middleware, ValidationError 400 `Validation failed`.",
+            "Updates the organization name and/or slug. Chain `backend/src/routes/organization-routes.ts:54` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `updateOrganizationData` `backend/src/controllers/organization-controller.ts:248` (400 invalid id, 400 At least one field required, 404 not found). Actual path is `PATCH /organization/:organizationId`. Duplicate key 11000 -> 409 via error-middleware, ValidationError 400 `Validation failed`. Response `{ message, data }`, no `success` field.",
           tags: ["Organization"],
 
           security: [
@@ -1246,7 +1272,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Organization data has been changed.",
@@ -1260,7 +1285,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `Invalid organization id` (400), `At least one field (organization_name or slug) is required` (400), ValidationError 400 `Validation failed` (e.g., Organization Name cannot be Empty, Slug cannot be Empty), CastError 400 `Invalid slug: ...`, ZodError 400",
+                "Bad request - `Invalid organization id` (400), `At least one field (organization_name or slug) is required` (400), ValidationError 400 `Validation failed` (e.g., Organization Name cannot be Empty, Slug cannot be Empty), CastError 400, ZodError 400",
               content: {
                 "application/json": {
                   schema: {
@@ -1282,10 +1307,6 @@ export const swaggerSpec = swaggerJsdoc({
                         errors: [{ field: "slug", message: "Slug cannot be Empty" }],
                       },
                     },
-                    cast: {
-                      summary: "CastError",
-                      value: { success: false, message: "Invalid organization_id: 123" },
-                    },
                   },
                 },
               },
@@ -1303,7 +1324,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: not a member` (403) or `You do not have permission...` (403) when role not OWNER/ADMIN via `auth-required-role.ts:20`",
+                "Forbidden - `Forbidden: not a member` (403) or `You are not a member of this organization` / `You do not have permission...` (403) when role not OWNER/ADMIN via `auth-required-role.ts:14-22`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1313,7 +1334,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `updateOrganizationData.ts:180`",
+              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `updateOrganizationData.ts:279`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1343,6 +1364,309 @@ export const swaggerSpec = swaggerJsdoc({
             },
           },
         },
+
+        delete: {
+          summary: "Delete an organization",
+          description:
+            "Deletes an organization with cascade (Projects -> Tasks -> ProjectMembers -> OrgMembers -> Org) in a transaction. Chain `backend/src/routes/organization-routes.ts:34` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER')` `backend/src/middlewares/auth-required-role.ts:7` (403 You are not a member / You do not have permission) -> `deleteOrganization` `backend/src/controllers/organization-controller.ts:190` (400 invalid id, 404 not found). Response `{ message }`, no `success` field.",
+          tags: ["Organization"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Organization deleted successfully",
+
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "Organization Deleted Successfully.",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` (400) via `auth-organization-member.ts:19` or controller, or `Forbidden: Invalid User Id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid organization id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / Invalid token / Token expired (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description:
+                "Forbidden - `Forbidden: You are not a member...` (403) or `You are not a member of this organization` (403) or `You do not have permission to perform this action` (403) when role != OWNER via `auth-required-role.ts:15-21`",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "You do not have permission to perform this action" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` (404) via requireOrganizationMember or deleteOrganization",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Organization not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/me": {
+        delete: {
+          summary: "Leave an organization",
+          description:
+            "Removes the authenticated user from the organization and cleans up their project memberships in that org. Chain `backend/src/routes/organization-routes.ts:41` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `leaveOrganization` `backend/src/controllers/organization-controller.ts:135` (400 invalid id, 400 last-owner guard, 404 Membership not found). Alias: `DELETE /organization/:organizationId/member/me` (same handler, `organization-routes.ts:48`). Response `{ message }`, no `success` field.",
+          tags: ["Organization"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Successfully left the organization",
+
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+
+                    properties: {
+                      message: {
+                        type: "string",
+                        example: "You've left the Organization",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` (400), or `Cannot leave: you are the last owner. Transfer ownership first ...` (400) via `leaveOrganization.ts:164`",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  examples: {
+                    invalid: { summary: "Invalid id", value: { success: false, message: "Invalid organization id" } },
+                    lastOwner: {
+                      summary: "Last owner",
+                      value: {
+                        success: false,
+                        message: "Cannot leave: you are the last owner. Transfer ownership first via POST /organization/:organizationId/transfer-ownership",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired etc (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - `Forbidden: You are not a member...` (403) via requireOrganizationMember",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Forbidden: You are not a member of this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` (404) or `Membership not found` (404) from `leaveOrganization.ts:153`",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Membership not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/member/me": {
+        delete: {
+          summary: "Leave an organization (spec alias)",
+          description:
+            "Alias of `DELETE /organization/:organizationId/me` kept for spec compat. Same chain `backend/src/routes/organization-routes.ts:48` -> `authMiddleware` -> `requireOrganizationMember` -> `leaveOrganization` `backend/src/controllers/organization-controller.ts:135`. See `/api/v1/organization/{organizationId}/me` for full error docs. Response `{ message }`.",
+          tags: ["Organization"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Successfully left the organization",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "You've left the Organization" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` (400) or last-owner guard (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid organization id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Forbidden: You are not a member of this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Membership not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Membership not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
       },
 
       // ============================================================
@@ -1353,7 +1677,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get organization members",
           description:
-            "Gets all members of an organization. Chain `backend/src/routes/organization-routes.ts:28` -> `authMiddleware` (401) -> `requireOrganizationMember` (400 Invalid organization id, 404 Organization not found, 403 Forbidden not member) -> `getOrganizationMembers` `backend/src/controllers/organization-controller.ts:103` (400 invalid id). errorHandler standardizes.",
+            "Gets all members of an organization (populates `user_id` with `name email`). Chain `backend/src/routes/organization-routes.ts:28` -> `authMiddleware` (401) -> `requireOrganizationMember` (400 Invalid organization id / Forbidden: Invalid User Id, 404 Organization not found, 403 Forbidden not member) -> `getOrganizationMembers` `backend/src/controllers/organization-controller.ts:117` (400 invalid id). Response `{ message, data }`, no `success` field.",
           tags: ["Organization Members"],
 
           security: [
@@ -1386,7 +1710,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "All Organization Member Data fetched.",
@@ -1406,7 +1729,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             400: {
-              description: "Bad request - `Invalid organization id` (400) via middleware or controller, CastError 400, ValidationError 400",
+              description: "Bad request - `Invalid organization id` (400) via middleware or controller, `Forbidden: Invalid User Id` (400), CastError 400, ValidationError 400",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1460,7 +1783,7 @@ export const swaggerSpec = swaggerJsdoc({
         post: {
           summary: "Add a member to an organization",
           description:
-            "Adds a user to an organization with the specified role. Chain `backend/src/routes/organization-routes.ts:57` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `addMember` `backend/src/controllers/organization-controller.ts:191` (400 User and role required, 400 Invalid organization/user id, 400 Role must be one of..., 400 Cannot assign OWNER..., 403 Only OWNER can assign ADMIN, 404 Target user not found, 409 User already member, ValidationError 400, duplicate 409).",
+            "Adds a user to an organization with role ADMIN or MEMBER (OWNER is blocked). Chain `backend/src/routes/organization-routes.ts:64` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `addMember` `backend/src/controllers/organization-controller.ts:291` (400 User and role required, 400 Invalid organization/user id, 400 Role must be one of..., 400 Cannot assign OWNER..., 403 Only OWNER can assign ADMIN, 404 Target user not found, 409 User already member). Role is normalized via `trim().toUpperCase()`. Response `{ message, data }`, no `success` field.",
           tags: ["Organization Members"],
 
           security: [
@@ -1502,9 +1825,10 @@ export const swaggerSpec = swaggerJsdoc({
                     role: {
                       type: "string",
 
-                      enum: ["OWNER", "ADMIN", "MEMBER"],
+                      enum: ["ADMIN", "MEMBER"],
 
                       example: "MEMBER",
+                      description: "OWNER is rejected with 400; only OWNER can assign ADMIN (403 otherwise)",
                     },
                   },
                 },
@@ -1514,7 +1838,7 @@ export const swaggerSpec = swaggerJsdoc({
 
           responses: {
             201: {
-              description: "User added successfully",
+              description: "User added successfully (`{ message, data }`)",
 
               content: {
                 "application/json": {
@@ -1522,7 +1846,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "User added successfully",
@@ -1539,7 +1862,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `User and role are required` (400), `Invalid organization id` (400), `Invalid user id` (400), `Role must be one of: OWNER, ADMIN, MEMBER` (400), `Cannot assign OWNER via this endpoint...` (400), CastError `Invalid user_id: ...` (400), ValidationError 400 `Validation failed` + errors[], ZodError 400",
+                "Bad request - `User and role are required` (400), `Invalid organization id` (400), `Invalid user id` (400), `Role must be one of: OWNER, ADMIN, MEMBER` (400), `Cannot assign OWNER via this endpoint...` (400), `Target user is not a member of this organization` is 404 (not 400) — see 404; `Referenced User Does Not Exist` ValidationError 400, CastError 400",
               content: {
                 "application/json": {
                   schema: {
@@ -1561,14 +1884,6 @@ export const swaggerSpec = swaggerJsdoc({
                         message: "Cannot assign OWNER via this endpoint. Use POST /organization/:organizationId/transfer-ownership",
                       },
                     },
-                    validation: {
-                      summary: "ValidationError",
-                      value: {
-                        success: false,
-                        message: "Validation failed",
-                        errors: [{ field: "role", message: "Role must be one of: OWNER, ADMIN, MEMBER" }],
-                      },
-                    },
                   },
                 },
               },
@@ -1586,7 +1901,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: not a member` (403) or `You do not have permission...` (403) when role != OWNER/ADMIN or `Only OWNER can assign ADMIN` (403) via `addMember.ts:220`",
+                "Forbidden - `Forbidden: not a member` (403) or `You do not have permission...` (403) when role != OWNER/ADMIN or `Only OWNER can assign ADMIN` (403) via `addMember.ts:332`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1609,7 +1924,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `Target user not found` (404) via `addMember.ts:226` or `Not Found - /api/...` via notFound handler",
+              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `Target user not found` (404) via `addMember.ts:338`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1620,7 +1935,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             409: {
               description:
-                "Conflict - `User is already a member of this organization` (409) via `addMember.ts:242` or Duplicate key 11000 `Duplicate value for organization_id` via `error-middleware.ts:57`",
+                "Conflict - `User is already a member of this organization` (409) via `addMember.ts:356` (unique index organization_id+user_id) or Duplicate key 11000 via `error-middleware.ts:57`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
@@ -1642,11 +1957,11 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
-      "/api/v1/organization/{organizationId}/change-role": {
+      "/api/v1/organization/{organizationId}/member/{userId}": {
         patch: {
-          summary: "Change a Member Role in Organization",
+          summary: "Change a member role in organization",
           description:
-            'Chain `backend/src/routes/organization-routes.ts:65` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole("OWNER")` (403) -> `changeMemberRole` `backend/src/controllers/organization-controller.ts:248` (400 User Not Found/invalid org/Role required, 400 Role must be one of..., 400 Cannot assign OWNER, 400 Cannot demote last owner, 403 Only OWNER can assign ADMIN, 404 Target not member). Matches `PATCH /api/v1/organization/:organizationId/change-role` guarded by `requireOrganizationRole("OWNER")` in `backend/src/routes/organization-routes.ts:65`.',
+            "Changes the role of an org member to ADMIN or MEMBER. Actual route `backend/src/routes/organization-routes.ts:72` is `PATCH /organization/:organizationId/member/:userId` with body `{ role }` only — `userId` comes from the path (NOT the body). Chain -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER')` (403, OWNER only) -> `changeMemberRole` `backend/src/controllers/organization-controller.ts:364` (400 User Not Found/Invalid organization id/Role required/Role must be one of/Cannot assign OWNER/Cannot demote last owner, 403 Only OWNER can assign ADMIN, 404 Target not member). Response `{ message, data }`.",
           tags: ["Organization Members"],
 
           security: [
@@ -1668,6 +1983,18 @@ export const swaggerSpec = swaggerJsdoc({
               description: "Organization ID",
               example: "68c123456789abcdef123456",
             },
+            {
+              name: "userId",
+              in: "path",
+              required: true,
+
+              schema: {
+                type: "string",
+              },
+
+              description: "User ID whose role should be changed",
+              example: "68c555555555abcdef555555",
+            },
           ],
 
           requestBody: {
@@ -1678,21 +2005,16 @@ export const swaggerSpec = swaggerJsdoc({
                 schema: {
                   type: "object",
 
-                  required: ["user_id", "role"],
+                  required: ["role"],
 
                   properties: {
-                    user_id: {
-                      type: "string",
-                      description: "User ID whose role should be changed",
-                      example: "68c555555555abcdef555555",
-                    },
-
                     role: {
                       type: "string",
 
-                      enum: ["OWNER", "ADMIN", "MEMBER"],
+                      enum: ["ADMIN", "MEMBER"],
 
-                      example: "MEMBER",
+                      example: "ADMIN",
+                      description: "OWNER is rejected with 400 (use transfer-ownership)",
                     },
                   },
                 },
@@ -1702,7 +2024,7 @@ export const swaggerSpec = swaggerJsdoc({
 
           responses: {
             200: {
-              description: "Role has been changed for the user",
+              description: "Role has been changed for the user (`{ message, data }`)",
 
               content: {
                 "application/json": {
@@ -1710,7 +2032,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Role has been changed for the user",
@@ -1724,7 +2045,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `User Not Found` (400) invalid user_id, `Invalid organization id` (400), `Role is required` (400), `Role must be one of...` (400), `Cannot assign OWNER via this endpoint...` (400), `Cannot demote the last owner...` (400) via `changeMemberRole.ts:292`, CastError 400, ValidationError 400",
+                "Bad request - `User Not Found` (400) invalid userId, `Invalid organization id` (400), `Role is required` (400), `Role must be one of...` (400), `Cannot assign OWNER via this endpoint...` (400), `Cannot demote the last owner...` (400) via `changeMemberRole.ts:424`, CastError 400, ValidationError 400",
               content: {
                 "application/json": {
                   schema: {
@@ -1734,7 +2055,7 @@ export const swaggerSpec = swaggerJsdoc({
                     ],
                   },
                   examples: {
-                    userNotFound: { summary: "Invalid user_id", value: { success: false, message: "User Not Found" } },
+                    userNotFound: { summary: "Invalid userId", value: { success: false, message: "User Not Found" } },
                     roleRequired: { summary: "Role missing", value: { success: false, message: "Role is required" } },
                     cannotDemote: {
                       summary: "Last owner",
@@ -1761,7 +2082,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: not a member` (403), `You do not have permission...` (403) requires OWNER via `auth-required-role.ts`, or `Only OWNER can assign ADMIN` (403) via `changeMemberRole.ts:297`",
+                "Forbidden - `Forbidden: not a member` (403), `You do not have permission...` (403) requires OWNER via `auth-required-role.ts`, or `Only OWNER can assign ADMIN` (403) via `changeMemberRole.ts:434`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1781,7 +2102,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             404: {
               description:
-                "Not found - `Organization not found` (404) via requireOrganizationMember or `Target user is not a member of this organization` (404) via `changeMemberRole.ts:281`",
+                "Not found - `Organization not found` (404) via requireOrganizationMember or `Target user is not a member of this organization` (404) via `changeMemberRole.ts:411`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1801,13 +2122,11 @@ export const swaggerSpec = swaggerJsdoc({
             },
           },
         },
-      },
 
-      "/api/v1/organization/{organizationId}/member/{userId}": {
         delete: {
           summary: "Remove a member from an organization",
           description:
-            "Removes a user from an organization. Chain `backend/src/routes/organization-routes.ts:72` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `removeMember` `backend/src/controllers/organization-controller.ts:309` (400 Invalid ids, 400 Use leave to remove yourself, 400 Cannot remove last owner, 404 Organization member not found).",
+            "Removes a user from an organization. Chain `backend/src/routes/organization-routes.ts:79` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `removeMember` `backend/src/controllers/organization-controller.ts:447` (400 Invalid ids, 400 Use leave to remove yourself, 400 Cannot remove last owner, 404 Organization member not found). Self-removal is blocked — use `DELETE /organization/:organizationId/me`. Response `{ message }`.",
           tags: ["Organization Members"],
 
           security: [
@@ -1852,7 +2171,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "User removed successfully",
@@ -1865,7 +2183,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `Invalid organization id` (400), `Invalid user id` (400), `Use DELETE /organization/:organizationId/leave to remove yourself` (400) via `removeMember.ts:323`, `Cannot remove the last owner...` (400) via `removeMember.ts:338`, CastError 400, ValidationError 400",
+                "Bad request - `Invalid organization id` (400), `Invalid user id` (400), `Use DELETE /organization/:organizationId/leave to remove yourself` (400) via `removeMember.ts:464`, `Cannot remove the last owner...` (400) via `removeMember.ts:485`, CastError 400",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1906,7 +2224,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - `Organization not found` (404) or `Organization member not found` (404) via `removeMember.ts:329`",
+              description: "Not found - `Organization not found` (404) or `Organization member not found` (404) via `removeMember.ts:475`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -1932,11 +2250,11 @@ export const swaggerSpec = swaggerJsdoc({
       // PROJECT
       // ============================================================
 
-      "/api/v1/organization/{organizationId}/project": {
+      "/api/v1/organization/{organizationId}/projects": {
         post: {
           summary: "Create a project",
           description:
-            "Creates a new project under the specified organization and adds the authenticated user as a project member. Chain `POST /api/v1/organization/:organizationId/project/create` in `backend/src/routes/project-routes.ts:15` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `createProject` `backend/src/controllers/project-controller.ts:8` (400 Project name required, 400 Invalid organization id, 404 Organization not found, 409 Project already exists, ValidationError 400, CastError 400, Duplicate 409). Uses mongoose transaction.",
+            "Creates a new project under the specified organization and adds the authenticated user as a project member in a transaction. Actual route `POST /organization/:organizationId/projects` in `backend/src/routes/project-routes.ts:19` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `createProject` `backend/src/controllers/project-controller.ts:14` (400 Project name required, 400 Invalid organization id, 409 duplicate name, 500 Failed to create project, duplicate 11000 -> 409). Response `{ message, data }`, no `success` field.",
           tags: ["Project"],
 
           security: [
@@ -1973,7 +2291,7 @@ export const swaggerSpec = swaggerJsdoc({
                   properties: {
                     project_name: {
                       type: "string",
-                      description: "Name of the project (trimmed, non-empty)",
+                      description: "Name of the project (trimmed, non-empty; globally unique per project-model)",
                       example: "My Project",
                     },
                   },
@@ -1988,7 +2306,7 @@ export const swaggerSpec = swaggerJsdoc({
 
           responses: {
             201: {
-              description: "Project created successfully",
+              description: "Project created successfully (`{ message, data }`)",
 
               content: {
                 "application/json": {
@@ -1996,7 +2314,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Project Created Successfully",
@@ -2013,7 +2330,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - AppError `Project name is required` (400) or `Invalid organization id` (400) via `createProject.ts:14-21`, or Mongoose ValidationError 400 `Validation failed` with errors[] (e.g., Project Name cannot be empty, Referenced Organization Does Not Exist) via `error-middleware.ts:41`, or CastError 400 `Invalid organization_id: ...` / `Invalid _id: ...` via `error-middleware.ts:51`, or ZodError 400. Tenant validation also may produce ValidationError if organization does not exist.",
+                "Bad request - AppError `Project name is required` (400) or `Invalid organization id` (400) via `project-controller.ts:19-28`, or Mongoose ValidationError 400 `Validation failed` (e.g., Project Name cannot be Empty, Referenced Organization Does Not Exist) via `error-middleware.ts:41`, or CastError 400, or ZodError 400.",
               content: {
                 "application/json": {
                   schema: {
@@ -2039,10 +2356,6 @@ export const swaggerSpec = swaggerJsdoc({
                         errors: [{ field: "project_name", message: "Project Name cannot be empty" }],
                       },
                     },
-                    cast: {
-                      summary: "CastError",
-                      value: { success: false, message: "Invalid organization_id: 123" },
-                    },
                   },
                 },
               },
@@ -2064,7 +2377,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: You are not a member of this organization` (403) via `requireOrganizationMember.ts:32` or `You do not have permission to perform this action` (403) requires OWNER or ADMIN via `requireOrganizationRole` `backend/src/middlewares/auth-required-role.ts:20`",
+                "Forbidden - `Forbidden: You are not a member of this organization` (403) via `requireOrganizationMember.ts:43` or `You do not have permission to perform this action` (403) requires OWNER or ADMIN via `auth-required-role.ts:20`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2083,7 +2396,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - `Organization not found` (404) via `requireOrganizationMember.ts:21` or `Project not found` via transaction validation, or `Not Found - /api/...` via notFound handler `error-middleware.ts:24`",
+              description: "Not found - `Organization not found` (404) via `requireOrganizationMember.ts:24`, or `Not Found - /api/...` via notFound handler `error-middleware.ts:24`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2093,18 +2406,18 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             409: {
-              description: "Conflict - AppError `Project already exists` (409) via `project-controller.ts:47` duplicate check or Duplicate key 11000 `Duplicate value for ...` (409) via `error-middleware.ts:57`",
+              description: "Conflict - AppError `A project with this name already exists in this organization` (409) via `project-controller.ts:37` or Duplicate key 11000 `Project already exists` (409) (project_name is globally unique)",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
-                  example: { success: false, message: "Project already exists" },
+                  example: { success: false, message: "A project with this name already exists in this organization" },
                 },
               },
             },
 
             500: {
               description:
-                "Internal server error - e.g., `Failed to create project` (500) via `project-controller.ts:33` or fallback 500 `{ success:false, message: 'Internal server error' }` logged via `error-middleware.ts:86`",
+                "Internal server error - e.g., `Failed to create project` (500) via `project-controller.ts:50` or fallback 500",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2114,13 +2427,11 @@ export const swaggerSpec = swaggerJsdoc({
             },
           },
         },
-      },
 
-      "/api/v1/organization/{organizationId}/projects": {
         get: {
           summary: "Get all projects for an organization",
           description:
-            "Retrieves all projects belonging to the specified organization. Chain `GET /api/v1/organization/:organizationId/projects` in `backend/src/routes/project-routes.ts:23` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `getAllProject` `backend/src/controllers/project-controller.ts:55` (400 Invalid organization id, 404 Organization not found). Note: `requireProjectMember` is commented out for this route, so only organization membership + role check applies. All errors standardized via `error-middleware.ts:29`.",
+            "Retrieves all projects belonging to the specified organization. Chain `GET /organization/:organizationId/projects` in `backend/src/routes/project-routes.ts:27` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `getAllProject` `backend/src/controllers/project-controller.ts:71` (400 Invalid organization id). Response `{ message, data }`.",
           tags: ["Project"],
 
           security: [
@@ -2154,7 +2465,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "All projects data has been fetch",
@@ -2174,7 +2484,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `Invalid organization id` (400) via `auth-organization-member.ts:16` or `getAllProject.ts:63`, or CastError 400 `Invalid organization_id: ...`, ValidationError 400 `Validation failed`, ZodError 400",
+                "Bad request - `Invalid organization id` (400) via `auth-organization-member.ts:19` or `getAllProject.ts:79`, or `Forbidden: Invalid User Id` (400), CastError 400, ValidationError 400",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2231,7 +2541,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get a specific project",
           description:
-            "Retrieves a specific project by ID within an organization with tenant isolation. Chain `GET /api/v1/organization/:organizationId/projects/:projectId` in `backend/src/routes/project-routes.ts:32` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectMember` `backend/src/middlewares/auth-project-member.ts:7` (400 Invalid project id, 404 Project not found, 403 Forbidden not a project member) -> `getProject` `backend/src/controllers/project-controller.ts:76` (400 Invalid ids, 404 Project not found, 403 Project does not belong to this organization / You are not a member of this project when org role is MEMBER). Tenant isolation enforced: project.organization_id must match organizationId else 403. All errors standardized `{ success:false, message, errors? }` via `error-middleware.ts:95`.",
+            "Retrieves a specific project by ID with tenant isolation. Chain `GET /organization/:organizationId/projects/:projectId` in `backend/src/routes/project-routes.ts:36` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireProjectAccess` `backend/src/middlewares/auth-project-member.ts:7` (400 Invalid ids / Forbidden: Invalid User Id, 404 Project not found, 403 tenant mismatch / not a project member, 401 not authenticated) -> `getProject` `backend/src/controllers/project-controller.ts:92` (400 Invalid ids, 404 Project not found, 403 Project does not belong / You are not a member of this project when org role is MEMBER). OWNER/ADMIN bypass project-membership check in the middleware; controller re-checks MEMBER role. Response `{ message, data }`.",
           tags: ["Project"],
 
           security: [
@@ -2277,7 +2587,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Project fetched successfully",
@@ -2294,7 +2603,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `Invalid organization id` (400) via requireOrganizationMember, `Invalid project id` (400) via `auth-project-member.ts:16` or `getProject.ts:85`, CastError 400 `Invalid projectId: ...`, ValidationError 400 `Validation failed` + errors[], ZodError 400",
+                "Bad request - `Invalid organization id` / `Invalid project id` (400) via requireOrganizationMember/requireProjectAccess/getProject, `Forbidden: Invalid User Id` (400), CastError 400, ValidationError 400",
               content: {
                 "application/json": {
                   schema: {
@@ -2306,14 +2615,13 @@ export const swaggerSpec = swaggerJsdoc({
                   examples: {
                     invalidProject: { summary: "Invalid project id", value: { success: false, message: "Invalid project id" } },
                     invalidOrg: { summary: "Invalid org id", value: { success: false, message: "Invalid organization id" } },
-                    cast: { summary: "CastError", value: { success: false, message: "Invalid _id: 123" } },
                   },
                 },
               },
             },
 
             401: {
-              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / Invalid token / Token expired (401)",
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found (401) or `Unauthorized: User not authenticated` (401) via requireProjectAccess",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2324,7 +2632,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: You are not a member of this organization` (403), `You do not have permission...` (403) requires OWNER/ADMIN, `Forbidden: You are not a member of this Project` (403) via `auth-project-member.ts:33`, `Project does not belong to this organization` (403) via `getProject.ts:101`, `You are not a member of this project` (403) via `getProject.ts:111` when org role is MEMBER without project membership",
+                "Forbidden - `Forbidden: You are not a member of this organization` (403), `Project does not belong to this organization` (403) via middleware or `getProject.ts:117`, `Forbidden: You are not a member of this Project` (403) via middleware, `You are not a member of this project` (403) via `getProject.ts:127` when org role is MEMBER without project membership",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2348,7 +2656,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             404: {
               description:
-                "Not found - `Organization not found` (404) via requireOrganizationMember, `Project not found` (404) via `auth-project-member.ts:21` or `getProject.ts:98`, or `Not Found - /api/...` (404) via notFound handler",
+                "Not found - `Organization not found` (404) via requireOrganizationMember, `Project not found` (404) via `auth-project-member.ts:30` or `getProject.ts:114`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2368,13 +2676,11 @@ export const swaggerSpec = swaggerJsdoc({
             },
           },
         },
-      },
-      
-      "/api/v1/organization/{organizationId}/projects/{projectId}/update": {
+
         patch: {
           summary: "Update a project",
           description:
-            "Updates a project name. Chain `PATCH /api/v1/organization/:organizationId/projects/:projectId/update` in `backend/src/routes/project-routes.ts:41` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `updateProject` `backend/src/controllers/project-controller.ts:122` (400 Project name required, 400 Invalid ids, 404 Project not found, 403 Project does not belong). Note: `requireProjectMember` is commented out for this route, so project membership is not required -- only organization role OWNER/ADMIN. All errors standardized via `error-middleware.ts:95` with ValidationError 400, CastError 400, Duplicate 409 (if unique constraint added), ZodError 400.",
+            "Updates a project name. Actual route `PATCH /organization/:organizationId/projects/:projectId` in `backend/src/routes/project-routes.ts:44` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `updateProject` `backend/src/controllers/project-controller.ts:138` (400 Project name required, 400 Invalid ids, 404 Project not found, 403 Project does not belong). Response `{ message, data }`.",
           tags: ["Project"],
 
           security: [
@@ -2446,7 +2752,6 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
 
                     properties: {
-                      success: { type: "boolean", example: true },
                       message: {
                         type: "string",
                         example: "Project Name has been Updated",
@@ -2463,7 +2768,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             400: {
               description:
-                "Bad request - `Project name is required` (400) via `updateProject.ts:132`, `Invalid project id` (400) via `updateProject.ts:136`, `Invalid organization id` (400) via `updateProject.ts:142`, or ValidationError 400 `Validation failed` with errors[] (e.g., Project Name cannot be empty) via `error-middleware.ts:41`, CastError 400 `Invalid project_name: ...` / `Invalid _id: ...` via `error-middleware.ts:51`, ZodError 400. Also duplicate via ValidationError if organization ref fails.",
+                "Bad request - `Project name is required` (400) via `updateProject.ts:148`, `Invalid project id` / `Invalid organization id` (400), or ValidationError 400 `Validation failed` (e.g., Project Name cannot be empty), CastError 400, ZodError 400",
               content: {
                 "application/json": {
                   schema: {
@@ -2506,7 +2811,7 @@ export const swaggerSpec = swaggerJsdoc({
 
             403: {
               description:
-                "Forbidden - `Forbidden: not a member` (403), `You do not have permission...` (403) requires OWNER/ADMIN, `Project does not belong to this organization` (403) via `updateProject.ts:151` tenant isolation",
+                "Forbidden - `Forbidden: not a member` (403), `You do not have permission...` (403) requires OWNER/ADMIN, `Project does not belong to this organization` (403) via `updateProject.ts:167` tenant isolation",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2525,7 +2830,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             404: {
-              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `Project not found` (404) via `updateProject.ts:148` or notFound handler 404",
+              description: "Not found - `Organization not found` (404) via requireOrganizationMember or `Project not found` (404) via `updateProject.ts:164`",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -2535,7 +2840,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             409: {
-              description: "Conflict - Duplicate key 11000 `Duplicate value for ...` (409) via `error-middleware.ts:57` if unique index added on project_name+organization_id (currently not unique, but documented for future).",
+              description: "Conflict - Duplicate key 11000 (409) via `error-middleware.ts:57` since `project_name` is globally unique",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
@@ -2545,7 +2850,446 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             500: {
-              description: "Internal server error - fallback 500 via errorHandler, logged at `error-middleware.ts:86`",
+              description: "Internal server error - fallback 500 via errorHandler",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        delete: {
+          summary: "Delete a project",
+          description:
+            "Deletes a project with cascade (Tasks + ProjectMembers + Project) in a transaction. Route `backend/src/routes/project-routes.ts:82` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER')` (403, OWNER only) -> `requireProjectAccess` (400,404,403,401) -> `deleteProject` `backend/src/controllers/project-controller.ts:343` (400 Invalid ids, 404 Project not found, 403 tenant mismatch). Response `{ message }`.",
+          tags: ["Project"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Project deleted successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Project deleted successfully" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` (400), `Forbidden: Invalid User Id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid project id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / `Unauthorized: User not authenticated` (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / `You do not have permission...` requires OWNER / `Project does not belong to this organization` / `Forbidden: You are not a member of this Project` (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "You do not have permission to perform this action" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // ============================================================
+      // PROJECT MEMBERS
+      // ============================================================
+
+      "/api/v1/organization/{organizationId}/projects/{projectId}/members": {
+        post: {
+          summary: "Add a member to a project",
+          description:
+            "Adds an organization member to a project. Route `backend/src/routes/project-routes.ts:55` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `addMemberInProject` `backend/src/controllers/project-controller.ts:181`. Body is `{ user_id }` only (no role). Inline checks: tenant isolation 403, target user exists 404, target must be org member else 400, duplicate 409. Response `{ message, data }` with 201 `User Added Successfully`.",
+          tags: ["Project Members"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["user_id"],
+                  properties: {
+                    user_id: {
+                      type: "string",
+                      example: "68c555555555abcdef555555",
+                      description: "Must be an existing user AND an organization member",
+                    },
+                  },
+                },
+              },
+            },
+          },
+
+          responses: {
+            201: {
+              description: "User added to project successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "User Added Successfully" },
+                      data: { $ref: "#/components/schemas/ProjectMember" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid user id` (400), or `Target user is not a member of this organization` (400) via `addMemberInProject.ts:225`",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  examples: {
+                    invalid: { summary: "Invalid id", value: { success: false, message: "Invalid user id" } },
+                    notOrgMember: {
+                      summary: "Not org member",
+                      value: { success: false, message: "Target user is not a member of this organization" },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / wrong org role / `Project does not belong to this organization` / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project does not belong to this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Target user not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Target user not found" },
+                },
+              },
+            },
+
+            409: {
+              description: "Conflict - `User is already a member of this project` (409) via explicit check or duplicate key 11000",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/DuplicateErrorResponse" },
+                  example: { success: false, message: "User is already a member of this project" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        get: {
+          summary: "Get all members of a project",
+          description:
+            "Lists project members (populates `user_id` with `name email`). Route `backend/src/routes/project-routes.ts:64` -> `authMiddleware` -> `requireOrganizationMember` -> `requireOrganizationRole('OWNER','ADMIN')` -> `requireProjectAccess` -> `getAllMemberInProject` `backend/src/controllers/project-controller.ts:259` (400 Invalid ids, 404 Project not found, 403 tenant mismatch). Response `{ message: 'Project members fetched successfully', data }`.",
+          tags: ["Project Members"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Project members fetched successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Project members fetched successfully" },
+                      data: {
+                        type: "array",
+                        items: { $ref: "#/components/schemas/ProjectMemberWithUser" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid project id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / wrong org role / tenant mismatch / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project does not belong to this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/projects/{projectId}/members/{userId}": {
+        delete: {
+          summary: "Remove a member from a project",
+          description:
+            "Removes a user from a project. Route `backend/src/routes/project-routes.ts:73` -> `authMiddleware` -> `requireOrganizationMember` -> `requireOrganizationRole('OWNER','ADMIN')` -> `requireProjectAccess` -> `removeMemberFromProject` `backend/src/controllers/project-controller.ts:298` (400 Invalid org/project/user id, 404 Project not found, 403 tenant mismatch, 404 Project member not found). Response `{ message: 'User removed from project successfully' }`.",
+          tags: ["Project Members"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "userId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c555555555abcdef555555",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "User removed from project successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "User removed from project successfully" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid user id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid user id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / wrong org role / tenant mismatch / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project does not belong to this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Project member not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project member not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },

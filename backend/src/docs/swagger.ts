@@ -47,6 +47,10 @@ export const swaggerSpec = swaggerJsdoc({
         name: "Project Members",
         description: "Project member management APIs",
       },
+      {
+        name: "Task",
+        description: "Task management APIs",
+      },
     ],
 
     components: {
@@ -348,6 +352,96 @@ export const swaggerSpec = swaggerJsdoc({
                 email: { type: "string", format: "email", example: "rohan@example.com" },
               },
             },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+
+        Task: {
+          type: "object",
+          description: "Task document (`backend/src/models/task-model.ts`). Enums from `VALID_TASK_STATUSES` / `VALID_TASK_PRIORITIES` / `VALID_TASK_TYPES`.",
+          properties: {
+            _id: { type: "string", example: "68c123456789abcdef123456" },
+            task_name: { type: "string", example: "Fix login bug", description: "Required, trimmed, 1-200 chars" },
+            description: { type: "string", example: "Login fails on expired token", description: "Optional, max 5000 chars, default ''" },
+            status: {
+              type: "string",
+              enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"],
+              example: "TODO",
+            },
+            priority: {
+              type: "string",
+              enum: ["Low", "Medium", "High", "Critical"],
+              example: "Medium",
+            },
+            type: {
+              type: "string",
+              enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"],
+              example: "Bug",
+            },
+            due_date: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+              example: "2026-10-15T00:00:00.000Z",
+              description: "Optional, must be a valid date if provided",
+            },
+            project_id: { type: "string", example: "68c123456789abcdef123456" },
+            organization_id: { type: "string", example: "68c987654321abcdef654321" },
+            creator_id: { type: "string", example: "68c555555555abcdef555555" },
+            assignee_id: {
+              type: "string",
+              nullable: true,
+              example: "68c555555555abcdef555555",
+              description: "Optional, must be an existing user AND an organization member",
+            },
+            is_deleted: { type: "boolean", example: false },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+
+        TaskWithUser: {
+          type: "object",
+          description: "Populated by `getTaskDetails` / `getAllTask` (.populate('assignee_id','name').populate('creator_id','name'))",
+          properties: {
+            _id: { type: "string", example: "68c123456789abcdef123456" },
+            task_name: { type: "string", example: "Fix login bug" },
+            description: { type: "string", example: "Login fails on expired token" },
+            status: {
+              type: "string",
+              enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"],
+              example: "TODO",
+            },
+            priority: {
+              type: "string",
+              enum: ["Low", "Medium", "High", "Critical"],
+              example: "Medium",
+            },
+            type: {
+              type: "string",
+              enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"],
+              example: "Bug",
+            },
+            due_date: { type: "string", format: "date-time", nullable: true },
+            project_id: { type: "string", example: "68c123456789abcdef123456" },
+            organization_id: { type: "string", example: "68c987654321abcdef654321" },
+            creator_id: {
+              type: "object",
+              properties: {
+                _id: { type: "string", example: "68c555555555abcdef555555" },
+                name: { type: "string", example: "Rohan" },
+              },
+            },
+            assignee_id: {
+              type: "object",
+              nullable: true,
+              properties: {
+                _id: { type: "string", example: "68c555555555abcdef555555" },
+                name: { type: "string", example: "Rohan" },
+              },
+            },
+            is_deleted: { type: "boolean", example: false },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
           },
@@ -3284,6 +3378,426 @@ export const swaggerSpec = swaggerJsdoc({
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
                   example: { success: false, message: "Project member not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      // ============================================================
+      // TASK
+      // ============================================================
+
+      "/api/v1/organization/{organizationId}/projects/{projectId}/tasks": {
+        post: {
+          summary: "Create a task",
+          description:
+            "Creates a task under a project (tenant-scoped). Route `backend/src/routes/task-routes.ts:9` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `createTask` `backend/src/controllers/task-controller.ts:13` (400 Invalid org/project id, 400 Task name required / max 200, 400 Description string / max 5000, 400 invalid status/priority/type enum, 400 Invalid due date, 400 Invalid assignee id / Assignee must be org member, 401 not authenticated, 404 Assignee user not found, ValidationError 400 via `error-middleware.ts:41`). `creator_id` is taken from the auth token, `is_deleted` forced false. Response `{ message, data }` with 201.",
+          tags: ["Task"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["task_name"],
+                  properties: {
+                    task_name: {
+                      type: "string",
+                      example: "Fix login bug",
+                      description: "Required, trimmed non-empty, max 200 chars",
+                    },
+                    description: {
+                      type: "string",
+                      example: "Login fails on expired token",
+                      description: "Optional, max 5000 chars",
+                    },
+                    status: {
+                      type: "string",
+                      enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"],
+                      example: "TODO",
+                      description: "Optional, defaults to TODO",
+                    },
+                    priority: {
+                      type: "string",
+                      enum: ["Low", "Medium", "High", "Critical"],
+                      example: "Medium",
+                      description: "Optional, defaults to Medium",
+                    },
+                    type: {
+                      type: "string",
+                      enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"],
+                      example: "Bug",
+                      description: "Optional, defaults to Task",
+                    },
+                    due_date: {
+                      type: "string",
+                      format: "date-time",
+                      example: "2026-10-15T00:00:00.000Z",
+                      description: "Optional, must be a valid date; null/empty clears it",
+                    },
+                    assignee_id: {
+                      type: "string",
+                      example: "68c555555555abcdef555555",
+                      description: "Optional, must be an existing user AND an organization member",
+                    },
+                  },
+                },
+                example: {
+                  task_name: "Fix login bug",
+                  description: "Login fails on expired token",
+                  status: "TODO",
+                  priority: "High",
+                  type: "Bug",
+                  due_date: "2026-10-15T00:00:00.000Z",
+                  assignee_id: "68c555555555abcdef555555",
+                },
+              },
+            },
+          },
+
+          responses: {
+            201: {
+              description: "Task created successfully (`{ message, data }`)",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Task created successfully" },
+                      data: { $ref: "#/components/schemas/Task" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description:
+                "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid assignee id` (400), `Task name is required` (400), `Task Name Cannot Exceed 200 Characters` (400), `Description must be a string` / `Description Cannot Exceed 5000 Characters` (400), `Status must be one of...` / `Priority must be one of...` / `Type must be one of...` (400), `Invalid due date` (400), `Assignee must be a member of this organization` (400), ValidationError 400 `Validation failed`, CastError 400",
+              content: {
+                "application/json": {
+                  schema: {
+                    oneOf: [
+                      { $ref: "#/components/schemas/ErrorResponse" },
+                      { $ref: "#/components/schemas/ValidationErrorResponse" },
+                    ],
+                  },
+                  examples: {
+                    missingName: { summary: "Missing name", value: { success: false, message: "Task name is required" } },
+                    invalidEnum: {
+                      summary: "Invalid enum",
+                      value: { success: false, message: "Status must be one of: TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED" },
+                    },
+                    notOrgMember: {
+                      summary: "Assignee not org member",
+                      value: { success: false, message: "Assignee must be a member of this organization" },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / `Unauthorized: User not authenticated` (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / `You do not have permission...` requires OWNER or ADMIN / `Project does not belong to this organization` / `Forbidden: You are not a member of this Project` (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "You do not have permission to perform this action" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Assignee user not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Assignee user not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        get: {
+          summary: "Get all tasks of a project",
+          description:
+            "Lists non-deleted tasks of a project (tenant-scoped, sorted `createdAt:-1`, populates `assignee_id`/`creator_id` with `name`). Route `backend/src/routes/task-routes.ts:27` -> `authMiddleware` -> `requireOrganizationMember` -> `requireProjectAccess` -> `getAllTask` `backend/src/controllers/task-controller.ts:182` (400 Invalid org/project id, 400 invalid status/priority/type/assignee_id/search query). Supports `?status=&priority=&type=&assignee_id=&search=` (`$text` on `task_name`+`description`). Response `{ message, data }`.",
+          tags: ["Task"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "status",
+              in: "query",
+              required: false,
+              schema: { type: "string", enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"] },
+            },
+            {
+              name: "priority",
+              in: "query",
+              required: false,
+              schema: { type: "string", enum: ["Low", "Medium", "High", "Critical"] },
+            },
+            {
+              name: "type",
+              in: "query",
+              required: false,
+              schema: { type: "string", enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"] },
+            },
+            {
+              name: "assignee_id",
+              in: "query",
+              required: false,
+              schema: { type: "string" },
+              example: "68c555555555abcdef555555",
+            },
+            {
+              name: "search",
+              in: "query",
+              required: false,
+              schema: { type: "string" },
+              description: "Full-text search on task_name + description (non-empty, max 100 chars)",
+              example: "login bug",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "All tasks fetched successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "All the task data fetched" },
+                      data: {
+                        type: "array",
+                        items: { $ref: "#/components/schemas/TaskWithUser" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid assignee id` (400), invalid status/priority/type enum (400), `Search must be a non-empty string` / `Search query too long` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid project id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / tenant mismatch / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project does not belong to this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` (404)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+      },
+
+      "/api/v1/organization/{organizationId}/projects/{projectId}/tasks/{taskId}": {
+        get: {
+          summary: "Get task details",
+          description:
+            "Gets a single non-deleted task with tenant isolation (`_id` + `project_id` + `organization_id`). Route `backend/src/routes/task-routes.ts:18` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireProjectAccess` (400,404,403,401) -> `getTaskDetails` `backend/src/controllers/task-controller.ts:142` (400 Invalid org/project/task id, 404 Task not found). Populates `assignee_id`/`creator_id` with `name`. Response `{ message, data }`.",
+          tags: ["Task"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "taskId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Task fetched successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Task data fetched" },
+                      data: { $ref: "#/components/schemas/TaskWithUser" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid task id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid task id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / tenant mismatch / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Project does not belong to this organization" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Task not found` (404, incl. soft-deleted or other-tenant tasks)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Task not found" },
                 },
               },
             },

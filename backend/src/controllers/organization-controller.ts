@@ -15,6 +15,7 @@ export interface OrganizationParams {
   organizationId?: string;
   userId?: string;
   projectId?: string;
+  taskId?:string
 }
 
 const ORGANIZATION_ROLES = ["OWNER", "ADMIN", "MEMBER"] as const;

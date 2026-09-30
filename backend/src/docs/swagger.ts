@@ -3403,7 +3403,7 @@ export const swaggerSpec = swaggerJsdoc({
         post: {
           summary: "Create a task",
           description:
-            "Creates a task under a project (tenant-scoped). Route `backend/src/routes/task-routes.ts:9` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `createTask` `backend/src/controllers/task-controller.ts:13` (400 Invalid org/project id, 400 Task name required / max 200, 400 Description string / max 5000, 400 invalid status/priority/type enum, 400 Invalid due date, 400 Invalid assignee id / Assignee must be org member, 401 not authenticated, 404 Assignee user not found, ValidationError 400 via `error-middleware.ts:41`). `creator_id` is taken from the auth token, `is_deleted` forced false. Response `{ message, data }` with 201.",
+            "Creates a task under a project (tenant-scoped). Route `backend/src/routes/task-routes.ts` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `createTask` `backend/src/controllers/task-controller.ts` (400 Invalid org/project id, 400 Task name is required / Task Name Cannot Exceed 200 Characters, 400 Description must be a string / Description Cannot Exceed 5000 Characters, 400 Status/Priority/Type must be one of..., 400 Invalid due date, 400 Invalid assignee id / Assignee must be a member of this organization, 401 Unauthorized: User not authenticated, 404 Assignee user not found, ValidationError 400 via `error-middleware.ts:41`). `creator_id` is taken from the auth token, `assignee_id`/`due_date` default to null when omitted/empty, `is_deleted` forced false. Response `{ message, data }` with 201 and populated `assignee_id`/`creator_id` (`name`).",
           tags: ["Task"],
 
           security: [
@@ -3578,7 +3578,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Get all tasks of a project",
           description:
-            "Lists non-deleted tasks of a project (tenant-scoped, sorted `createdAt:-1`, populates `assignee_id`/`creator_id` with `name`). Route `backend/src/routes/task-routes.ts:27` -> `authMiddleware` -> `requireOrganizationMember` -> `requireProjectAccess` -> `getAllTask` `backend/src/controllers/task-controller.ts:182` (400 Invalid org/project id, 400 invalid status/priority/type/assignee_id/search query). Supports `?status=&priority=&type=&assignee_id=&search=` (`$text` on `task_name`+`description`). Response `{ message, data }`.",
+            "Lists non-deleted tasks of a project (tenant-scoped, sorted `createdAt:-1`, populates `assignee_id`/`creator_id` with `name`). Route `backend/src/routes/task-routes.ts` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireProjectAccess` (400,404,403,401) -> `getAllTask` `backend/src/controllers/task-controller.ts` (400 Invalid org/project id, 400 invalid status/priority/type/assignee_id enum, 400 `Search must be a non-empty string` / `Search query too long`, 400 Invalid page number / Invalid limit value / Limit cannot exceed 100). Supports `?status=&priority=&type=&assignee_id=&search=&page=&limit=` (case-insensitive regex `$or` on `task_name`+`description`, max 100 chars; pagination defaults `page=1&limit=10`, max `limit=100`). Response `{ message, data, pagination }`.",
           tags: ["Task"],
 
           security: [
@@ -3632,8 +3632,24 @@ export const swaggerSpec = swaggerJsdoc({
               in: "query",
               required: false,
               schema: { type: "string" },
-              description: "Full-text search on task_name + description (non-empty, max 100 chars)",
+              description: "Case-insensitive search on task_name + description (non-empty, max 100 chars)",
               example: "login bug",
+            },
+            {
+              name: "page",
+              in: "query",
+              required: false,
+              schema: { type: "integer", minimum: 1, default: 1 },
+              description: "Page number (default 1)",
+              example: 1,
+            },
+            {
+              name: "limit",
+              in: "query",
+              required: false,
+              schema: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+              description: "Items per page (default 10, max 100)",
+              example: 10,
             },
           ],
 
@@ -3650,6 +3666,17 @@ export const swaggerSpec = swaggerJsdoc({
                         type: "array",
                         items: { $ref: "#/components/schemas/TaskWithUser" },
                       },
+                      pagination: {
+                        type: "object",
+                        properties: {
+                          currentPage: { type: "integer", example: 1 },
+                          pageLimit: { type: "integer", example: 10 },
+                          totalRecords: { type: "integer", example: 25 },
+                          totalPages: { type: "integer", example: 3 },
+                          hasNextPage: { type: "boolean", example: true },
+                          hasPreviousPage: { type: "boolean", example: false },
+                        },
+                      },
                     },
                   },
                 },
@@ -3657,7 +3684,7 @@ export const swaggerSpec = swaggerJsdoc({
             },
 
             400: {
-              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid assignee id` (400), invalid status/priority/type enum (400), `Search must be a non-empty string` / `Search query too long` (400)",
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid assignee id` (400), invalid status/priority/type enum (400), `Search must be a non-empty string` / `Search query too long, maximum 100 characters allowed` (400), `Invalid page number` / `Invalid limit value` / `Limit cannot exceed 100` (400)",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },
@@ -3794,6 +3821,287 @@ export const swaggerSpec = swaggerJsdoc({
 
             404: {
               description: "Not found - `Organization not found` / `Project not found` / `Task not found` (404, incl. soft-deleted or other-tenant tasks)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Task not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        patch: {
+          summary: "Update a task",
+          description:
+            "Partially updates a non-deleted task with tenant isolation (`_id` + `project_id` + `organization_id`). Route `backend/src/routes/task-routes.ts` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `requireTaskAccess` (400 Invalid task id, 404 Task not found incl. soft-deleted or other-tenant tasks) -> `updateTask` `backend/src/controllers/task-controller.ts`. Only `task_name` / `description` / `status` / `priority` / `type` / `due_date` / `assignee_id` are applied; empty body -> 400 `No valid fields provided for update`. `task_name` must be a trimmed non-empty string max 200 chars, `description` a string max 5000 chars, `status`/`priority`/`type` must be valid enums, `due_date` must be a valid date (`null`/`''` clears it), `assignee_id` must be an existing user AND an organization member (`null`/`''` unassigns). Updates via the middleware-loaded document + `save()` so schema validators run. Response `{ message, data }` with populated `assignee_id`/`creator_id` (`name`).",
+          tags: ["Task"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "taskId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    task_name: {
+                      type: "string",
+                      example: "Fix login bug",
+                      description: "Optional, trimmed non-empty, max 200 chars",
+                    },
+                    description: {
+                      type: "string",
+                      example: "Login fails on expired token",
+                      description: "Optional, max 5000 chars",
+                    },
+                    status: {
+                      type: "string",
+                      enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"],
+                      example: "IN_PROGRESS",
+                    },
+                    priority: {
+                      type: "string",
+                      enum: ["Low", "Medium", "High", "Critical"],
+                      example: "High",
+                    },
+                    type: {
+                      type: "string",
+                      enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"],
+                      example: "Bug",
+                    },
+                    due_date: {
+                      type: "string",
+                      format: "date-time",
+                      example: "2026-10-15T00:00:00.000Z",
+                      description: "Optional, must be a valid date; null/empty clears it",
+                    },
+                    assignee_id: {
+                      type: "string",
+                      example: "68c555555555abcdef555555",
+                      description: "Optional, must be an existing user AND an organization member; null/empty unassigns",
+                    },
+                  },
+                },
+                example: {
+                  task_name: "Fix login bug v2",
+                  status: "IN_PROGRESS",
+                  priority: "High",
+                },
+              },
+            },
+          },
+
+          responses: {
+            200: {
+              description: "Task updated successfully (`{ message, data }` with populated users)",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Task updated successfully" },
+                      data: { $ref: "#/components/schemas/TaskWithUser" },
+                    },
+                  },
+                },
+              },
+            },
+
+            400: {
+              description:
+                "Bad request - `No valid fields provided for update` (400) when body has none of the updatable fields, `Task name is required` / `Task Name Cannot Exceed 200 Characters` (400), `Description must be a string` / `Description Cannot Exceed 5000 Characters` (400), `Status must be one of...` / `Priority must be one of...` / `Type must be one of...` (400), `Invalid due date` (400), `Invalid assignee id` / `Assignee must be a member of this organization` (400), `Invalid organization id` / `Invalid project id` / `Invalid task id` (400), ValidationError 400 `Validation failed`, CastError 400",
+              content: {
+                "application/json": {
+                  schema: {
+                    oneOf: [
+                      { $ref: "#/components/schemas/ErrorResponse" },
+                      { $ref: "#/components/schemas/ValidationErrorResponse" },
+                    ],
+                  },
+                  examples: {
+                    noFields: {
+                      summary: "Empty body",
+                      value: { success: false, message: "No valid fields provided for update" },
+                    },
+                    invalidEnum: {
+                      summary: "Invalid enum",
+                      value: { success: false, message: "Status must be one of: TODO, IN_PROGRESS, IN_REVIEW, DONE, CANCELLED" },
+                    },
+                    notOrgMember: {
+                      summary: "Assignee not org member",
+                      value: { success: false, message: "Assignee must be a member of this organization" },
+                    },
+                  },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / Invalid token / Token expired (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / `You do not have permission...` requires OWNER or ADMIN / `Project does not belong to this organization` / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "You do not have permission to perform this action" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Task not found` / `Assignee user not found` (404, incl. soft-deleted or other-tenant tasks)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Task not found" },
+                },
+              },
+            },
+
+            500: {
+              description: "Internal server error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Internal server error" },
+                },
+              },
+            },
+          },
+        },
+
+        delete: {
+          summary: "Delete a task (soft delete)",
+          description:
+            "Soft-deletes a non-deleted task with tenant isolation (`_id` + `project_id` + `organization_id`) by setting `is_deleted: true`. Route `backend/src/routes/task-routes.ts` -> `authMiddleware` (401) -> `requireOrganizationMember` (400,404,403) -> `requireOrganizationRole('OWNER','ADMIN')` (403) -> `requireProjectAccess` (400,404,403,401) -> `requireTaskAccess` (400 Invalid task id, 404 Task not found incl. already soft-deleted or other-tenant tasks) -> `deleteTask` `backend/src/controllers/task-controller.ts`. Deleted tasks are excluded from `getAllTask` / `getTaskDetails`. Response `{ message }` with no `data`.",
+          tags: ["Task"],
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          parameters: [
+            {
+              name: "organizationId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "projectId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+            {
+              name: "taskId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+              example: "68c123456789abcdef123456",
+            },
+          ],
+
+          responses: {
+            200: {
+              description: "Task deleted successfully (`{ message }`, no `data`)",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      message: { type: "string", example: "Task deleted successfully" },
+                    },
+                  },
+                  example: { message: "Task deleted successfully" },
+                },
+              },
+            },
+
+            400: {
+              description: "Bad request - `Invalid organization id` / `Invalid project id` / `Invalid task id` (400)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Invalid task id" },
+                },
+              },
+            },
+
+            401: {
+              description: "Unauthorized - Token Not Found / Session Expired / User Not Found / Invalid token / Token expired (401)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "Token Not Found" },
+                },
+              },
+            },
+
+            403: {
+              description: "Forbidden - not org member / `You do not have permission...` requires OWNER or ADMIN / `Project does not belong to this organization` / not a project member (403)",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/ErrorResponse" },
+                  example: { success: false, message: "You do not have permission to perform this action" },
+                },
+              },
+            },
+
+            404: {
+              description: "Not found - `Organization not found` / `Project not found` / `Task not found` (404, incl. already soft-deleted or other-tenant tasks)",
               content: {
                 "application/json": {
                   schema: { $ref: "#/components/schemas/ErrorResponse" },

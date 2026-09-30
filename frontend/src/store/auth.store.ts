@@ -1,25 +1,9 @@
-import type { AuthStore } from "@/types/auth.types";
-import { observable } from "@legendapp/state";
+import type { StateCreator } from "zustand";
+import type { AuthStoreType } from "./types";
 
-export const authStore = observable<AuthStore>({
-  isLoggedIn: true,
-  user: {
-    id: "sdklfsajf",
-    name: "Faisal SK",
-    email: "faisal@fsk.com",
-    role: "OWNER",
-    phone: "9876543210",
-    dateOfBirth: "24-08-2001",
-    accessToken: "ldsfjsaklfjklfj",
-  },
+export const useAuthStoreSlice: StateCreator<AuthStoreType> = (set) => ({
+  isLoggedIn: false,
+  data: null,
+  setData: (value) => set({ data: value, isLoggedIn: true }),
+  logOut: () => set({ data: null, isLoggedIn: false }),
 });
-
-// {
-//   id: "sdklfsajf",
-//   name: "Faisal SK",
-//   email: "faisal@fsk.com",
-//   role: "OWNER";
-//   phone: "9876543210";
-//   dateOfBirth: "24-08-2001";
-//   accessToken: "ldsfjsaklfjklfj";
-// }

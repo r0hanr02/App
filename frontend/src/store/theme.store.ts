@@ -1,69 +1,70 @@
-import { observable, observe } from "@legendapp/state";
-import { ObservablePersistLocalStorage } from "@legendapp/state/persist-plugins/local-storage";
-import { syncObservable } from "@legendapp/state/sync";
+import { create, type StateCreator } from "zustand";
+import { persist } from "zustand/middleware";
 
 type Theme = "light" | "dark";
 
-const systemPreference: Theme = window.matchMedia(
-  "(prefers-color-scheme: dark)",
-).matches
-  ? "dark"
-  : "light";
+type ThemeStore = {
+  theme: Theme;
+  isSystem: boolean;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+  setSystemTheme: () => void;
+};
 
-export const themeContext = observable({
-  theme: systemPreference as Theme,
-  isSystem: true,
-});
-
-syncObservable(themeContext, {
-  persist: {
-    name: "project-theme-context",
-    plugin: ObservablePersistLocalStorage,
-  },
-});
+const media = window.matchMedia("(prefers-color-scheme: dark)");
+const getSystemTheme = (): Theme => (media.matches ? "dark" : "light");
 
 function applyTheme(theme: Theme) {
   const html = document.documentElement;
-  if (theme === "dark") {
-    html.classList.add("dark");
-    html.classList.remove("light");
-  } else {
-    html.classList.add("light");
-    html.classList.remove("dark");
-  }
+  html.classList.toggle("dark", theme === "dark");
+  html.classList.toggle("light", theme === "light");
 }
 
-observe(() => {
-  applyTheme(themeContext.theme.get());
+export const useThemeStoreSlice: StateCreator<ThemeStore> = (set, get) => ({
+  theme: getSystemTheme(),
+  isSystem: true,
+  toggleTheme: () =>
+    set({ theme: get().theme === "light" ? "dark" : "light", isSystem: false }),
+  setTheme: (theme) => set({ theme, isSystem: false }),
+  setSystemTheme: () => set({ theme: getSystemTheme(), isSystem: true }),
 });
 
-export function toggleTheme() {
-  const next: Theme = themeContext.theme.get() === "light" ? "dark" : "light";
-  themeContext.theme.set(next);
-  themeContext.isSystem.set(false);
-  applyTheme(next);
-}
+export const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set, get) => ({
+      theme: getSystemTheme(),
+      isSystem: true,
 
-export function setTheme(theme: Theme) {
-  themeContext.theme.set(theme);
-  themeContext.isSystem.set(false);
-  applyTheme(theme);
-}
+      toggleTheme: () =>
+        set({
+          theme: get().theme === "light" ? "dark" : "light",
+          isSystem: false,
+        }),
 
-export function useSystemTheme() {
-  const sys: Theme = window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-  themeContext.theme.set(sys);
-  themeContext.isSystem.set(true);
-  applyTheme(sys);
-}
+      setTheme: (theme) => set({ theme, isSystem: false }),
 
-window
-  .matchMedia("(prefers-color-scheme: dark)")
-  .addEventListener("change", (e) => {
-    if (!themeContext.isSystem.get()) return;
-    const updated: Theme = e.matches ? "dark" : "light";
-    themeContext.theme.set(updated);
-    applyTheme(updated);
-  });
+      setSystemTheme: () => set({ theme: getSystemTheme(), isSystem: true }),
+    }),
+    {
+      name: "theme-context",
+      partialize: (state) => ({
+        theme: state.theme,
+        isSystem: state.isSystem,
+      }),
+    },
+  ),
+);
+
+if (useThemeStore.getState().isSystem) {
+  useThemeStore.getState().setSystemTheme();
+}
+applyTheme(useThemeStore.getState().theme);
+
+useThemeStore.subscribe((state, prev) => {
+  if (state.theme !== prev.theme) applyTheme(state.theme);
+});
+
+media.addEventListener("change", (e) => {
+  if (!useThemeStore.getState().isSystem) return;
+  useThemeStore.setState({ theme: e.matches ? "dark" : "light" });
+});

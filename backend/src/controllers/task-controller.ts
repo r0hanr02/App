@@ -27,8 +27,10 @@ export const createTask = asyncHandler(
     const taskData: any = {
       task_name,
       description,
-      due_date
-      
+      due_date,
+      creator_id: userId, //need to validate
+      organization_id: organizationId, //need to validate
+      project_id: projectId, //need to validate
     };
 
     if (status !== undefined) {
@@ -67,6 +69,8 @@ export const createTask = asyncHandler(
         throw new AppError("User Not Found", 400);
       }
       taskData.assignee_id = assignee_id;
+    } else {
+      taskData.assignee_id + "";
     }
 
     // {
@@ -172,7 +176,6 @@ export const assignTask = asyncHandler(
     const { organizationId } = req.params;
     const { assignee_id } = req.body;
     const task = (req as any).task;
-    
 
     // null / undefined / "" => unassign
     if (

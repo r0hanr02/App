@@ -18,3 +18,17 @@ export type AuthStoreType = {
   setData: (value: ApiData) => void;
   logOut: () => void;
 };
+
+export type ToastType = "success" | "error" | "info" | "warning";
+
+export interface MyToastContent {
+    id: string;
+    title?: string;
+    description?: string;
+    type: ToastType;
+    children?: React.ReactNode;
+    // state?: "entering" | "visible" | "leaving";
+    visible: boolean;
+    showClose?: boolean;
+    timeout?: number;
+  }

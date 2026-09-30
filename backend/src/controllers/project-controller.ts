@@ -71,7 +71,20 @@ export const createProject = asyncHandler(
 export const getAllProject = asyncHandler(
   async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
     const organizationId = (req.params as any).organizationId;
+    const { search, page, limit, sort } = req.query;
 
+    const currentPage = Number(page) || 1;
+    const pageLimit = Number(limit) || 10;
+    const skip = (currentPage - 1) * pageLimit;
+
+    const sorted = sort ? String(sort) : "createdAt";
+    const filter: any = { organization_id: organizationId };
+    if (search) {
+      filter.project_name = {
+        $regex: String(search),
+        $options: "i",
+      };
+    }
     if (
       !organizationId ||
       !mongoose.Types.ObjectId.isValid(organizationId as string)
@@ -79,12 +92,23 @@ export const getAllProject = asyncHandler(
       throw new AppError("Invalid organization id", 400);
     }
 
-    const allProjects = await Project.find({
-      organization_id: organizationId,
-    });
+    const [allProjects, totalRecords] = await Promise.all([
+      Project.find(filter).skip(skip).limit(10).sort(sorted),
+      Project.countDocuments(filter),
+    ]);
+    const totalPages = Math.ceil(totalRecords / pageLimit);
+
     res.status(200).json({
       message: "All projects data has been fetch",
       data: allProjects,
+      pagination: {
+        currentPage,
+        pageLimit,
+        totalRecords,
+        totalPages,
+        hasNextPage: currentPage < pageLimit,
+        hasPreviousPage: currentPage > 1,
+      },
     });
   }
 );

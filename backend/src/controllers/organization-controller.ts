@@ -496,3 +496,72 @@ export const removeMember = asyncHandler(
     });
   }
 );
+
+export const transferOwnership = asyncHandler(
+  async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
+    const { organizationId } = req.params;
+    const { targetUserId, user_id } = req.body;
+    const targetId = targetUserId || user_id;
+    const currentUserId = (
+      (req as any).userId || (req as any).user?.id
+    )?.toString();
+
+    if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
+      throw new AppError("Valid targetUserId is required", 400);
+    }
+
+    if (currentUserId && currentUserId === targetId.toString()) {
+      throw new AppError("You are already the owner of this organization", 400);
+    }
+
+    const session = await mongoose.startSession();
+    try {
+      session.startTransaction();
+
+      const requesterMembership = await OrganizationMember.findOne({
+        organization_id: organizationId,
+        user_id: currentUserId,
+      }).session(session);
+      if (
+        !requesterMembership ||
+        (requesterMembership as any).role !== "OWNER"
+      ) {
+        throw new AppError("Only OWNER can transfer ownership", 403);
+      }
+
+      const targetMembership = await OrganizationMember.findOne({
+        organization_id: organizationId,
+        user_id: targetId,
+      }).session(session);
+      if (!targetMembership) {
+        throw new AppError(
+          "Target user is not a member of this organization",
+          404
+        );
+      }
+      if ((targetMembership as any).role === "OWNER") {
+        throw new AppError("Target user is already an owner", 400);
+      }
+
+      (targetMembership as any).role = "OWNER";
+      await targetMembership.save({ session });
+      (requesterMembership as any).role = "ADMIN";
+      await requesterMembership.save({ session });
+
+      await session.commitTransaction();
+      res.status(200).json({
+        message: "Ownership transferred successfully",
+        data: {
+          newOwner: targetMembership,
+          previousOwner: requesterMembership,
+        },
+      });
+    } catch (error: any) {
+      if (session.inTransaction()) await session.abortTransaction();
+      if (error instanceof AppError) throw error;
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+);

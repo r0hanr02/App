@@ -3,7 +3,8 @@ import authMiddleware from "../middlewares/auth-middleware.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
 import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
 import { requireProjectAccess } from "../middlewares/auth-project-member.ts";
-import { createTask, getAllTask, getTaskDetails } from "../controllers/task-controller.ts";
+import { requireTaskAccess } from "../middlewares/auth-task-access.ts";
+import { assignTask, createTask, getAllTask, getTaskDetails } from "../controllers/task-controller.ts";
 
 const router = express.Router();
 router.post(
@@ -21,6 +22,7 @@ router.get(
   requireOrganizationMember,
 //   requireOrganizationRole("OWNER", "ADMIN"),
   requireProjectAccess,
+  requireTaskAccess,
   getTaskDetails
 );
 
@@ -31,6 +33,16 @@ router.get(
 //   requireOrganizationRole("OWNER", "ADMIN"),
   requireProjectAccess,
   getAllTask
+);
+
+router.patch(
+  "/organization/:organizationId/projects/:projectId/tasks/:taskId/assign",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER", "ADMIN"),
+  requireProjectAccess,
+  requireTaskAccess,
+  assignTask
 );
 
 export default router;

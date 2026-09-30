@@ -28,8 +28,7 @@ router.get(
   "/organization/:organizationId/projects",
   authMiddleware,
   requireOrganizationMember,
-  requireOrganizationRole("OWNER", "ADMIN"),
-  // requireProjectMember,
+  requireOrganizationRole("OWNER", "ADMIN", "MEMBER"),
   getAllProject
 );
 
@@ -46,7 +45,7 @@ router.patch(
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),
-  // requireProjectMember,
+  requireProjectAccess,
   updateProject
 );
 

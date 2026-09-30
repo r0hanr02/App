@@ -10,6 +10,7 @@ import {
   getOrganizationMembers,
   leaveOrganization,
   removeMember,
+  transferOwnership,
   updateOrganizationData,
 } from "../controllers/organization-controller.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
@@ -55,7 +56,7 @@ router.patch(
   "/organization/:organizationId",
   authMiddleware,
   requireOrganizationMember,
-  requireOrganizationRole("OWNER","ADMIN"),
+  requireOrganizationRole("OWNER", "ADMIN"),
   updateOrganizationData
 );
 
@@ -83,6 +84,13 @@ router.delete(
   requireOrganizationRole("OWNER", "ADMIN"),
   removeMember
 );
+router.post(
+  "/organization/:organizationId/transfer-ownership",
+  authMiddleware,
+  requireOrganizationMember,
+  requireOrganizationRole("OWNER"),
+  transferOwnership
+);
 
 export default router;
 
@@ -96,7 +104,6 @@ export default router;
 // ✅ LEAVE organization
 // ✅ PATCH member role
 // ✅ PATCH organization
-
 
 // later
 // ⬜ Invitations

@@ -1,122 +1,97 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import "./App.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Button } from "./components/ui/Button/Button";
+import { toast } from "./components/ui/Toast/toast.api";
+import ToastContainer from "./components/ui/Toast/ToastContainer";
+import { useApiMutation, useApiQuery } from "./hooks/useApi";
 
-function App() {
-  const [count, setCount] = useState(0)
+// One client for the whole app (create once, outside the component)
+const queryClient = new QueryClient();
+
+type HealthResponse = {
+  status: string;
+};
+
+type CreateUserPayload = {
+  name: string;
+};
+
+type CreateUserResponse = {
+  id: string;
+  name: string;
+};
+
+function ApiExample() {
+  // 1. QUERY (GET) — auto-fetches on mount
+  const {
+    data,
+    state: queryState,
+    refetch,
+  } = useApiQuery<HealthResponse>({
+    queryKey: ["health"],
+    path: "/health",
+    options: {
+      enabled: false,
+    },
+  });
+
+  // 2. MUTATION (POST) — fires on button click
+  const { mutate, state: mutationState } = useApiMutation<
+    CreateUserResponse,
+    CreateUserPayload
+  >({
+    path: "/users",
+    method: "POST",
+    options: {
+      onSuccess: (newUser) => {
+        toast.success("User created!", JSON.stringify(newUser));
+        // Refresh the query above if needed:
+        // queryClient.invalidateQueries({ queryKey: ["health"] });
+      },
+      onError: (err) => {
+        toast.error("Create failed", err.message);
+      },
+    },
+  });
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ display: "grid", gap: 16, padding: 24 }}>
+      {/* ----- Query state (normal React state, no .get()) ----- */}
+      <h2>GET /health</h2>
+      {queryState.isLoading && <p>Loading…</p>}
+      {queryState.isError && <p>Error: {queryState.errorMessage}</p>}
+      {data && <p>Status: {data.status}</p>}
+      <Button
+        variant="secondary"
+        onPress={() => refetch()}
+        isDisabled={queryState.isFetching}
+      >
+        {queryState.isFetching ? "Refetching…" : "Refetch"}
+      </Button>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* ----- Mutation state ----- */}
+      <h2>POST /users</h2>
+      <Button
+        variant="primary"
+        onPress={() => mutate({ name: "John" })}
+        isPending={mutationState.isPending}
+        isDisabled={mutationState.isPending}
+      >
+        Create user
+      </Button>
+      {mutationState.isError && <p>Error: {mutationState.errorMessage}</p>}
+      {mutationState.isSuccess && <p>User created!</p>}
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ApiExample />
+      <ToastContainer />
+    </QueryClientProvider>
+  );
+}
+
+export default App;

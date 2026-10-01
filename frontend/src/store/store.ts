@@ -1,12 +1,14 @@
 import { create } from "zustand";
 import { useAuthStoreSlice } from "./auth.store";
-import { useThemeStoreSlice } from "./theme.store";
+import {
+  applyTheme,
+  getMediaQuery,
+  getSystemTheme,
+  useThemeStoreSlice,
+} from "./theme.store";
 import { persist } from "zustand/middleware";
 import { useToastStoreSlice } from "./toast.store";
-
-type RootStore = ReturnType<typeof useAuthStoreSlice> &
-  ReturnType<typeof useThemeStoreSlice> &
-  ReturnType<typeof useToastStoreSlice>;
+import type { RootStore } from "./types";
 
 export const useStore = create<RootStore>()(
   persist(
@@ -21,3 +23,21 @@ export const useStore = create<RootStore>()(
     },
   ),
 );
+
+// Keep <html> class in sync with the single theme source.
+if (useStore.getState().isSystem) {
+  useStore.getState().setSystemTheme();
+}
+applyTheme(useStore.getState().theme);
+
+useStore.subscribe((state, prev) => {
+  if (state.theme !== prev.theme) applyTheme(state.theme);
+});
+
+getMediaQuery()?.addEventListener("change", (e) => {
+  if (!useStore.getState().isSystem) return;
+  useStore.setState({ theme: e.matches ? "dark" : "light" });
+});
+
+export { getSystemTheme };
+export type { RootStore };

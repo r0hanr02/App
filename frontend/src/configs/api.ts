@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
 import type { configOptions } from "../types/api.types";
 
-const baseURL = "http://localhost/api/v1";
+const baseURL = "http://localhost:8000/api/v1";
 
 export const axiosInstance = axios.create({
   baseURL: baseURL,

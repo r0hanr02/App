@@ -1,0 +1,111 @@
+.react-aria-SearchField {
+  display: grid;
+
+  grid-template-areas:
+    "label label label"
+    "icon input button"
+    "help help help";
+
+  grid-template-columns: 0px 1fr auto;
+
+  align-items: center;
+  width: 100%;
+  color: var(--text-subtle);
+
+  .lucide-search {
+    grid-area: icon;
+    z-index: 2;
+    margin-left: 0.5rem;
+  }
+
+  &[data-disabled] .lucide-search {
+    color: var(--text-subtlest);
+  }
+
+  .react-aria-Label {
+    grid-area: label;
+  }
+
+  .react-aria-Input {
+    grid-area: input;
+
+    width: 100%;
+
+    border-radius: var(--radius-10);
+    padding: 0 2rem;
+
+    border: 1px solid var(--border-subtle);
+    height: 2.5rem;
+
+    font-size: 0.875rem;
+
+    outline: none;
+
+    &:focus {
+      border-color: var(--border-primary-500);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+      -webkit-appearance: none;
+    }
+
+    &:disabled {
+      background-color: var(--bg-grey-00);
+      cursor: not-allowed;
+    }
+  }
+
+  .clear-button {
+    grid-area: button;
+
+    all: unset;
+
+    width: 1rem;
+    height: 1rem;
+
+    margin-left: -1.5rem;
+
+    border-radius: var(--radius-10);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--bg-grey-500);
+    color: var(--text-white);
+
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+
+    svg {
+      width: 0.75rem;
+      height: 0.75rem;
+    }
+
+    &:hover {
+      background: var(--text-subtle);
+    }
+
+    &:active,
+    &[data-pressed] {
+      background: var(--text-default);
+    }
+
+    &[data-disabled] {
+      background: var(--text-subtlest);
+      cursor: not-allowed;
+    }
+  }
+
+  &[data-empty] .clear-button {
+    display: none;
+  }
+
+  .react-aria-FieldError,
+  [slot="description"] {
+    grid-area: help;
+  }
+}

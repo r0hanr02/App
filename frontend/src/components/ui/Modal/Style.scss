@@ -1,0 +1,84 @@
+@use "../../../styles/themes" as themes;
+@use "../../../styles/typography" as typo;
+
+.ui-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg-invert) 55%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-9);
+}
+
+.ui-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 85vh;
+  background: var(--bg-surface);
+  border-radius: var(--radius-4);
+  box-shadow: var(--shadow-x-large);
+  overflow: hidden;
+
+  &--sm {
+    max-width: 400px;
+  }
+
+  &--md {
+    max-width: 560px;
+  }
+
+  &--lg {
+    max-width: 840px;
+  }
+
+  &__header {
+    @include themes.flex(row, space-between, center, nowrap, var(--space-6));
+    padding: var(--space-7) var(--space-8);
+    border-bottom: 1px solid var(--border-subtlest);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    @include typo.label-lg-mixin();
+    --custom-color: var(--text-default);
+  }
+
+  &__close {
+    @include themes.flex(row, center, center);
+    @include themes.border(var(--border-subtlest), var(--radius-3));
+    width: 30px;
+    height: 30px;
+    background: var(--bg-surface);
+    color: var(--text-subtler);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: var(--bg-sunken);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--border-primary-500);
+      outline-offset: 2px;
+    }
+  }
+
+  &__body {
+    @include typo.para-sm-mixin();
+    --custom-color: var(--text-default);
+    padding: var(--space-8);
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    @include themes.flex(row, flex-end, center, nowrap, var(--space-5));
+    padding: var(--space-7) var(--space-8);
+    border-top: 1px solid var(--border-subtlest);
+    flex-shrink: 0;
+  }
+}

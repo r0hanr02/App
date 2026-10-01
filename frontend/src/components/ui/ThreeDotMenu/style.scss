@@ -1,0 +1,96 @@
+@use "../../../styles/themes" as themes;
+@use "../../../styles/typography" as typo;
+
+.ui-menu {
+  position: absolute;
+  display: inline-block;
+
+  &__trigger {
+    @include themes.flex(row, center, center);
+    @include themes.border(var(--border-subtlest), var(--radius-3));
+    width: 30px;
+    height: 30px;
+    background: var(--bg-surface);
+    color: var(--text-primary-500);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: var(--bg-sunken);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--border-primary-500);
+      outline-offset: 2px;
+    }
+  }
+
+  &--open .ui-menu__trigger {
+    background: var(--bg-sunken);
+    border-color: var(--border-default);
+  }
+
+  &__list {
+    position: absolute;
+    top: calc(100% + var(--space-3));
+    z-index: 30;
+    min-width: 180px;
+    list-style: none;
+    margin: 0;
+    padding: var(--space-3) 0;
+    background: var(--bg-surface);
+    @include themes.border(var(--border-subtle), var(--radius-3));
+    box-shadow: var(--shadow-medium);
+
+    &--right {
+      right: 0;
+    }
+
+    &--left {
+      left: 0;
+    }
+  }
+
+  &__item {
+    @include typo.para-sm-mixin();
+    @include themes.flex(row, flex-start, center, nowrap, var(--space-5));
+    --custom-color: var(--text-default);
+    padding: var(--space-5) var(--space-7);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 100ms ease;
+
+    &:hover {
+      background: var(--bg-sunken);
+    }
+
+    &-icon {
+      display: inline-flex;
+      width: 16px;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    &--danger {
+      --custom-color: var(--text-red-700);
+
+      &:hover {
+        background: var(--bg-red-00);
+      }
+    }
+
+    &--disabled {
+      --custom-color: var(--text-subtlest);
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  }
+
+  &__divider {
+    height: 1px;
+    margin: var(--space-3) 0;
+    background: var(--border-subtlest);
+  }
+}

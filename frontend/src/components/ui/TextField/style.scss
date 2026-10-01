@@ -1,0 +1,125 @@
+.react-aria-TextField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.react-aria-Input,
+.react-aria-TextArea {
+  width: 100%;
+
+  min-height: 2rem;
+  padding: 0 0.75rem;
+
+  box-sizing: border-box;
+  margin: 0;
+
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.5rem;
+
+  font-size: 0.875rem;
+  font-family: system-ui, sans-serif;
+
+  color: var(--text-default);
+
+  outline: none;
+
+  -webkit-tap-highlight-color: transparent;
+
+  background-color: var(--bg-surface);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &::placeholder {
+    color: var(--text-subtlest);
+  }
+
+  &[data-focused] {
+    outline: 2px solid var(--border-primary-500);
+    outline-offset: -1px;
+  }
+
+  &:focus {
+    border-color: var(--border-primary-500);
+  }
+
+  &[data-disabled] {
+    color: var(--text-subtlest);
+    background-color: var(--bg-grey-00);
+    cursor: not-allowed;
+
+    &::placeholder {
+      color: var(--text-subtlest);
+    }
+  }
+}
+
+.react-aria-TextArea {
+  min-height: var(--space-18);
+
+  padding: 0.5rem 0.75rem;
+
+  resize: vertical;
+}
+
+.react-aria-Input {
+  border: 1px solid var(--border-subtle);
+}
+
+.react-aria-Input[data-invalid] {
+  border-color: var(--border-red-500);
+}
+
+.react-aria-Input[data-invalid]:focus {
+  border-color: var(--border-red-500);
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  align-items: center;
+}
+
+.react-aria-Input {
+  position: relative;
+  z-index: 1;
+  // width: ;
+}
+
+.has-left-icon .react-aria-Input {
+  padding-left: 2.5rem;
+}
+
+.has-right-icon .react-aria-Input {
+  padding-right: 2.5rem;
+}
+
+.input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; // unless it's clickable
+}
+
+.input-icon.left {
+  left: 0.75rem;
+}
+
+.input-icon.right {
+  right: 0.75rem;
+}
+.input-icon {
+    position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: auto;
+}

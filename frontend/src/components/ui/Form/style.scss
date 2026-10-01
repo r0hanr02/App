@@ -1,0 +1,75 @@
+.react-aria-Form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.react-aria-Label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-subtle);
+}
+
+.react-aria-FieldError {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-red-500);
+}
+
+.field-description {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-subtler);
+}
+
+.react-aria-Field[data-invalid] .field-description {
+  display: none;
+}
+
+.field-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2rem;
+  height: 2rem;
+  margin-left: -2.25rem;
+
+  border: none;
+  border-radius: 0.375rem;
+
+  background-color: var(--bg-grey-100);
+  color: var(--text-subtler);
+
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &:hover {
+    background-color: var(--border-subtle);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-primary-500);
+    outline-offset: 2px;
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    cursor: not-allowed;
+    background: transparent;
+    color: var(--text-subtlest);
+  }
+}

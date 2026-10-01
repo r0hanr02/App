@@ -1,0 +1,115 @@
+@import "./../../../styles/themes.scss";
+
+.react-aria-Button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+
+  border: none;
+  border-radius: var(--radius);
+
+  height: var(--spacing-8);
+  padding: 0 var(--spacing-3);
+
+  font-size: var(--font-size);
+  font-weight: 500;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.react-aria-Button > svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+
+  svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &[data-pending="true"] {
+    cursor: progress;
+  }
+
+  &[data-variant="primary"] {
+    background: var(--bg-primary-500);
+    color: var(--text-white);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-primary-700);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--bg-primary-900);
+    }
+  }
+
+  &[data-variant="secondary"] {
+    background: var(--bg-surface);
+    color: var(--text-default);
+    border: 1px solid var(--border-subtle);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-grey-00);
+    }
+  }
+
+  &[data-variant="danger"] {
+    background: var(--bg-red-500);
+    color: var(--text-white);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-red-700);
+    }
+  }
+}
+.button-base[data-size="sm"] {
+  height: var(--space-12);
+  padding: 0 var(--space-7);
+  font-size: 0.75rem;
+}
+
+.button-base[data-size="md"] {
+  height: var(--space-14);
+  padding: 0 var(--space-8);
+  font-size: 0.875rem;
+}
+
+.button-base[data-size="lg"] {
+  height: var(--space-16);
+  padding: 0 var(--space-9);
+  font-size: 1rem;
+}

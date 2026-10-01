@@ -1,9 +1,14 @@
 import type { StateCreator } from "zustand";
-import type { AuthStoreType } from "./types";
+import type { AuthStoreType, RootStore } from "./types";
 
-export const useAuthStoreSlice: StateCreator<AuthStoreType> = (set) => ({
+export const useAuthStoreSlice: StateCreator<
+  RootStore,
+  [],
+  [],
+  AuthStoreType
+> = (set) => ({
   isLoggedIn: false,
   data: null,
   setData: (value) => set({ data: value, isLoggedIn: true }),
-  logOut: () => set({ data: null, isLoggedIn: false }),
+  clearData: () => set({ data: null, isLoggedIn: false }),
 });

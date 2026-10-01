@@ -1,87 +1,67 @@
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { useStore } from "../store/store";
+import { axiosInstance, refreshInstance } from "./api";
 
-// import type { InternalAxiosRequestConfig } from "axios";
-// import { useStore } from "../store/store";
-// import { axiosInstance } from "./api";
+type errorAxios = InternalAxiosRequestConfig & { _retry: boolean | undefined };
 
-// interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
-//   _retry?: boolean;
-// }
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const accessToken = useStore.getState().data?.accessToken;
+    if (accessToken && config.headers) {
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error: AxiosError) => {
+    console.log(error);
+    return Promise.reject(error);
+  },
+);
 
-// const AUTH_SNAPSHOT_STORAGE_KEY = "GMR:auth-snapshot";
-// const { user, isLoggedIn } = authStore;
-// const user = useStore.getState().data;
-// const isLoggedIn = useStore.getState().isLoggedIn;
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError & { config?: errorAxios }) => {
+    const originalRequest = error.config as errorAxios | undefined;
 
-// axiosInstance.interceptors.request.use(
-//   (config) => {
-//     if (config.url?.includes("/auth/logout")) {
-//       config.headers["X-Refresh-Token"] = user.data.refresh_token.get();
-//     } else if (config.url?.includes("/auth/refresh")) {
-//       config.headers["X-Refresh-Token"] = user.data.refresh_token.get();
-//     } else {
-//       const accessToken = user.data.access_token.get();
+    if (originalRequest?.url?.includes("/auth/refresh")) {
+      return Promise.reject(error);
+    }
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
 
-//       if (accessToken) {
-//         config.headers.Authorization = `Bearer ${accessToken}`;
-//       }
-//     }
-//     return config;
-//   },
-//   (error: AxiosError) => {
-//     console.log(error);
-//     return Promise.reject(error);
-//   },
-// );
+      try {
+        const res = await refreshInstance.post("/auth/refresh");
 
-// axiosInstance.interceptors.response.use(
-//   (response) => response,
-//   async (error: AxiosError) => {
-//     const originalRequest = error.config as CustomAxiosRequestConfig;
+        const newAccessToken = res.data.accessToken;
 
-//     if (
-//       error.response?.status === 401 &&
-//       originalRequest &&
-//       !originalRequest._retry
-//     ) {
-//       originalRequest._retry = true;
+        // Update the access token in your store or wherever you keep it
+        const currentUserData = useStore.getState().data;
+        if (currentUserData) {
+          useStore.getState().setData({
+            ...currentUserData,
+            accessToken: newAccessToken,
+          });
+        }
 
-//       try {
-//         const currentUser = user.data.get();
-//         const refreshToken = (currentUser as { refresh_token?: string } | null)
-//           ?.refresh_token;
+        if (originalRequest.headers) {
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        }
 
-//         if (refreshToken) {
-//           const response = await refreshInstance.post("/auth/refresh", null, {
-//             params: { refresh_token: refreshToken },
-//           });
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        useStore.getState().clearData();
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
+      }
+    }
 
-//           const data = response.data;
-//           const newAccessToken =
-//             typeof data === "string" ? data : data?.access_token || data?.token;
-
-//           if (newAccessToken && typeof newAccessToken === "string") {
-//             if (currentUser) {
-//               user.data.set({
-//                 ...currentUser,
-//                 access_token: newAccessToken,
-//               });
-//             }
-
-//             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-//             return axiosInstance(originalRequest);
-//           }
-//         }
-//       } catch (refreshError) {
-//         console.error("Token refresh failed:", refreshError);
-//       }
-//       isLoggedIn.set(false);
-//       user.set(null);
-//     //   localStorage.removeItem(storageKey);
-//       if (window.location.pathname !== "/login") {
-//         window.location.href = "/login";
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   },
-// );
+    return Promise.reject(error);
+  },
+);

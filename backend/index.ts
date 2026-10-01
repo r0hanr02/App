@@ -44,7 +44,7 @@ app.get("/", (_req, res) => {
   res.send("Hello World");
 });
 
-app.get("/health", (_req, res) => {
+app.get("/api/v1/health", (_req, res) => {
   res.status(200).json({ success: true, message: "OK" });
 });
 

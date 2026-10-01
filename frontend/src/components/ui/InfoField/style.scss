@@ -1,0 +1,21 @@
+@use "../../../styles/themes" as themes;
+@use "../../../styles/typography" as typo;
+
+.ui-info-field {
+  @include themes.border(var(--border-subtlest), var(--radius-3));
+  padding: var(--space-6) var(--space-7);
+  background: var(--bg-surface);
+
+  &__label {
+    @include typo.para-xs-mixin();
+    --custom-color: var(--text-subtlest);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: var(--space-2);
+  }
+
+  &__value {
+    @include typo.label-sm-mixin();
+    --custom-color: var(--text-default);
+  }
+}

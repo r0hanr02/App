@@ -1,0 +1,100 @@
+@use "../../../styles/themes" as themes;
+@use "../../../styles/typography" as typo;
+
+.ui-select {
+  position: relative;
+  display: inline-block;
+  min-width: 160px;
+
+  &--disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  &__trigger {
+    @include typo.label-sm-mixin();
+    @include themes.flex(row, space-between, center, nowrap, var(--space-5));
+    --custom-color: var(--text-default);
+    width: 100%;
+    background: var(--bg-surface);
+    @include themes.border(var(--border-subtle), var(--radius-3));
+    padding: var(--space-5) var(--space-7);
+    cursor: pointer;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+
+    &:hover {
+      border-color: var(--border-default);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--border-primary-500);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--bg-primary-500) 20%, transparent);
+    }
+  }
+
+  &--open .ui-select__trigger {
+    border-color: var(--border-primary-500);
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--bg-primary-500) 20%, transparent);
+  }
+
+  &__value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__chevron {
+    color: var(--text-subtler);
+    font-size: 12px;
+    transition: transform 150ms ease;
+    flex-shrink: 0;
+  }
+
+  &--open .ui-select__chevron {
+    transform: rotate(180deg);
+  }
+
+  &__list {
+    position: absolute;
+    top: calc(100% + var(--space-3));
+    left: 0;
+    right: 0;
+    z-index: 20;
+    list-style: none;
+    margin: 0;
+    padding: var(--space-3) 0;
+    max-height: 280px;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    @include themes.border(var(--border-subtle), var(--radius-3));
+    box-shadow: var(--shadow-medium);
+  }
+
+  &__option {
+    @include typo.para-sm-mixin();
+    --custom-color: var(--text-default);
+    padding: var(--space-5) var(--space-7);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 100ms ease;
+
+    &:hover {
+      background: var(--bg-sunken);
+    }
+
+    &.is-selected {
+      --custom-color: var(--text-white);
+      background: var(--bg-orange-700);
+      font-weight: 600;
+
+      &:hover {
+        background: var(--bg-orange-700);
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+@use "../../../styles/themes" as themes;
+@use "../../../styles/typography" as typo;
+
+.ui-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+
+  &__label {
+    @include typo.label-sm-mixin();
+    --custom-color: var(--text-default);
+  }
+
+  &__field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  &__icon {
+    position: absolute;
+    left: var(--space-6);
+    font-size: 13px;
+    color: var(--text-subtlest);
+    pointer-events: none;
+  }
+
+  &__control {
+    @include typo.para-sm-mixin();
+    width: 100%;
+    background: var(--bg-surface);
+    @include themes.border(var(--border-subtle), var(--radius-3));
+    padding: var(--space-5) var(--space-7);
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+
+    &::placeholder {
+      color: var(--text-subtlest);
+    }
+
+    &:hover {
+      border-color: var(--border-default);
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--border-primary-500);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--bg-primary-500) 20%, transparent);
+    }
+
+    &:disabled {
+      background: var(--bg-sunken);
+      color: var(--text-subtlest);
+      cursor: not-allowed;
+    }
+  }
+
+  &__field--has-icon &__control {
+    padding-left: var(--space-14);
+  }
+
+  &__field--error &__control {
+    border-color: var(--border-red-500);
+
+    &:focus-visible {
+      border-color: var(--border-red-500);
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, var(--bg-red-500) 20%, transparent);
+    }
+  }
+
+  &__error {
+    @include typo.para-xs-mixin();
+    --custom-color: var(--text-red-700);
+    margin: 0;
+  }
+}

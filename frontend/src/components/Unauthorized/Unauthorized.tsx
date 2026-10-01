@@ -1,5 +1,4 @@
-// import { Button } from "../ui/Button/Button";
-// import { handleLogout } from "../../auth/auth.api";
+import { Link } from "@tanstack/react-router";
 
 const Unauthorized = () => {
   return (
@@ -14,7 +13,7 @@ const Unauthorized = () => {
       <div>
         <h1>🔒 Access Denied</h1>
         <p>You don't have permission to view this page.</p>
-        {/* <Button onClick={handleLogout}>Log Out</Button> */}
+        <Link to="/login">Go to Login</Link>
       </div>
     </div>
   );

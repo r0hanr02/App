@@ -1,4 +1,5 @@
-// import { Link } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
+import { ROUTES } from "../../constants/routes.constants";
 
 const NotFound = () => {
   return (
@@ -14,7 +15,7 @@ const NotFound = () => {
         <h1>Oops! 😕</h1>
         <p>Something went wrong.</p>
 
-        {/* <Link to="/">Go Home</Link> */}
+        <Link to={ROUTES.LOGIN}>Go Home</Link>
       </div>
     </div>
   );

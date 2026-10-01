@@ -20,8 +20,6 @@ function App() {
     [isLoggedIn, data],
   );
 
-
-
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} context={{ auth }} />

@@ -282,3 +282,295 @@
 .subheading-2xs {
   @include subheading-2xs-mixin();
 }
+
+
+@mixin _type(
+  $size,
+  $weight: var(--font-weight-regular),
+  $line-height: var(--line-height-normal),
+  $tracking: 0,
+  $color: var(--custom-color, var(--text-default))
+) {
+  font-family: var(--font-family-sans);
+  font-size: $size;
+  font-style: normal;
+  font-weight: $weight;
+  line-height: $line-height;
+  letter-spacing: $tracking;
+  color: $color;
+}
+
+@mixin font {
+  font-family: var(--font-family-sans);
+  color: var(--text-default);
+}
+
+/* Titles */
+
+@mixin title-3xl-mixin {
+  @include _type(
+    var(--text-title-3xl),
+    var(--font-weight-medium),
+    1.14,
+    -0.01em
+  );
+}
+
+@mixin title-2xl-mixin {
+  @include _type(
+    var(--text-title-2xl),
+    var(--font-weight-medium),
+    1.17,
+    -0.01em
+  );
+}
+
+@mixin title-xl-mixin {
+  @include _type(
+    var(--text-title-xl),
+    var(--font-weight-medium),
+    1.2,
+    -0.01em
+  );
+}
+
+@mixin title-lg-mixin {
+  @include _type(
+    var(--text-title-lg),
+    var(--font-weight-medium),
+    1.25,
+    -0.01em
+  );
+}
+
+@mixin title-md-mixin {
+  @include _type(
+    var(--text-title-md),
+    var(--font-weight-medium),
+    1.33,
+    0
+  );
+}
+
+@mixin title-sm-mixin {
+  @include _type(
+    var(--text-title-sm),
+    var(--font-weight-medium),
+    1.4,
+    0
+  );
+}
+
+/* Labels */
+
+@mixin label-xl-mixin {
+  @include _type(
+    var(--text-label-xl),
+    var(--font-weight-medium),
+    1.33,
+    -0.015em
+  );
+}
+
+@mixin label-lg-mixin {
+  @include _type(
+    var(--text-label-lg),
+    var(--font-weight-medium),
+    1.33,
+    -0.015em
+  );
+}
+
+@mixin label-md-mixin {
+  @include _type(
+    var(--text-label-md),
+    var(--font-weight-medium),
+    1.5,
+    -0.011em
+  );
+}
+
+@mixin label-sm-mixin {
+  @include _type(
+    var(--text-label-sm),
+    var(--font-weight-medium),
+    1.43,
+    -0.006em
+  );
+}
+
+@mixin label-xs-mixin {
+  @include _type(
+    var(--text-label-xs),
+    var(--font-weight-medium),
+    1.33,
+    -0.006em
+  );
+}
+
+/* Paragraphs */
+
+@mixin para-xl-mixin {
+  @include _type(
+    var(--text-para-xl),
+    var(--font-weight-regular),
+    1.33,
+    -0.015em
+  );
+}
+
+@mixin para-lg-mixin {
+  @include _type(
+    var(--text-para-lg),
+    var(--font-weight-regular),
+    1.33,
+    -0.015em
+  );
+}
+
+@mixin para-md-mixin {
+  @include _type(
+    var(--text-para-md),
+    var(--font-weight-regular),
+    1.5,
+    -0.011em
+  );
+}
+
+@mixin para-sm-mixin {
+  @include _type(
+    var(--text-para-sm),
+    var(--font-weight-regular),
+    1.43,
+    -0.006em
+  );
+}
+
+@mixin para-xs-mixin {
+  @include _type(
+    var(--text-para-xs),
+    var(--font-weight-regular),
+    1.33,
+    0
+  );
+}
+
+/* Subheadings: slightly increased tracking can help compact UI labels. */
+
+@mixin subheading-md-mixin {
+  @include _type(
+    var(--text-subheading-md),
+    var(--font-weight-medium),
+    1.5,
+    0.06em
+  );
+}
+
+@mixin subheading-sm-mixin {
+  @include _type(
+    var(--text-subheading-sm),
+    var(--font-weight-medium),
+    1.43,
+    0.06em
+  );
+}
+
+@mixin subheading-xs-mixin {
+  @include _type(
+    var(--text-subheading-xs),
+    var(--font-weight-medium),
+    1.33,
+    0.04em
+  );
+}
+
+@mixin subheading-2xs-mixin {
+  @include _type(
+    var(--text-subheading-2xs),
+    var(--font-weight-medium),
+    1.6,
+    0.02em
+  );
+}
+
+/* Utility classes */
+
+.title-3xl {
+  @include title-3xl-mixin;
+}
+
+.title-2xl {
+  @include title-2xl-mixin;
+}
+
+.title-xl {
+  @include title-xl-mixin;
+}
+
+.title-lg {
+  @include title-lg-mixin;
+}
+
+.title-md {
+  @include title-md-mixin;
+}
+
+.title-sm {
+  @include title-sm-mixin;
+}
+
+.label-xl {
+  @include label-xl-mixin;
+}
+
+.label-lg {
+  @include label-lg-mixin;
+}
+
+.label-md {
+  @include label-md-mixin;
+}
+
+.label-sm {
+  @include label-sm-mixin;
+}
+
+.label-xs {
+  @include label-xs-mixin;
+}
+
+.para-xl {
+  @include para-xl-mixin;
+}
+
+.para-lg {
+  @include para-lg-mixin;
+}
+
+.para-md {
+  @include para-md-mixin;
+}
+
+.para-sm {
+  @include para-sm-mixin;
+}
+
+.para-xs {
+  @include para-xs-mixin;
+}
+
+.subheading-md {
+  @include subheading-md-mixin;
+}
+
+.subheading-sm {
+  @include subheading-sm-mixin;
+}
+
+.subheading-xs {
+  @include subheading-xs-mixin;
+}
+
+.subheading-2xs {
+  @include subheading-2xs-mixin;
+}

@@ -3,7 +3,7 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { createAppRoutes } from "./factories/RouteFactory";
-import { queryClient } from "./configs/queryClient";
+import { queryClient } from "./lib/queryClient";
 import type { RouterContext } from "./types/router.types";
 import RootLayout from "./components/layouts/RootLayout";
 import NotFound from "./components/NotFound/NotFound";

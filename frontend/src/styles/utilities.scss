@@ -1,5 +1,5 @@
 @layer utilities {
-  /* utility that creates a button-like element, which can be optionally selected */
+  /* Button primitive for React Aria Components and other data-attribute controls. */
   .button-base {
     --button-color: var(--tint);
     --button-background: oklch(
@@ -25,34 +25,18 @@
     color: var(--button-text);
     box-shadow:
       inset 0 -1px 0 var(--button-shadow),
-      /* bottom shadow */ inset 0 0 0 var(--button-border-size)
-        var(--button-border),
-      /* border */ inset 0px calc(var(--button-border-size) + 1px) 0px
-        var(--button-highlight),
-      /* top specular highlight */ inset 0px
-        calc(-1 * var(--button-gradient-size)) var(--button-gradient-size) -2px
-        var(--button-gradient); /* inner gradient */
-    outline: none;
-    transition-property: background, color, scale, box-shadow;
-    transition-duration: 200ms;
-    will-change: scale;
-    forced-color-adjust: none;
-    -webkit-tap-highlight-color: transparent;
+      inset 0 0 0 var(--button-border-size) var(--button-border),
+      inset 0 calc(var(--button-border-size) + 1px) 0 var(--button-highlight),
+      inset 0 calc(-1 * var(--button-gradient-size))
+        var(--button-gradient-size) -2px var(--button-gradient);
 
-    @media (prefers-color-scheme: dark) {
-      --button-shadow: oklch(
-        from var(--button-color) var(--lightness-200) var(--chroma-200) h
-      );
-      --button-highlight: rgb(255 255 255 / 0.15);
-      box-shadow:
-        inset 0 var(--button-border-size) 0 var(--button-highlight),
-        /* top specular highlight */ inset 0
-          calc(-1 * var(--button-border-size)) 0 var(--button-shadow),
-        /* bottom shadow */ inset 0 0 0 var(--button-border-size)
-          var(--button-border),
-        /* border */ inset 0 var(--button-gradient-size)
-          var(--button-gradient-size) -2px var(--button-gradient); /* inner gradient */
-    }
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      background 200ms ease,
+      color 200ms ease,
+      scale 200ms ease,
+      box-shadow 200ms ease;
 
     &:where([data-pressed]) {
       --button-background: oklch(
@@ -70,7 +54,7 @@
     }
 
     &:where([data-variant="quiet"]) {
-      --button-background: none;
+      --button-background: transparent;
       --button-text: var(--text-color);
       box-shadow: 0 0 0 1px transparent;
 
@@ -91,22 +75,10 @@
 
       box-shadow:
         inset 0 -1px 0 var(--button-shadow),
-        /* bottom shadow */ inset 0 0 0 1px var(--button-border),
-        /* border */ inset 0 2px 0 var(--button-highlight),
-        /* top specular highlight */ inset 0
-          calc(-1 * var(--button-gradient-size)) var(--button-gradient-size)
-          var(--button-gradient); /* inner gradient */
-
-      @media (prefers-color-scheme: dark) {
-        --button-highlight: rgb(255 255 255 / 0.4);
-        --button-gradient: rgb(255 255 255 / 0.2);
-        --button-shadow: var(--button-border);
-        box-shadow:
-          inset 0 1px 0 var(--button-highlight),
-          /* top specular highlight */ inset 0 var(--button-gradient-size)
-            var(--button-gradient-size) var(--button-gradient),
-          /* inner gradient */ inset 0 0 0 1px var(--button-border); /* border */
-      }
+        inset 0 0 0 1px var(--button-border),
+        inset 0 2px 0 var(--button-highlight),
+        inset 0 calc(-1 * var(--button-gradient-size))
+          var(--button-gradient-size) var(--button-gradient);
 
       &:where([data-pressed]) {
         --button-background: oklch(from var(--button-color) 50% c h);
@@ -119,7 +91,34 @@
       --button-text: var(--text-color-disabled);
 
       &:where([data-variant="quiet"]) {
-        --button-background: none;
+        --button-background: transparent;
+      }
+    }
+
+    /* Explicit app theme selectors work even when the OS theme differs. */
+    :is(.dark, [data-theme="dark"]) & {
+      --button-shadow: oklch(
+        from var(--button-color) var(--lightness-200) var(--chroma-200) h
+      );
+      --button-highlight: rgb(255 255 255 / 0.15);
+
+      box-shadow:
+        inset 0 var(--button-border-size) 0 var(--button-highlight),
+        inset 0 calc(-1 * var(--button-border-size)) 0 var(--button-shadow),
+        inset 0 0 0 var(--button-border-size) var(--button-border),
+        inset 0 var(--button-gradient-size)
+          var(--button-gradient-size) -2px var(--button-gradient);
+
+      &:where([data-selected]) {
+        --button-highlight: rgb(255 255 255 / 0.4);
+        --button-gradient: rgb(255 255 255 / 0.2);
+        --button-shadow: var(--button-border);
+
+        box-shadow:
+          inset 0 1px 0 var(--button-highlight),
+          inset 0 var(--button-gradient-size)
+            var(--button-gradient-size) var(--button-gradient),
+          inset 0 0 0 1px var(--button-border);
       }
     }
 
@@ -131,6 +130,7 @@
 
       &:where([data-variant="quiet"]) {
         --button-border: transparent;
+
         &:where([data-hovered], [data-pressed]) {
           --button-border: ButtonBorder;
         }
@@ -154,7 +154,7 @@
     }
   }
 
-  /* utility that creates a small indicator, such as a checkbox, radio, switch, or slider thumb */
+  /* Small visual indicator for checkbox, radio, switch, and slider controls. */
   .indicator {
     --indicator-color: var(--gray);
     --indicator-background: oklch(
@@ -168,25 +168,9 @@
     background: var(--indicator-background);
     box-shadow:
       inset 0 0 0 1px var(--indicator-border),
-      /* border */ inset 0 2px 0 white,
-      /* top specular highlight */ inset 0 -4px 2px
-        oklch(from var(--indicator-color) 30% c h / 0.08),
-      /* inner gradient */ var(--indicator-drop-shadow); /* optional drop shadow */
-    will-change: scale;
-
-    @media (prefers-color-scheme: dark) {
-      box-shadow:
-        inset 0 1px 0 rgb(255 255 255 / 0.4),
-        /* top specular highlight */ inset 0 4px 2px rgb(255 255 255 / 0.1),
-        /* inner shadow */ inset 0 0 0 1px var(--indicator-border),
-        /* border */ var(--indicator-drop-shadow); /* optional drop shadow */
-    }
-
-    @media (forced-colors: active) {
-      --indicator-background: ButtonFace;
-      --indicator-border: ButtonBorder;
-      box-shadow: inset 0 0 0 1px var(--indicator-border);
-    }
+      inset 0 2px 0 white,
+      inset 0 -4px 2px oklch(from var(--indicator-color) 30% c h / 0.08),
+      var(--indicator-drop-shadow);
 
     &[data-pressed],
     [data-pressed] & {
@@ -200,20 +184,22 @@
       --indicator-highlight: rgb(255 255 255 / 0.3);
       --indicator-shadow: oklch(from var(--indicator-color) 45% c h);
       --indicator-border: var(--indicator-background);
+
       box-shadow:
         inset 0 -1px 0 var(--indicator-shadow),
-        /* bottom shadow */ inset 0 0 0 1px var(--indicator-border),
-        /* border */ inset 0 2px 0 var(--indicator-highlight),
-        /* top specular highlight */ var(--indicator-drop-shadow); /* optional drop shadow */
+        inset 0 0 0 1px var(--indicator-border),
+        inset 0 2px 0 var(--indicator-highlight),
+        var(--indicator-drop-shadow);
 
-      @media (prefers-color-scheme: dark) {
+      :is(.dark, [data-theme="dark"]) & {
         --indicator-highlight: rgb(255 255 255 / 0.5);
         --indicator-gradient: rgb(255 255 255 / 0.12);
+
         box-shadow:
           inset 0 1px 0 var(--indicator-highlight),
-          /* top specular highlight */ inset 0 4px 2px var(--indicator-gradient),
-          /* inner gradient */ inset 0 0 0 1px var(--indicator-border),
-          /* border */ var(--indicator-drop-shadow); /* optional drop shadow */
+          inset 0 4px 2px var(--indicator-gradient),
+          inset 0 0 0 1px var(--indicator-border),
+          var(--indicator-drop-shadow);
       }
 
       @media (forced-colors: active) {
@@ -241,9 +227,23 @@
       background: var(--field-background);
       box-shadow: inset 0 0 0 1px var(--border-color-disabled);
     }
+
+    :is(.dark, [data-theme="dark"]) & {
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.4),
+        inset 0 4px 2px rgb(255 255 255 / 0.1),
+        inset 0 0 0 1px var(--indicator-border),
+        var(--indicator-drop-shadow);
+    }
+
+    @media (forced-colors: active) {
+      --indicator-background: ButtonFace;
+      --indicator-border: ButtonBorder;
+      box-shadow: inset 0 0 0 1px var(--indicator-border);
+    }
   }
 
-  /* utility that creates an inset effect, used for form fields, slider/progress tracks, etc. */
+  /* Inset surface for fields, slider/progress tracks, and similar controls. */
   .inset {
     --inset-background: var(--field-background);
     --inset-border: var(--border-color);
@@ -254,31 +254,12 @@
     background: var(--inset-background);
     box-shadow:
       inset 0 0 0 var(--inset-border-size) var(--inset-border),
-      /* border */ inset 0 var(--inset-shadow-offset) var(--inset-shadow-size)
-        rgb(0 0 0 / 0.15),
-      /* inner shadow */ 0 1px 0 var(--gray-50); /* bottom specular highlight */
-    transition: box-shadow 200ms;
-    forced-color-adjust: none;
-
-    @media (prefers-color-scheme: dark) {
-      --inset-border: var(--gray-200);
-      --border-color-hover: var(--gray-300);
-      --inset-highlight: var(--gray-400);
-      --inset-shadow-size: 6px;
-      box-shadow:
-        inset 0 calc(-1 * var(--inset-border-size)) 0 var(--inset-highlight),
-        /* bottom specular highlight */ inset 0 0 0 var(--inset-border-size)
-          var(--inset-border),
-        /* border */ inset 0 1px var(--inset-shadow-size) rgb(0 0 0); /* inner shadow */
-    }
+      inset 0 var(--inset-shadow-offset) var(--inset-shadow-size) rgb(0 0 0 / 0.15),
+      0 1px 0 var(--gray-50);
+    transition: box-shadow 200ms ease;
 
     &:where([data-hovered], [data-pressed]) {
       --inset-border: var(--border-color-hover);
-    }
-
-    @media (forced-colors: active) {
-      --inset-border: ButtonBorder;
-      box-shadow: inset 0 0 0 var(--inset-border-size) var(--inset-border);
     }
 
     &:where([data-invalid]) {
@@ -291,140 +272,102 @@
     }
 
     &.track {
+      --inset-background: var(--gray-300);
+      --inset-border: var(--gray-500);
+      --inset-border-size: 0.5px;
       --inset-shadow-offset: 1px;
       --inset-shadow-size: 3px;
+    }
 
-      @media (prefers-color-scheme: light) {
-        --inset-background: var(--gray-300);
-        --inset-border: var(--gray-500);
-        --inset-border-size: 0.5px;
+    :is(.dark, [data-theme="dark"]) & {
+      --inset-border: var(--gray-200);
+      --border-color-hover: var(--gray-300);
+      --inset-highlight: var(--gray-400);
+      --inset-shadow-size: 6px;
+
+      box-shadow:
+        inset 0 calc(-1 * var(--inset-border-size)) 0 var(--inset-highlight),
+        inset 0 0 0 var(--inset-border-size) var(--inset-border),
+        inset 0 1px var(--inset-shadow-size) rgb(0 0 0);
+
+      &.track {
+        --inset-background: var(--field-background);
+        --inset-border: var(--gray-200);
+        --inset-border-size: 1px;
       }
+    }
 
-      @media (forced-colors: active) {
+    @media (forced-colors: active) {
+      --inset-border: ButtonBorder;
+      box-shadow: inset 0 0 0 var(--inset-border-size) var(--inset-border);
+
+      &.track {
         --inset-background: Field;
         --inset-border: ButtonBorder;
         --inset-border-size: 1px;
       }
     }
   }
+
 }
 
-//flex bootstap
+/* Utility aliases retained for existing components. */
+  .flex { display: flex; }
+  .f1 { flex: 1; }
 
-.flex {
-  display: flex;
-}
-.f1 {
-  flex: 1;
-}
-.jcc {
-  justify-content: center;
-}
+  .jcc { justify-content: center; }
+  .jcsb { justify-content: space-between; }
+  .jcsa { justify-content: space-around; }
+  .jcse { justify-content: space-evenly; }
+  .jce { justify-content: flex-end; }
+  .jcs { justify-content: flex-start; }
+  .aic { align-items: center; }
+  .fdc,
+  .flex-col { flex-direction: column; }
+  .fw { flex-wrap: wrap; }
 
-.jcsb {
-  justify-content: space-between;
-}
+  .w100 { width: 100%; }
+  .h100 { height: 100%; }
+  .w49 { width: 49%; }
+  .w50 { width: 50%; }
+  .w80 { width: 80%; }
+  .w90 { width: 90%; }
 
-.jcsa {
-  justify-content: space-around;
-}
+  .my8 { margin: 8px 0; }
+  .ttc { text-transform: capitalize; }
+  .tdu { text-decoration: underline; }
+  .p8 { padding: 8px; }
+  .p16 { padding: 16px; }
+  .p20 { padding: 20px; }
+  .oh { overflow: hidden; }
+  .pb4 { padding-bottom: 4px; }
 
-.jcse {
-  justify-content: space-evenly;
-}
-.jce {
-  justify-content: end;
-}
-.aic {
-  align-items: center;
-}
-.fdc {
-  flex-direction: column;
-}
-.jcs {
-  justify-content: start;
-}
-.g4 {
-  gap: 4px;
-}
-.g6 {
-  gap: 6px;
-}
-.g8 {
-  gap: 8px;
-}
-.g12 {
-  gap: 12px;
-}
-.g16 {
-  gap: 16px;
-  @media (max-width: 1300px) {
-    gap: 8px;
-  }
-}
-.g20 {
-  gap: 20px;
-  @media (max-width: 1300px) {
-    gap: 10px;
-  }
-}
-.g32 {
-  gap: 32px;
-  @media (max-width: 1300px) {
+  /* Gap utilities. Responsive reductions preserve the original breakpoint behavior. */
+  .g4 { gap: 4px; }
+  .g6 { gap: 6px; }
+  .g8 { gap: 8px; }
+  .g12 { gap: 12px; }
+
+  .g16 {
     gap: 16px;
+
+    @media (max-width: 1300px) {
+      gap: 8px;
+    }
   }
-}
-.w100 {
-  width: 100%;
-}
-.h100 {
-  height: 100%;
-}
-.w49 {
-  width: 49%;
-}
-.w50 {
-  width: 50%;
-}
-.w80 {
-  width: 80%;
-}
-.w90 {
-  width: 90%;
-}
-.my8 {
-  margin: 8px 0px;
-}
-.ttc {
-  text-transform: capitalize;
-}
 
-.tdu {
-  text-decoration: underline;
-}
+  .g20 {
+    gap: 20px;
 
-.p8 {
-  padding: 8px;
-}
+    @media (max-width: 1300px) {
+      gap: 10px;
+    }
+  }
 
-.p16 {
-  padding: 16px;
-}
+  .g32 {
+    gap: 32px;
 
-.p20 {
-  padding: 20px;
-}
-
-.oh {
-  overflow: hidden;
-}
-
-.pb4 {
-  padding-bottom: 4px;
-}
-.fw {
-  flex-wrap: wrap;
-}
-.flex-col {
-  flex-direction: column;
-}
+    @media (max-width: 1300px) {
+      gap: 16px;
+    }
+  }

@@ -1,4 +1,4 @@
-import axios, {  type AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import type { configOptions } from "../types/api.types";
 import { toast } from "../components/ui/Toast/toast.api";
 
@@ -7,11 +7,13 @@ const baseURL = "http://localhost:8000/api/v1";
 export const axiosInstance = axios.create({
   baseURL: baseURL,
   timeout: 5000,
+  withCredentials: true,
 });
 
 export const refreshInstance = axios.create({
   baseURL: baseURL,
   timeout: 5000,
+  withCredentials: true,
 });
 
 export const apifetch = async <TData>(
@@ -23,6 +25,7 @@ export const apifetch = async <TData>(
       url: configOptions.path,
       method: configOptions.method,
       data: configOptions.data,
+      withCredentials: configOptions.withCredentials ?? true,
       headers: {
         ...(isFormData ? {} : { "Content-type": "application/json" }),
         ...configOptions.headers,
@@ -33,9 +36,24 @@ export const apifetch = async <TData>(
     if (!configOptions.silent) {
       if (axios.isAxiosError(error)) {
         const message = error.response?.data?.message;
-        toast.error(message)
-      } 
+        toast.error(message);
+      }
     }
-    throw error
+    throw error;
   }
+};
+
+export const authMe = async () => {
+  const { data } = await apifetch<{
+    success: boolean;
+    message: string;
+    accessToken: string;
+    user: { id: string; name: string; email: string; profilepic: string };
+  }>({
+    method: "GET",
+    path: "/auth/me",
+    withCredentials: true,
+    silent: true,
+  });
+  return data;
 };

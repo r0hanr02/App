@@ -3,6 +3,6 @@ export type configOptions = {
   method: "POST" | "GET" | "PUT" | "PATCH" | "DELETE";
   data?: unknown;
   headers?: Record<string, string>;
-  withCredential?: boolean;
+  withCredentials?: boolean;
   silent?: boolean;
 };

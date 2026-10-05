@@ -87,6 +87,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/api/v1/auth",
   });
 
   res.status(200).json({
@@ -110,6 +111,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
+      path: "/api/v1/auth",
     });
 
     res.status(200).json({
@@ -130,6 +132,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
+    path: "/api/v1/auth",
   });
 
   res.status(200).json({
@@ -181,17 +184,22 @@ export const authMe = asyncHandler(
       throw new AppError("User not found", 404);
     }
 
-    const accessToken = generateAccessToken(user.id);
-    const refreshToken = generateRefreshToken(user.id);
+    if (user.refreshToken !== refreshTokenFromCookies) {
+      throw new AppError("Invalid refresh token", 403);
+    }
 
-    user.refreshToken = refreshToken;
+    const accessToken = generateAccessToken(user.id);
+    const newRefreshToken = generateRefreshToken(user.id);
+
+    user.refreshToken = newRefreshToken;
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: "/api/v1/auth",
     });
 
     res.status(200).json({

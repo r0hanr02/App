@@ -1,4 +1,10 @@
-
 @import "./styles/themes.scss";
 @import "./styles/utilities.scss";
 @import "./styles/typography.scss";
+
+#root{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}

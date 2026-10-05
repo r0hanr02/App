@@ -1,5 +1,6 @@
-import axios, { type AxiosResponse } from "axios";
+import axios, {  type AxiosResponse } from "axios";
 import type { configOptions } from "../types/api.types";
+import { toast } from "../components/ui/Toast/toast.api";
 
 const baseURL = "http://localhost:8000/api/v1";
 
@@ -16,14 +17,25 @@ export const refreshInstance = axios.create({
 export const apifetch = async <TData>(
   configOptions: configOptions,
 ): Promise<AxiosResponse<TData>> => {
-  const response: AxiosResponse = await axiosInstance({
-    url: configOptions.path,
-    method: configOptions.method,
-    data: configOptions.data,
-    headers: {
-      "Content-type": "application/json",
-      ...configOptions.headers,
-    },
-  });
-  return response;
+  try {
+    const isFormData = configOptions.data instanceof FormData;
+    const response: AxiosResponse = await axiosInstance({
+      url: configOptions.path,
+      method: configOptions.method,
+      data: configOptions.data,
+      headers: {
+        ...(isFormData ? {} : { "Content-type": "application/json" }),
+        ...configOptions.headers,
+      },
+    });
+    return response;
+  } catch (error) {
+    if (!configOptions.silent) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+        toast.error(message)
+      } 
+    }
+    throw error
+  }
 };

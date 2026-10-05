@@ -17,12 +17,19 @@ export function Button({
   children,
   loadingLabel,
   fullWidth,
+  className,
   ...rest
 }: ButtonProps) {
+  const mergedClassName = [
+    "react-aria-Button",
+    "button-base",
+    className,
+  ].join(" ");
+  // console.log(mergedClassName)
   return (
     <RACButton
       {...rest}
-      className="react-aria-Button button-base"
+      className={mergedClassName}
       data-variant={variant || "primary"}
       data-size={size}
       data-full-width={fullWidth || undefined}

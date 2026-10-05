@@ -14,7 +14,7 @@ type RouteMeta = {
 
 // One entry per AppRouteKey. New feature route = one line here.
 const ROUTE_META: Record<AppRouteKey, RouteMeta> = {
-  HOME: { requiresAuth: false },
+  HOME: { requiresAuth: true },
   LOGIN: { requiresAuth: false },
   REGISTER: { requiresAuth: false },
   // e.g. DASHBOARD: { requiresAuth: true },

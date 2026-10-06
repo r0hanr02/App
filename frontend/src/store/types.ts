@@ -14,9 +14,11 @@ export type UserType = {
 
 export type AuthStoreType = {
   isLoggedIn: boolean;
+  isAuthLoading: boolean;
   data: ApiData | null;
   setData: (value: ApiData) => void;
   clearData: () => void;
+  setAuthLoading: (value: boolean) => void;
 };
 
 export type Theme = "light" | "dark";

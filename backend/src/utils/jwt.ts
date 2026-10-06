@@ -6,7 +6,7 @@ export const generateAccessToken = (id: string) => {
       "JWT_SECRET is not defined. Please set ACCESS_TOKEN_PRIVATE_KEY in your .env file"
     );
   }
-  return jwt.sign({ id }, process.env.SECRET_KEY, { expiresIn: "20d" });
+  return jwt.sign({ id }, process.env.SECRET_KEY, { expiresIn: "15m" });
 };
 
 export const generateRefreshToken = (id: string) => {
@@ -15,5 +15,5 @@ export const generateRefreshToken = (id: string) => {
       "JWT_SECRET is not defined. Please set REFRESH_TOKEN_PRIVATE_KEY in your .env file"
     );
   }
-  return jwt.sign({ id }, process.env.REFRESH_TOKEN_KEY, { expiresIn: "20y" });
+  return jwt.sign({ id }, process.env.REFRESH_TOKEN_KEY, { expiresIn: "20d" });
 };

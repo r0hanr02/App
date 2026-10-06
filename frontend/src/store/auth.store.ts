@@ -8,7 +8,9 @@ export const useAuthStoreSlice: StateCreator<
   AuthStoreType
 > = (set) => ({
   isLoggedIn: false,
+  isAuthLoading: true,
   data: null,
   setData: (value) => set({ data: value, isLoggedIn: true }),
   clearData: () => set({ data: null, isLoggedIn: false }),
+  setAuthLoading: (value) => set({ isAuthLoading: value }),
 });

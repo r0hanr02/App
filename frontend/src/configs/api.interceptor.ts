@@ -23,7 +23,14 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError & { config?: errorAxios }) => {
     const originalRequest = error.config as errorAxios | undefined;
 
-    if (originalRequest?.url?.includes("/auth/refresh")) {
+    const url = originalRequest?.url ?? "";
+    if (
+      url.includes("/auth/refresh") ||
+      url.includes("/auth/me") ||
+      url.includes("/auth/login") ||
+      url.includes("/auth/register") ||
+      url.includes("/auth/logout")
+    ) {
       return Promise.reject(error);
     }
     if (

@@ -8,13 +8,26 @@ import { useStore } from "./store/store";
 import ToastContainer from "./components/ui/Toast/ToastContainer";
 import { authMe } from "./configs/api";
 
+
+let authMePromise: ReturnType<typeof authMe> | null = null;
+function getAuthMeOnce() {
+  if (!authMePromise) {
+    authMePromise = authMe();
+    authMePromise.catch(() => {});
+  }
+  return authMePromise;
+}
+
 function App() {
   const isLoggedIn = useStore((s) => s.isLoggedIn);
+  const isAuthLoading = useStore((s) => s.isAuthLoading);
   const data = useStore((s) => s.data);
 
   useEffect(() => {
-    authMe()
+    let cancelled = false;
+    getAuthMeOnce()
       .then((res) => {
+        if (cancelled) return;
         useStore.getState().setData({
           success: true,
           message: res.message,
@@ -23,8 +36,15 @@ function App() {
         });
       })
       .catch(() => {
-        // not logged in - stay logged out silently
+       if (cancelled) return;
+        useStore.getState().clearData();
+      })
+      .finally(() => {
+        if (!cancelled) useStore.getState().setAuthLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const auth = useMemo(
@@ -35,6 +55,15 @@ function App() {
       }) as typeof router.options.context.auth,
     [isLoggedIn, data],
   );
+
+  if (isAuthLoading) {
+   return (
+      <QueryClientProvider client={queryClient}>
+        <div>Loading...</div>
+        <ToastContainer />
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

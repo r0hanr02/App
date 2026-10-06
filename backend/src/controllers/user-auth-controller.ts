@@ -149,7 +149,15 @@ export const refreshToken = asyncHandler(
       throw new AppError("Refresh token missing", 401);
     }
 
-    const user = await User.findOne({ refreshToken: refreshTokenFromCookie });
+    const decoded = jwt.verify(
+      refreshTokenFromCookie,
+      process.env.REFRESH_TOKEN_KEY!
+    ) as decodedPayload;
+
+    const user = await User.findOne({
+      _id: decoded.id,
+      refreshToken: refreshTokenFromCookie,
+    });
 
     if (!user) {
       throw new AppError("Invalid refresh token", 403);
@@ -178,7 +186,7 @@ export const authMe = asyncHandler(
       process.env.REFRESH_TOKEN_KEY!
     ) as decodedPayload;
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).select("+refreshToken");
 
     if (!user) {
       throw new AppError("User not found", 404);

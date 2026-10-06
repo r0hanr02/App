@@ -6,7 +6,7 @@ import { router } from "./router";
 import { queryClient } from "./lib/queryClient";
 import { useStore } from "./store/store";
 import ToastContainer from "./components/ui/Toast/ToastContainer";
-import { authMe } from "./configs/api";
+import { authMe } from "./features/auth/api/auth.api";
 
 
 let authMePromise: ReturnType<typeof authMe> | null = null;

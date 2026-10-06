@@ -1,0 +1,128 @@
+
+.register {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-10);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-7);
+  box-shadow: var(--shadow-medium);
+
+  .register-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background-color: var(--indigo-tint);
+    border-radius: var(--space-7);
+    width: fit-content;
+  }
+
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--space-10);
+
+    .profile-upload {
+      position: relative;
+
+      width: 80px;
+      height: 80px;
+
+      align-self: center;
+      border: 2px dashed var(--border-strong);
+      border-radius: 50%;
+
+      background: var(--indigo-tint);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      overflow: hidden;
+      cursor: pointer;
+
+      transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+
+      &:hover {
+        border-color: var(--color-primary);
+        background: var(--color-primary-subtle);
+        transform: scale(1.03);
+      }
+
+      &:focus-within {
+        border-color: var(--color-primary);
+      }
+
+      input {
+        position: absolute;
+
+        width: 100%;
+        height: 100%;
+
+        inset: 0;
+
+        opacity: 0;
+        cursor: pointer;
+      }
+    }
+
+    .profile-image {
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+      border-radius: 50%;
+
+      display: block;
+    }
+
+    .profile-placeholder {
+      width: 100%;
+      height: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      color: var(--text-muted);
+      font-size: 12px;
+      text-align: center;
+
+      pointer-events: none;
+    }
+
+    .register-button {
+      width: 100%;
+      margin-top: var(--space-7);
+    }
+
+    // "New to Orbit? / Already have an account?" footer line
+    > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      padding-top: var(--space-5);
+      font-size: var(--text-para-sm);
+      color: var(--text-secondary);
+
+      a {
+        color: var(--color-primary);
+        font-weight: var(--font-weight-medium);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}

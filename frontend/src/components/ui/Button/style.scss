@@ -4,15 +4,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-2);
+  gap: var(--space-4);
 
   border: none;
-  border-radius: var(--radius);
+  border-radius: var(--radius-4);
 
-  height: var(--spacing-8);
-  padding: 0 var(--spacing-3);
+  height: var(--space-14);
+  padding: 0 var(--space-7);
 
-  font-size: var(--font-size);
+  font-size: var(--text-para-sm);
   font-weight: 500;
 
   cursor: pointer;

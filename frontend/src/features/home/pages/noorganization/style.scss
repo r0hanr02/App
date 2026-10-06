@@ -1,0 +1,19 @@
+.no-org-page{
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    .no-org-content{
+
+        .no-org-icon{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            padding: var(--space-6);
+            background-color: var(--indigo-tint);
+            border-radius: var(--space-7);
+            width: fit-content;
+        }
+    }
+}

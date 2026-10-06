@@ -114,8 +114,8 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
       path: "/api/v1/auth",
     });
 
-    res.status(200).json({
-      success: true,
+    res.status(404).json({
+      success: false,
       message: "No refresh token found",
     });
     return;

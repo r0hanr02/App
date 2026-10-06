@@ -1,9 +1,8 @@
 import axios, { type AxiosResponse } from "axios";
 import type { configOptions } from "../types/api.types";
 import { toast } from "../components/ui/Toast/toast.api";
+const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
 
-const baseURL =
-  import.meta.env.VITE_API_URL ?? "http://localhost:8000/api/v1";
 
 export const axiosInstance = axios.create({
   baseURL: baseURL,
@@ -44,17 +43,3 @@ export const apifetch = async <TData>(
   }
 };
 
-export const authMe = async () => {
-  const { data } = await apifetch<{
-    success: boolean;
-    message: string;
-    accessToken: string;
-    user: { id: string; name: string; email: string; profilepic: string };
-  }>({
-    method: "GET",
-    path: "/auth/me",
-    withCredentials: true,
-    silent: true,
-  });
-  return data;
-};

@@ -2,7 +2,7 @@ import { Layers } from "lucide-react";
 import { Label } from "../../../../components/ui/Form/Form";
 import "./style.scss";
 import { Input } from "../../../../components/ui/Input/Input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../../../components/ui/Button/Button";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "../../../../components/ui/Toast/toast.api";
@@ -17,12 +17,13 @@ type LoginFormData = {
 
 const Login = () => {
   const navigate = useNavigate();
+  const isLoggedIn = useStore.getState().isLoggedIn
   const { mutate: loginMutate, isPaused: loginIsPending } = useLoginUser();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
-
+// const userData = useStore((s)=>s.data)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -41,8 +42,15 @@ const Login = () => {
       },
     });
   };
+
+  useEffect(()=>{
+    if(isLoggedIn){
+      navigate({to:ROUTES.HOME})
+    }
+  },[])
+
   return (
-    <div className="flex w100 aic jcc fdc g12">
+    <div className="login-page flex w100 aic jcc fdc g12">
       {/* Brand */}
       <div className="flex aic jcc g12">
         <Layers size={30} color="#6366F1" />
@@ -50,7 +58,7 @@ const Login = () => {
       </div>
 
       {/* Register Card */}
-      <div className="register p16 g8">
+      <div className="register g8">
         <div className="register-logo">
           <Layers size={30} color="#6366F1" />
         </div>

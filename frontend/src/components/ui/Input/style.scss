@@ -47,7 +47,7 @@
 
     &:focus-visible {
       outline: none;
-      border-color: var(--border-primary-500);
+      border-color: var(--border-focus);
       box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--bg-primary-500) 20%, transparent);
     }
@@ -64,10 +64,10 @@
   }
 
   &__field--error &__control {
-    border-color: var(--border-red-500);
+    border-color: var(--border-danger);
 
     &:focus-visible {
-      border-color: var(--border-red-500);
+      border-color: var(--border-danger);
       box-shadow: 0 0 0 3px
         color-mix(in srgb, var(--bg-red-500) 20%, transparent);
     }
@@ -75,7 +75,7 @@
 
   &__error {
     @include typo.para-xs-mixin();
-    --custom-color: var(--text-red-700);
+    --custom-color: var(--text-danger);
     margin: 0;
   }
 }

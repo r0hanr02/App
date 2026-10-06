@@ -1,4 +1,9 @@
-import { Suspense, type ComponentType, type LazyExoticComponent, type ReactNode } from "react";
+import {
+  Suspense,
+  type ComponentType,
+  type LazyExoticComponent,
+  type ReactNode,
+} from "react";
 import {
   createRoute,
   redirect,
@@ -6,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { ROUTES, type AppRouteKey } from "../constants/routes.constants";
 import { COMPONENTS } from "./ComponentFactory";
+import { Loader2 } from "lucide-react";
 
 type RouteMeta = {
   /** When true, beforeLoad redirects logged-out users to LOGIN */
@@ -17,7 +23,8 @@ const ROUTE_META: Record<AppRouteKey, RouteMeta> = {
   HOME: { requiresAuth: true },
   LOGIN: { requiresAuth: false },
   REGISTER: { requiresAuth: false },
-  // e.g. DASHBOARD: { requiresAuth: true },
+  NOORGANIZATION: { requiresAuth: true },
+  DASHBOARD: { requiresAuth: true },
 };
 
 function withSuspense(
@@ -26,7 +33,13 @@ function withSuspense(
   return function LazyWrapper() {
     const C = Component;
     return (
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="root-layout-loading">
+            <Loader2 className="lucide lucide-loader-2" />
+          </div>
+        }
+      >
         <C />
       </Suspense>
     );
@@ -40,10 +53,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
       path: ROUTES[key],
       component: withSuspense(COMPONENTS[key]),
       beforeLoad: ({ context }) => {
-        if (
-          ROUTE_META[key].requiresAuth &&
-          !context.auth.isLoggedIn
-        ) {
+        if (ROUTE_META[key].requiresAuth && !context.auth.isLoggedIn) {
           throw redirect({ to: ROUTES.LOGIN });
         }
       },

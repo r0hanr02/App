@@ -89,7 +89,7 @@ const Register = () => {
   };
 
   return (
-    <div className="flex w100 aic jcc fdc g12">
+    <div className="register-page flex w100 aic jcc fdc g12">
       {/* Brand */}
       <div className="flex aic jcc g12">
         <Layers size={30} color="#6366F1" />
@@ -97,7 +97,7 @@ const Register = () => {
       </div>
 
       {/* Register Card */}
-      <div className="register p16 g8">
+      <div className="register g8">
         <div className="register-logo">
           <Layers size={30} color="#6366F1" />
         </div>

@@ -1,10 +1,22 @@
 export const ROUTES = {
-  HOME: "/",
-  LOGIN: "/login",
-  REGISTER: "/register",
-  NOORGANIZATION:"/no-organization",
-  DASHBOARD:"/dashboard"
-  // Add protected pages here, e.g. DASHBOARD: "/",
+  HOME: {
+    path: "/",
+    requiresAuth: true,
+  },
+  LOGIN: {
+    path: "/login",
+    requiresAuth: false,
+  },
+  REGISTER: 
+  {
+    path: "/register",
+    requiresAuth: false,
+  }
+  ,
+  NOORGANIZATION: {
+    path: "/no-organization",
+    requiresAuth: true,
+  } ,
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

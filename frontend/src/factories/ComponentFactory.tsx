@@ -9,5 +9,5 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   LOGIN: lazy(() => import("../features/auth/pages/Login/Login")),
   REGISTER: lazy(() => import("../features/auth/pages/Register/Register")),
   NOORGANIZATION:lazy(()=>import("../features/home/pages/noorganization/NoOrganization")),
-  DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
+  // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
 };

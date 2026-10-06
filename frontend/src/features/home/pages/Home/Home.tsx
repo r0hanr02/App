@@ -11,10 +11,8 @@ const Home = () => {
   useEffect(() => {
     if (isLoading) return;
 
-    if (data?.data && data.data.length > 0) {
-      navigate({ to: ROUTES.DASHBOARD });
-    } else {
-      navigate({ to: ROUTES.NOORGANIZATION });
+    if (data?.data && data.data.length === 0) {
+      navigate({ to: ROUTES.NOORGANIZATION.path });
     }
   }, [isLoading, data, navigate]);
 
@@ -22,7 +20,7 @@ const Home = () => {
     return <div>Loading...</div>;
   }
 
-  return null;
+  return <div>HOME</div>;
 };
 
 export default Home;

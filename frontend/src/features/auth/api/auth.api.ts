@@ -26,7 +26,7 @@ type logoutResponse = { success: boolean; message: string };
 const cleanupAndRedirect = () => {
   queryClient.clear();
   useStore.getState().clearData();
-  router.navigate({ to: ROUTES.LOGIN });
+  router.navigate({ to: ROUTES.LOGIN.path });
 };
 
 export const useHandleLogout = () => {

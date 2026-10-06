@@ -38,14 +38,14 @@ const Login = () => {
       onSuccess: (res) => {
         toast.success("Login successful");
         useStore.getState().setData(res);
-        navigate({ to: ROUTES.HOME });
+        navigate({ to: ROUTES.HOME.path });
       },
     });
   };
 
   useEffect(()=>{
     if(isLoggedIn){
-      navigate({to:ROUTES.HOME})
+      navigate({to:ROUTES.HOME.path})
     }
   },[])
 

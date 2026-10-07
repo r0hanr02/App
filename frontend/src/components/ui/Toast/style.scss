@@ -19,8 +19,17 @@
   justify-content: space-between;
   align-items: center;
 
-  color: var(--text-primary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: var(--text-white, #fff);
+
+  /* Labels inside toast must inherit toast color, not form/typography defaults
+     (--text-secondary / --text-default). Higher specificity beats
+     `.react-aria-Label` and `.label-*` single-class rules. */
+  .react-aria-Label,
+  .label-lg,
+  .label-md {
+    color: inherit;
+  }
 
   /* Animation */
   animation: toast-in 250ms ease forwards;
@@ -31,25 +40,27 @@
   will-change: transform, opacity;
 
   &.success {
-    background: var(--bg-green-500);
+    background: var(--bg-green-400);
+    color: var(--text-white, #fff);
   }
 
   &.error {
     background: var(--bg-red-500);
+    color: var(--text-white, #fff);
   }
 
   &.warning {
     background: var(--bg-yellow-500);
+    /* amber bg is too light for white text — use dark text */
+    color: var(--bg-yellow-1000, #451a03);
   }
 
   &.info {
     background: var(--bg-primary-500);
+    color: var(--text-white, #fff);
   }
 
   &.leaving {
-    animation: toast-out 250ms ease forwards;
-  }
-    &.leaving {
     animation: toast-out 250ms ease forwards;
   }
 }

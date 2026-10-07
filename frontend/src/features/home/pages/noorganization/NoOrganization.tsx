@@ -2,12 +2,10 @@ import { CircleQuestionMark, Layers, Users } from "lucide-react";
 import "./style.scss";
 import { Label } from "../../../../components/ui/Form/Form";
 import NoOrgCard from "../../components/NoOrgCard/NoOrgCard";
-import { useState } from "react";
-import CreateOrganizationModal from "../../components/CreateOrganizationModal/CreateOrganizationModal";
+import { useNavigate } from "@tanstack/react-router";
 
 function NoOrganization() {
-  const [isModalOpen, setisModalOpen] = useState(false);
-
+  const navigate = useNavigate();
   return (
     <div className="no-org-page fdc">
       <div className="no-org-content flex fdc jcc aic g8">
@@ -28,7 +26,7 @@ function NoOrganization() {
           subheading="Start fresh with a shared workspace for your projects, tasks, and team."
           btnText="Create Organization"
           btnOnclick={() => {
-            setisModalOpen((prev) => !prev);
+            navigate({ to: "/onboarding" });
           }}
           btnVariant="primary"
           note="You’ll  be the organization Owner."
@@ -51,13 +49,6 @@ function NoOrganization() {
           Expecting an invitation? Ask your organization admin to send one.
         </div>
       </div>
-
-      {isModalOpen && (
-        <CreateOrganizationModal
-          isOpen={isModalOpen}
-          onClose={() => setisModalOpen(false)}
-        />
-      )}
     </div>
   );
 }

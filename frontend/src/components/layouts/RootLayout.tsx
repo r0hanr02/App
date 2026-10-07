@@ -3,7 +3,11 @@ import Navbar from "./Navbar/Navbar";
 import { ROUTES } from "../../constants/routes.constants";
 import "./style.scss";
 
-const HIDE_NAVBAR_PATHS: string[] = [ROUTES.LOGIN.path, ROUTES.REGISTER.path];
+const HIDE_NAVBAR_PATHS: string[] = [
+  ROUTES.LOGIN.path,
+  ROUTES.REGISTER.path,
+  ROUTES.ONBOARDING.path,
+];
 
 const RootLayout = () => {
   const location = useLocation();

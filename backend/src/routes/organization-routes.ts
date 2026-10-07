@@ -15,10 +15,16 @@ import {
 } from "../controllers/organization-controller.ts";
 import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
 import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
+import { upload } from "../middlewares/upload-middleware.ts";
 
 const router = express.Router();
 
-router.post("/organization", authMiddleware, createOrganization);
+router.post(
+  "/organization",
+  authMiddleware,
+  upload.single("organization_logo"),
+  createOrganization
+);
 router.get("/organization", authMiddleware, getAllOrganization);
 router.get(
   "/organization/:organizationId",
@@ -57,6 +63,7 @@ router.patch(
   authMiddleware,
   requireOrganizationMember,
   requireOrganizationRole("OWNER", "ADMIN"),
+  upload.single("organization_logo"),
   updateOrganizationData
 );
 

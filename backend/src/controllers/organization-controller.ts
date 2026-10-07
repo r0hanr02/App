@@ -23,10 +23,20 @@ type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
 
 export const createOrganization = asyncHandler(
   async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
-    const { organization_name, slug } = req.body;
+    const { organization_name, slug, organization_description, organization_logo } =
+      req.body;
     if (!organization_name?.trim()) {
       throw new AppError("Organization Name cannot be Empty", 400);
     }
+
+    // Multer file (field `organization_logo`) takes precedence over body URL string.
+    // With CloudinaryStorage, the uploaded URL is in `req.file.path`.
+    const uploadedLogoPath = (req.file as Express.Multer.File | undefined)?.path;
+    const bodyLogo =
+      typeof organization_logo === "string" && organization_logo.trim()
+        ? organization_logo.trim()
+        : undefined;
+    const logoUrl = uploadedLogoPath ?? bodyLogo;
 
     const session = await mongoose.startSession();
     try {
@@ -38,8 +48,12 @@ export const createOrganization = asyncHandler(
       const [organization] = await Organization.create(
         [
           {
-            organization_name,
+            organization_name: organization_name.trim(),
             slug: normalizedSlug,
+            ...(organization_description !== undefined
+              ? { organization_description }
+              : {}),
+            ...(logoUrl ? { organization_logo: logoUrl } : {}),
           },
         ],
         { session }
@@ -254,11 +268,29 @@ export const updateOrganizationData = asyncHandler(
       throw new AppError("Invalid organization id", 400);
     }
 
-    const { organization_name, slug } = req.body;
+    const {
+      organization_name,
+      slug,
+      organization_description,
+      organization_logo,
+    } = req.body;
 
-    if (!organization_name && !slug) {
+    // Multer file (field `organization_logo`) takes precedence over body URL string.
+    const uploadedLogoPath = (req.file as Express.Multer.File | undefined)?.path;
+    const bodyLogo =
+      typeof organization_logo === "string" && organization_logo.trim()
+        ? organization_logo.trim()
+        : undefined;
+    const logoUrl = uploadedLogoPath ?? bodyLogo;
+
+    if (
+      !organization_name &&
+      !slug &&
+      organization_description === undefined &&
+      !logoUrl
+    ) {
       throw new AppError(
-        "At least one field (organization_name or slug) is required",
+        "At least one field (organization_name, slug, organization_description or organization_logo) is required",
         400
       );
     }
@@ -266,6 +298,9 @@ export const updateOrganizationData = asyncHandler(
     const update: any = {};
     if (organization_name) update.organization_name = organization_name;
     if (slug) update.slug = slug.trim().toLowerCase();
+    if (organization_description !== undefined)
+      update.organization_description = organization_description;
+    if (logoUrl) update.organization_logo = logoUrl;
 
     const updated = await Organization.findByIdAndUpdate(
       organizationId,

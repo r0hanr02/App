@@ -15,6 +15,10 @@ export const ROUTES = {
     path: "/no-organization",
     requiresAuth: true,
   },
+  ONBOARDING:{
+    path:"/onboarding",
+    requiresAuth:true,
+  }
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

@@ -24,6 +24,14 @@ const organizationSchema = new mongoose.Schema(
         message: "Slug cannot be Empty",
       },
     },
+    organization_description: {
+      type: String,
+      trim: true,
+    },
+    organization_logo: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

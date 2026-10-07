@@ -14,7 +14,18 @@ export type org_response = {
   data: data_response[];
 };
 
-export const useUserOrganization =  () => {
+export interface createOrganizationResponse {
+  message: string;
+  data: {
+    organization_name: string;
+    organization_logo: string;
+    organization_description: string;
+    slug: string;
+    _id: string;
+  };
+}
+
+export const useUserOrganization = () => {
   return useApiQuery<org_response>({
     path: "/organization",
     queryKey: ["user_organization"],
@@ -22,10 +33,10 @@ export const useUserOrganization =  () => {
   });
 };
 
-
 export const useCreateOrganization = () => {
-  return useApiMutation({
+  return useApiMutation<createOrganizationResponse, FormData>({
     path: "/organization",
     method: "POST",
     mutationKey: ["create_organization"],
-  })}
+  });
+};

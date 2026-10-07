@@ -5,7 +5,7 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: color-mix(in srgb, var(--bg-invert) 55%, transparent);
+  background: color-mix(in srgb, var(--bg-overlay) 70%, transparent);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,4 +1,4 @@
-import { useApiQuery } from "../../../hooks/useApi";
+import { useApiMutation, useApiQuery } from "../../../hooks/useApi";
 
 type data_response = {
   _id: string;
@@ -21,3 +21,11 @@ export const useUserOrganization =  () => {
     method: "GET",
   });
 };
+
+
+export const useCreateOrganization = () => {
+  return useApiMutation({
+    path: "/organization",
+    method: "POST",
+    mutationKey: ["create_organization"],
+  })}

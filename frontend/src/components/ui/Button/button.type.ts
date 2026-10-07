@@ -1,6 +1,4 @@
 import type { ButtonProps as RACButtonProps } from "react-aria-components";
-import type { JSX } from "react";
-import type { LucideIcon } from "lucide-react";
 
 export type ButtonVariant =
   | "primary"
@@ -14,11 +12,12 @@ export type ButtonSize =
   | "md"
   | "lg";
 
+  type ButtonIcon = React.ElementType | React.ReactNode;
 export interface ButtonProps extends RACButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  leftIcon?:  JSX.ElementType | LucideIcon;
-  rightIcon?:  JSX.ElementType | LucideIcon;
+  leftIcon?: ButtonIcon;
+  rightIcon?: ButtonIcon;
   loadingLabel?: string;
   loadingColor?: string;
   fullWidth?: boolean;

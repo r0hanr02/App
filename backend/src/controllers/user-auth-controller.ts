@@ -47,8 +47,6 @@ export const registerUser = asyncHandler(
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
-        phone: newUser.phone,
-        dateOfBirth: newUser.dateOfBirth,
         profilepic: newUser.profilepic,
       },
     });

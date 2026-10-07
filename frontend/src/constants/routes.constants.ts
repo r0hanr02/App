@@ -7,16 +7,14 @@ export const ROUTES = {
     path: "/login",
     requiresAuth: false,
   },
-  REGISTER: 
-  {
+  REGISTER: {
     path: "/register",
     requiresAuth: false,
-  }
-  ,
+  },
   NOORGANIZATION: {
     path: "/no-organization",
     requiresAuth: true,
-  } ,
+  },
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

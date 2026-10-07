@@ -1,3 +1,4 @@
+import type { ElementType, ReactNode } from "react";
 import { Button as RACButton } from "react-aria-components/Button";
 import { composeRenderProps } from "react-aria-components/composeRenderProps";
 import { ProgressBar } from "react-aria-components/ProgressBar";
@@ -11,21 +12,30 @@ export interface ProgressCircleProps extends ProgressBarProps {
 
 export function Button({
   variant = "primary",
-  leftIcon: LeftIcon,
+  leftIcon,
   size,
-  rightIcon: RightIcon,
+  rightIcon,
   children,
   loadingLabel,
   fullWidth,
   className,
   ...rest
 }: ButtonProps) {
-  const mergedClassName = [
-    "react-aria-Button",
-    "button-base",
-    className,
-  ].join(" ");
+  const mergedClassName = ["react-aria-Button", "button-base", className].join(
+    " ",
+  );
   // console.log(mergedClassName)
+const renderIcon = (
+  icon: React.ElementType | React.ReactNode | undefined,
+) => {
+  if (typeof icon === "function") {
+    const Icon = icon;
+    return <Icon size={18} />;
+  }
+
+  return icon;
+};
+
   return (
     <RACButton
       {...rest}
@@ -36,7 +46,7 @@ export function Button({
     >
       {composeRenderProps(children, (children, { isPending }) => (
         <>
-          {!isPending && LeftIcon && <LeftIcon size={18} />}
+          {!isPending && renderIcon(leftIcon)}
           {!isPending && children}
           {isPending && (
             <ProgressCircle
@@ -44,7 +54,7 @@ export function Button({
               isIndeterminate
             />
           )}
-          {!isPending && RightIcon && <RightIcon size={18} />}
+          {!isPending && renderIcon(rightIcon)}
         </>
       ))}
     </RACButton>

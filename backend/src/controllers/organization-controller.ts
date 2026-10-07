@@ -46,7 +46,7 @@ export const createOrganization = asyncHandler(
       );
 
       const userId = (req as any).userId || (req as any).user?.id;
-      const [organizationMember] = await OrganizationMember.create(
+      const [organizationMember] = await OrganizationMember.create (
         [
           {
             organization_id: organization?._id,

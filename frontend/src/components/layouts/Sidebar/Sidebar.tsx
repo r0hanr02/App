@@ -37,7 +37,7 @@ const Sidebar = () => {
                 variant="ghost"
                 onClick={() => navigate({ to: item.routeTo as any })}
               >
-                <Icon size={"40"} />
+                <Icon />
                 <Label className="label-md">{item.label}</Label>
               </Button>
             );

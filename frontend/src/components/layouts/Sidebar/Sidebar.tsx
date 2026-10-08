@@ -29,13 +29,14 @@ const Sidebar = () => {
       <div className="sidebar-menu g2">
         <Label className="sidebar-label label-md">WORKSPACE</Label>
         <div className="sidebar-menu-btn">
-          {SIDEBAR.map((item) => {
+          {SIDEBAR.map((item, id) => {
             const Icon = item.logo;
             return (
               <Button
                 className="sidebar-btn"
                 variant="ghost"
                 onClick={() => navigate({ to: item.routeTo as any })}
+                key={`${item.label}-${id}`}
               >
                 <Icon />
                 <Label className="label-md">{item.label}</Label>

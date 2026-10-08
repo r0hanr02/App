@@ -18,6 +18,10 @@ export const ROUTES = {
   ONBOARDING:{
     path:"/onboarding",
     requiresAuth:true,
+  },
+  PROFILE:{
+    path:"/profile",
+    requireAuth:true
   }
 } as const;
 

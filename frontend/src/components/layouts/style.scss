@@ -9,7 +9,7 @@
 
 .root-layout-main {
   display: flex;
-  flex-direction: column;
+  // flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 100vh;
@@ -23,4 +23,13 @@
   width: 100%;
   min-width: 0;
   padding: var(--space-8);
+}
+
+.root-layout-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  width: 100%;
 }

@@ -14,5 +14,6 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   ONBOARDING: lazy(
     () => import("../features/home/pages/onboarding/Onboarding"),
   ),
+  PROFILE:lazy(()=>import("../features/auth/components/Profile/Profile"))
   // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
 };

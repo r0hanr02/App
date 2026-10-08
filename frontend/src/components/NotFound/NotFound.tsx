@@ -7,7 +7,7 @@ const NotFound = () => {
       style={{
         display: "grid",
         placeItems: "center",
-        height: "100vh",
+        flex: 1,
         textAlign: "center",
       }}
     >

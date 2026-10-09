@@ -1,36 +1,522 @@
+/* Sidebar — theme-token driven so light and dark both render correctly.
+   All colors/borders/shadows come from themes.scss semantic tokens.
+   The org popover renders in a portal (outside .sidebar), so its classes
+   stay top-level but still use the same tokens. */
+
 .sidebar {
-  width: 350px;
+  width: 300px;
+  flex-shrink: 0;
   position: sticky;
+  top: 0;
   z-index: 200;
-  border-right: 1px solid var(--border-default);
   height: 100vh;
-  overflow: auto;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-default);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  transition: width 0.2s ease;
 
   .logo {
-    padding: var(--space-14);
+    display: flex;
+    align-items: center;
+    gap: var(--space-8);
+    padding: var(--space-7) var(--space-6) var(--space-4);
+    color: var(--text-default);
   }
+
   .sidebar-menu {
-    padding: var(--space-0) var(--space-8);
     display: flex;
     flex-direction: column;
+    gap: var(--space-4);
+
     .sidebar-label {
       color: var(--text-muted);
-      padding: var(--space-0) var(--space-6);
+      padding: 0 var(--space-6);
       padding-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: var(--text-label-xs);
+      font-weight: 600;
     }
+
     .sidebar-menu-btn {
       display: flex;
       flex-direction: column;
-      gap: var(--space-4);
-      .sidebar-btn {
-        padding: var(--space-8);
-        flex: 1;
-        align-items: center;
-        justify-content: start;
+      gap: var(--space-2);
+    }
+
+    .sidebar-btn.react-aria-Button,
+    .sidebar-btn {
+      width: 100%;
+      flex: none;
+      min-height: 40px;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--space-6);
+      padding: var(--space-6) var(--space-8);
+      text-align: left;
+      background: transparent;
+      background-image: none;
+      box-shadow: none;
+      border: 0;
+      border-radius: var(--radius-4);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+
+      svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        color: inherit;
       }
-      .sidebar-btn:hover {
-        background-color: var(--bg-hover);
+
+      &:hover,
+      &[data-hovered] {
+        background: var(--bg-hover);
+        background-image: none;
+        box-shadow: none;
+        color: var(--text-default);
       }
+
+      /* Active route affordance (NavLink .active / aria-current / RAC selected). */
+      &.active,
+      &.is-active,
+      &[aria-current="page"],
+      &[data-active="true"],
+      &[data-selected="true"] {
+        background: var(--bg-selected);
+        color: var(--text-default);
+        font-weight: 500;
+
+        svg {
+          color: var(--color-primary);
+        }
+      }
+
+      &[data-pressed] {
+        background: var(--bg-selected);
+        color: var(--text-default);
+      }
+
+      &:focus-visible,
+      &[data-focus-visible] {
+        outline: 2px solid var(--border-focus);
+        outline-offset: 2px;
+      }
+
+      &:disabled,
+      &[data-disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: transparent;
+        color: var(--text-disabled);
+      }
+    }
+  }
+
+  // Accordion wrapper: only layout + border, trigger handles interaction.
+  .sidebar-org-accordion {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-4);
+    background: var(--bg-surface);
+    margin-bottom: var(--space-4);
+    // Don't use flex/cursor here — the RAC Button inside is the interactive element.
+  }
+
+  // Reset custom Button (RAC Button) so it looks like an accordion row, not a CTA.
+  .org-accordion-trigger.react-aria-Button,
+  .org-accordion-trigger {
+    width: 100%;
+    height: auto;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-6);
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    border: 0;
+    border-radius: var(--radius-4);
+    color: var(--text-default);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover,
+    &[data-hovered] {
+      background: var(--bg-hover);
+      background-image: none;
+      box-shadow: none;
+    }
+
+    &[data-pressed] {
+      background: var(--bg-selected);
+    }
+
+    &[aria-expanded="true"] {
+      background: var(--bg-selected);
+    }
+
+    &:focus-visible,
+    &[data-focus-visible] {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+  }
+
+  .org-logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background-color: var(--indigo-tint);
+    border: 1px solid var(--border-subtle);
+    color: var(--color-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-4);
+  }
+
+  .org-logo-sm {
+    width: 32px;
+    height: 32px;
+    font-size: var(--text-para-sm);
+  }
+
+  .org-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .org-name {
+    width: 100%;
+    color: var(--text-default);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+  }
+
+  .org-plan {
+    font-size: var(--text-para-xs);
+    line-height: 1.3;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .org-chevron {
+    flex-shrink: 0;
+    display: inline-flex;
+    color: var(--text-muted);
+    transition: transform 0.15s ease;
+  }
+
+  .sidebar-projects-menu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
+    .sidebar-label {
+      color: var(--text-muted);
+      padding: 0 var(--space-6);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: var(--text-label-xs);
+      font-weight: 600;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    width: 240px;
+    padding: var(--space-6);
+  }
+
+  /* Bottom collapse toggle — pinned to the end of the column. */
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-collapse-btn.react-aria-Button,
+  .sidebar-collapse-btn {
+    width: 100%;
+    flex: none;
+    min-height: 40px;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-8);
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    border: 0;
+    border-radius: var(--radius-4);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: inherit;
+    }
+
+    &:hover,
+    &[data-hovered] {
+      background: var(--bg-hover);
+      background-image: none;
+      box-shadow: none;
+      color: var(--text-default);
+    }
+
+    &[data-pressed] {
+      background: var(--bg-selected);
+      color: var(--text-default);
+    }
+
+    &:focus-visible,
+    &[data-focus-visible] {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+  }
+
+  /* Collapsed (icon-only) mode — toggled by the footer button. */
+  &.sidebar-collapsed {
+    width: 76px;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+    align-items: stretch;
+
+    .logo {
+      justify-content: center;
+      padding-left: 0;
+      padding-right: 0;
+
+      > :not(svg) {
+        display: none;
+      }
+    }
+
+    .sidebar-label {
+      display: none;
+    }
+
+    .sidebar-org-accordion {
+      border-color: transparent;
+      background: transparent;
+      margin-bottom: 0;
+    }
+
+    .org-accordion-trigger.react-aria-Button,
+    .org-accordion-trigger {
+      justify-content: center;
+      padding: var(--space-5) 0;
+      min-height: 0;
+    }
+
+    .org-meta,
+    .org-chevron {
+      display: none;
+    }
+
+    .sidebar-menu-btn {
+      align-items: center;
+    }
+
+    .sidebar-btn.react-aria-Button,
+    .sidebar-btn {
+      justify-content: center;
+      padding: var(--space-6);
+      width: auto;
+      min-width: 40px;
+
+      > :not(svg) {
+        display: none;
+      }
+    }
+
+    .sidebar-collapse-btn.react-aria-Button,
+    .sidebar-collapse-btn {
+      justify-content: center;
+      padding: var(--space-6);
+
+      > :not(svg) {
+        display: none;
+      }
+    }
+  }
+}
+
+/* Workspace switcher popover (rendered in a portal — top-level on purpose). */
+.org-popover-menu {
+  min-width: 264px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-raised);
+  color: var(--text-default);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-6);
+  box-shadow: var(--popover-shadow);
+  padding: var(--space-6) var(--space-4);
+  overflow-y: auto;
+  z-index: 300;
+
+  &[data-entering] {
+    animation: org-popover-in 0.15s ease-out;
+  }
+
+  &[data-exiting] {
+    animation: org-popover-out 0.12s ease-in;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border-subtle);
+    margin: var(--space-4) 0;
+  }
+}
+
+.org-popover-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  outline: none;
+}
+
+.org-popover-header {
+  padding: var(--space-2) var(--space-6) var(--space-4);
+}
+
+.org-popover-title {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--text-label-xs);
+  font-weight: 600;
+}
+
+.org-popover-item.react-aria-Button,
+.org-popover-item {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  border: 0;
+  color: var(--text-default);
+  border-radius: var(--radius-3);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  svg {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+  }
+
+  &:hover,
+  &[data-hovered] {
+    background: var(--bg-hover);
+    background-image: none;
+    box-shadow: none;
+  }
+
+  &[data-pressed] {
+    background: var(--bg-selected);
+  }
+
+  &:focus-visible,
+  &[data-focus-visible] {
+    outline: 2px solid var(--border-focus);
+    outline-offset: -2px;
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: var(--text-disabled);
+  }
+
+  .org-check {
+    margin-left: auto;
+    flex-shrink: 0;
+    color: var(--color-primary);
+  }
+}
+
+.org-popover-hint {
+  padding: var(--space-2) var(--space-6) 0;
+  color: var(--text-muted);
+}
+
+@keyframes org-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes org-popover-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .org-popover-menu {
+    *,
+    *::before,
+    *::after {
+      animation: none;
+      transition: none;
     }
   }
 }

@@ -2,7 +2,10 @@ import { useApiMutation, useApiQuery } from "../../../hooks/useApi";
 
 type data_response = {
   _id: string;
-  organization_id: string;
+  organization_id: {
+    organization_name:"string",
+    _id:string
+  };
   user_id: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
   createdAt: string;
@@ -40,3 +43,8 @@ export const useCreateOrganization = () => {
     mutationKey: ["create_organization"],
   });
 };
+
+
+export const useUserProjects = () =>{
+  return useApiQuery
+}

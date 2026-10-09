@@ -6,6 +6,7 @@ import {
   getSystemTheme,
   useThemeStoreSlice,
 } from "./theme.store";
+import { useOrgStoreSlice } from "./org.store";
 import { persist } from "zustand/middleware";
 import { useToastStoreSlice } from "./toast.store";
 import type { RootStore } from "./types";
@@ -16,10 +17,15 @@ export const useStore = create<RootStore>()(
       ...useAuthStoreSlice(...a),
       ...useThemeStoreSlice(...a),
       ...useToastStoreSlice(...a),
+      ...useOrgStoreSlice(...a),
     }),
     {
       name: "app-store",
-      partialize: (s) => ({ theme: s.theme, isSystem: s.isSystem }),
+      partialize: (s) => ({
+        theme: s.theme,
+        isSystem: s.isSystem,
+        activeOrgId: s.activeOrgId,
+      }),
     },
   ),
 );

@@ -15,22 +15,28 @@ import { SIDEBAR } from "../../../constants/sidebar.constants";
 import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 import { useState } from "react";
+import { useActiveOrg } from "../../../hooks/useActiveOrg";
+import { withOrgSearch } from "../../../lib/orgParams";
+import { ROUTES } from "../../../constants/routes.constants";
 
-/** "OWNER" -> "Owner workspace". The API exposes a role, not a plan tier. */
 function formatRole(role: string): string {
   const lower = role.toLowerCase();
   return `${lower.charAt(0).toUpperCase()}${lower.slice(1)} workspace`;
 }
 
 const Sidebar = () => {
-  const { data, isLoading } = useUserOrganization();
+  const { isLoading } = useUserOrganization();
+  const { organizations, activeOrg, activeOrgId, switchOrg, navigateWithOrg } =
+    useActiveOrg();
   const navigate = useNavigate();
   const [isPopOverOpen, setIsPopOverOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const organizations = data?.data ?? [];
-  const activeOrg = organizations[0];
   const activeOrgName = activeOrg?.organization_id?.organization_name;
+  const handleSwitchOrg = (nextOrgId: string) => {
+    setIsPopOverOpen(false);
+    if (nextOrgId !== activeOrgId) switchOrg(nextOrgId);
+  };
 
   return (
     <div className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}`}>
@@ -81,29 +87,35 @@ const Sidebar = () => {
               <div className="org-popover-header">
                 <Label className="label-sm org-popover-title">Workspaces</Label>
               </div>
-              {organizations.map((org, index) => (
-                <Button
-                  key={org._id}
-                  variant="ghost"
-                  className="org-popover-item"
-                  onPress={() => setIsPopOverOpen(false)}
-                >
-                  <span className="org-logo org-logo-sm" aria-hidden="true">
-                    {org.organization_id?.organization_name
-                      ?.charAt(0)
-                      .toUpperCase()}
-                  </span>
-                  <span className="org-meta">
-                    <span className="org-name label-sm">
-                      {org.organization_id.organization_name}
+              {organizations.map((org) => {
+                const orgId = org.organization_id?._id;
+                const isActive = orgId === activeOrgId;
+                return (
+                  <Button
+                    key={org._id}
+                    variant="ghost"
+                    className="org-popover-item"
+                    onPress={() => orgId && handleSwitchOrg(orgId)}
+                  >
+                    <span className="org-logo org-logo-sm" aria-hidden="true">
+                      {org.organization_id?.organization_name
+                        ?.charAt(0)
+                        .toUpperCase()}
                     </span>
-                    <span className="org-plan">{formatRole(org.role)}</span>
-                  </span>
-                  {index === 0 && (
-                    <Check size={16} className="org-check" />
-                  )}
-                </Button>
-              ))}
+                    <span className="org-meta">
+                      <span className="org-name label-sm">
+                        {org.organization_id.organization_name}
+                      </span>
+                      <span className="org-plan">
+                        {/* {formatRole(org.role)} */}
+                      </span>
+                    </span>
+                    {isActive && (
+                      <Check size={16} className="org-check" />
+                    )}
+                  </Button>
+                );
+              })}
               {organizations.length === 0 && !isLoading && (
                 <span className="para-xs org-popover-hint">
                   No workspaces yet
@@ -113,7 +125,13 @@ const Sidebar = () => {
               <Button
                 variant="ghost"
                 className="org-popover-item"
-                onPress={() => setIsPopOverOpen(false)}
+                onPress={() => {
+                  setIsPopOverOpen(false);
+                  navigate({
+                    to: ROUTES.ONBOARDING.path as any,
+                    search: withOrgSearch(activeOrgId) as any,
+                  }).catch(() => {});
+                }}
               >
                 <Plus size={16} />
                 <Label className="label-md">Create workspace</Label>
@@ -138,7 +156,7 @@ const Sidebar = () => {
                 className="sidebar-btn"
                 variant="ghost"
                 aria-label={item.label}
-                onClick={() => navigate({ to: item.routeTo as any })}
+                onClick={() => navigateWithOrg(item.routeTo)}
                 key={`${item.label}-${id}`}
               >
                 <Icon />

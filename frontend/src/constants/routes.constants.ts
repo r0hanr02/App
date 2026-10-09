@@ -21,8 +21,8 @@ export const ROUTES = {
   },
   PROFILE:{
     path:"/profile",
-    requireAuth:true
-  }
+    requiresAuth:true,
+  },
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

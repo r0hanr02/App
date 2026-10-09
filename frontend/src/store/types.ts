@@ -52,4 +52,12 @@ export type ToastStoreSlice = {
   clearToasts: () => void;
 };
 
-export type RootStore = AuthStoreType & ThemeStoreSlice & ToastStoreSlice;
+export type OrgStoreSlice = {
+  activeOrgId: string | null;
+  setActiveOrgId: (orgId: string | null) => void;
+};
+
+export type RootStore = AuthStoreType &
+  ThemeStoreSlice &
+  ToastStoreSlice &
+  OrgStoreSlice;

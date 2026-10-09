@@ -13,12 +13,13 @@ import { Label } from "../../ui/Form/Form";
 import { useStore } from "../../../store/store";
 import { Button } from "../../ui/Button/Button";
 import { useHandleLogout } from "../../../features/auth/api/auth.api";
-import { useUserOrganization } from "../../../features/home/api/home.api";
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { DialogTrigger, Popover } from "react-aria-components";
 import { useState } from "react";
 import { ROUTES } from "../../../constants/routes.constants";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
+import { useActiveOrg } from "../../../hooks/useActiveOrg";
+import { withOrgSearch } from "../../../lib/orgParams";
 
 /** Fallback label for routes not listed in the sidebar (e.g. /profile). */
 function prettifyPath(pathname: string): string {
@@ -38,9 +39,8 @@ export const Navbar = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useStore((s) => s.theme);
-  const { data: orgData } = useUserOrganization();
-  const organizations = orgData?.data ?? [];
-  const orgName = organizations[0]?.organization_id?.organization_name;
+  const { activeOrg, activeOrgId } = useActiveOrg();
+  const orgName = activeOrg?.organization_id?.organization_name;
 
   const currentPage =
     SIDEBAR.find((item) =>
@@ -144,7 +144,10 @@ export const Navbar = () => {
                   className="popover-item"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    navigate({ to: ROUTES.PROFILE.path });
+                    navigate({
+                      to: ROUTES.PROFILE.path as any,
+                      search: withOrgSearch(activeOrgId) as any,
+                    }).catch(() => {});
                   }}
                 >
                   <File />

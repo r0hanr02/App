@@ -40,8 +40,7 @@ export const Navbar = () => {
   const theme = useStore((s) => s.theme);
   const { data: orgData } = useUserOrganization();
   const organizations = orgData?.data ?? [];
-  const orgName =
-    organizations[0]?.organization_id?.organization_name ?? "ACME studio";
+  const orgName = organizations[0]?.organization_id?.organization_name;
 
   const currentPage =
     SIDEBAR.find((item) =>
@@ -86,13 +85,17 @@ export const Navbar = () => {
   ) : (
     <div className="navbar">
       <nav className="navbar-breadcrumb" aria-label="Breadcrumb">
-        <span className="crumb crumb-org label-md">{orgName}</span>
-        <ChevronRight
-          size={14}
-          className="crumb-separator"
-          aria-hidden="true"
-        />
-        <span className="crumb crumb-page label-md" aria-current="page">
+        {orgName && (
+          <>
+            <span className="crumb crumb-org">{orgName}</span>
+            <ChevronRight
+              size={14}
+              className="crumb-separator"
+              aria-hidden="true"
+            />
+          </>
+        )}
+        <span className="crumb crumb-page" aria-current="page">
           {currentPage}
         </span>
       </nav>

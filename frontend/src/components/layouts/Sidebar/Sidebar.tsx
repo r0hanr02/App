@@ -16,6 +16,12 @@ import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 import { useState } from "react";
 
+/** "OWNER" -> "Owner workspace". The API exposes a role, not a plan tier. */
+function formatRole(role: string): string {
+  const lower = role.toLowerCase();
+  return `${lower.charAt(0).toUpperCase()}${lower.slice(1)} workspace`;
+}
+
 const Sidebar = () => {
   const { data, isLoading } = useUserOrganization();
   const navigate = useNavigate();
@@ -24,7 +30,7 @@ const Sidebar = () => {
 
   const organizations = data?.data ?? [];
   const activeOrg = organizations[0];
-  const activeOrgInitial = "A";
+  const activeOrgName = activeOrg?.organization_id?.organization_name;
 
   return (
     <div className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}`}>
@@ -40,11 +46,19 @@ const Sidebar = () => {
             aria-label="Switch workspace"
           >
             <span className="org-logo title-sm" aria-hidden="true">
-              {activeOrgInitial}
+              {activeOrgName ? (
+                activeOrgName.charAt(0).toUpperCase()
+              ) : (
+                <Plus size={18} />
+              )}
             </span>
             <span className="org-meta">
-              <span className="org-name label-md">ACME studio</span>
-              <span className="org-plan">Pro workspace</span>
+              <span className="org-name label-md">
+                {activeOrgName ?? "Select workspace"}
+              </span>
+              <span className="org-plan">
+                {activeOrg ? formatRole(activeOrg.role) : "No workspaces yet"}
+              </span>
             </span>
             <span className="org-chevron" aria-hidden="true">
               {isPopOverOpen ? (
@@ -67,21 +81,7 @@ const Sidebar = () => {
               <div className="org-popover-header">
                 <Label className="label-sm org-popover-title">Workspaces</Label>
               </div>
-              <Button
-                variant="ghost"
-                className="org-popover-item"
-                onPress={() => setIsPopOverOpen(false)}
-              >
-                <span className="org-logo org-logo-sm" aria-hidden="true">
-                  {activeOrgInitial}
-                </span>
-                <span className="org-meta">
-                  <span className="org-name label-sm">ACME studio</span>
-                  <span className="org-plan">Pro workspace</span>
-                </span>
-                <Check size={16} className="org-check" />
-              </Button>
-              {organizations.slice(1).map((org) => (
+              {organizations.map((org, index) => (
                 <Button
                   key={org._id}
                   variant="ghost"
@@ -97,10 +97,18 @@ const Sidebar = () => {
                     <span className="org-name label-sm">
                       {org.organization_id.organization_name}
                     </span>
-                    <span className="org-plan">{org.role.toLowerCase()}</span>
+                    <span className="org-plan">{formatRole(org.role)}</span>
                   </span>
+                  {index === 0 && (
+                    <Check size={16} className="org-check" />
+                  )}
                 </Button>
               ))}
+              {organizations.length === 0 && !isLoading && (
+                <span className="para-xs org-popover-hint">
+                  No workspaces yet
+                </span>
+              )}
               <div className="divider" />
               <Button
                 variant="ghost"

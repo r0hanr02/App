@@ -5,10 +5,7 @@ import { DropDown } from "../../../../components/ui/DropDown/DropDown";
 import { SearchField } from "../../../../components/ui/SearchField/SearchField";
 import { Table } from "../../../../components/ui/Table/Table";
 import type { TableColumn } from "../../../../components/ui/Table/table.types";
-import type {
-  DashboardProject,
-  DashboardTask,
-} from "../../data/home.dummy";
+import type { DashboardProject, DashboardTask } from "../../data/home.dummy";
 import {
   assigneeIdOf,
   dueLabelFor,
@@ -20,11 +17,11 @@ import { StatusPill } from "../StatusPill/StatusPill";
 type TasksTab = "Upcoming" | "Overdue" | "Completed";
 
 interface AssignedTasksPanelProps {
-  tasks: DashboardTask[];
-  currentUserId: string | null;
-  projects: DashboardProject[];
-  onTaskPress: (task: DashboardTask) => void;
-  onViewAll: () => void;
+  readonly tasks: DashboardTask[];
+  readonly currentUserId: string | null;
+  readonly projects: DashboardProject[];
+  readonly onTaskPress: (task: DashboardTask) => void;
+  readonly onViewAll: () => void;
 }
 
 const TABS: TasksTab[] = ["Upcoming", "Overdue", "Completed"];
@@ -83,7 +80,8 @@ export function AssignedTasksPanel({
     Overdue: overdue.length,
     Completed: completed.length,
   };
-  const base = tab === "Upcoming" ? upcoming : tab === "Overdue" ? overdue : completed;
+  const base =
+    tab === "Upcoming" ? upcoming : tab === "Overdue" ? overdue : completed;
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -125,9 +123,7 @@ export function AssignedTasksPanel({
         accessor: "due_date",
         label: "Due",
         render: ({ row }) => (
-          <span
-            className={isOverdue(row, today) ? "red-text" : "muted-cell"}
-          >
+          <span className={isOverdue(row, today) ? "red-text" : "muted-cell"}>
             {dueLabelFor(row.due_date, today)}
           </span>
         ),
@@ -138,10 +134,7 @@ export function AssignedTasksPanel({
 
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const pagedRows = rows.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize,
-  );
+  const pagedRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   return (
     <section className="panel assigned-panel">

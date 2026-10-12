@@ -15,7 +15,7 @@ const saltRound = process.env.SALT_ROUND
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
-    const { name, email, password, phone, dateOfBirth } = req.body;
+    const { name, email, password, phone, dateOfBirth, occupation } = req.body;
 
     if (!name?.trim() || !email?.trim() || !password) {
       throw new AppError("Name, email and password are required", 400);
@@ -37,6 +37,7 @@ export const registerUser = asyncHandler(
       password: hashPassword,
       phone,
       dateOfBirth,
+      occupation: typeof occupation === "string" ? occupation.trim() : "",
       profilepic: profilePicUrl,
     });
 
@@ -47,6 +48,7 @@ export const registerUser = asyncHandler(
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
+        occupation: newUser.occupation ?? "",
         profilepic: newUser.profilepic,
       },
     });
@@ -96,6 +98,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
       id: isUserExist.id,
       name: isUserExist.name,
       email: isUserExist.email,
+      occupation: isUserExist.occupation ?? "",
       profilepic: isUserExist.profilepic,
     },
   });
@@ -216,6 +219,9 @@ export const authMe = asyncHandler(
         id: user.id,
         name: user.name,
         email: user.email,
+        phone: user.phone ?? "",
+        dateOfBirth: user.dateOfBirth ?? "",
+        occupation: user.occupation ?? "",
         profilepic: user.profilepic,
       },
     });
@@ -225,7 +231,7 @@ export const authMe = asyncHandler(
 export const updateMe = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req?.userId;
-    const { name, email, phone, dateOfBirth } = req.body;
+    const { name, email, phone, dateOfBirth, occupation } = req.body;
 
     const updateData: Record<string, unknown> = {};
 
@@ -251,6 +257,10 @@ export const updateMe = asyncHandler(
 
     if (typeof dateOfBirth === "string" && dateOfBirth.trim()) {
       updateData.dateOfBirth = dateOfBirth.trim();
+    }
+
+    if (typeof occupation === "string") {
+      updateData.occupation = occupation.trim();
     }
 
     if (req.file?.path) {

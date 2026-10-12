@@ -1,204 +1,137 @@
 @use "../../../styles/themes" as themes;
 @use "../../../styles/typography.scss" as typo;
 
-.data-table-wrapper {
+.table-root {
   width: 100%;
-  overflow-x: auto;
-  background: var(--bg-surface);
-  @include themes.border(var(--border-subtlest), var(--radius-4));
-
-  &--sticky-header {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
 }
 
-.data-table {
+.table-scroll-area {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
   width: 100%;
   border-collapse: collapse;
   color: var(--text-default);
-
-  // Header
-
-  thead {
-    tr {
-      background: var(--bg-primary-500);
-    }
-
-    th {
-      @include typo.label-sm-mixin();
-      --custom-color: var(--text-white);
-      text-align: left;
-      padding: var(--space-7) var(--space-8);
-      white-space: nowrap;
-
-      &:first-child {
-        border-top-left-radius: var(--radius-4);
-      }
-
-      &:last-child {
-        border-top-right-radius: var(--radius-4);
-      }
-
-      &.is-sortable {
-        cursor: pointer;
-        user-select: none;
-
-        &:hover {
-          background: var(--bg-primary-700);
-        }
-      }
-
-      .th-content {
-        @include themes.flex(row, flex-start, center, nowrap, var(--space-3));
-      }
-
-      .sort-icon {
-        font-size: 10px;
-        opacity: 0.85;
-      }
-    }
-  }
-
-  .data-table-wrapper--sticky-header & thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  // Body
-  tbody {
-    tr {
-      border-bottom: 1px solid var(--border-subtlest);
-      transition: background-color 150ms ease;
-
-      &:last-child {
-        border-bottom: none;
-      }
-    }
-
-    td {
-      @include typo.para-sm-mixin();
-      padding: var(--space-7) var(--space-8);
-      vertical-align: top;
-
-      &.nowrap {
-        white-space: nowrap;
-      }
-    }
-  }
-
-  &:not(.data-table--no-hover) tbody tr:hover {
-    background: var(--bg-sunken);
-  }
-
-  &.data-table--striped tbody tr:nth-child(even) {
-    background: var(--bg-sunken);
-  }
-
-  &.data-table--clickable-rows tbody tr {
-    cursor: pointer;
-  }
-
-  &.data-table--dense {
-    th,
-    td {
-      padding: var(--space-4) var(--space-6);
-    }
-  }
-
-  .data-table__empty-row td {
-    @include typo.para-sm-mixin();
-    --custom-color: var(--text-subtlest);
-    text-align: center;
-    padding: var(--space-12);
-  }
 }
 
-.dt-badge {
-  @include typo.subheading-xs-mixin();
-  display: inline-block;
-  padding: var(--space-3) var(--space-6);
-  border-radius: var(--radius-2);
+.table-thead-tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table-thead-th {
+  @include typo.label-xs-mixin();
+  --custom-color: var(--text-muted);
+  text-align: left;
+  padding: var(--space-4) var(--space-6);
   white-space: nowrap;
-
-  &--neutral {
-    --custom-color: var(--text-subtler);
-    background: var(--bg-grey-00);
-  }
-
-  &--primary {
-    --custom-color: var(--text-primary-700);
-    background: var(--bg-primary-00);
-  }
-
-  &--success {
-    --custom-color: var(--text-green-700);
-    background: var(--bg-green-00);
-  }
-
-  &--warning {
-    --custom-color: var(--text-yellow-700);
-    background: var(--bg-yellow-00);
-  }
-
-  &--danger {
-    --custom-color: var(--text-red-700);
-    background: var(--bg-red-00);
-  }
-
-  &--info {
-    --custom-color: var(--text-orange-700);
-    background: var(--bg-orange-00);
-  }
 }
 
-.dt-icon-btn {
-  @include themes.flex(row, center, center);
-  @include themes.border(var(--border-subtlest), var(--radius-3));
-  width: 30px;
-  height: 30px;
-  background: var(--bg-surface);
-  color: var(--text-primary-500);
-  cursor: pointer;
+.table-tbody-tr {
+  border-bottom: 1px solid var(--border-subtlest);
   transition: background-color 150ms ease;
 
+  &:last-child {
+    border-bottom: none;
+  }
+
   &:hover {
-    background: var(--bg-sunken);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--border-primary-500);
-    outline-offset: 2px;
+    background: var(--bg-hover);
   }
 }
 
-.dt-subtext {
-  @include typo.para-xs-mixin();
-  --custom-color: var(--text-subtlest);
-  margin-top: var(--space-2);
+.table-tbody-tr--clickable {
+  cursor: pointer;
 }
 
-// Pagination footer
+.table-tbody-td {
+  @include typo.para-sm-mixin();
+  padding: var(--space-5) var(--space-6);
+  vertical-align: middle;
+}
 
-.data-table-pagination {
-  @include themes.flex(row, center, center, nowrap, var(--space-8));
-  padding: var(--space-7) var(--space-8);
+.checkbox-th,
+.checkbox-td {
+  width: 36px;
+  text-align: center;
+}
+
+.table-check {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--bg-primary-500);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.table-no-data-cell {
+  padding: var(--space-12) var(--space-8);
+}
+
+.table-no-data {
+  @include themes.flex(column, center, center, nowrap, var(--space-5));
+  color: var(--text-subtlest);
+}
+
+.table-no-data-text {
+  @include typo.para-sm-mixin();
+  --custom-color: var(--text-muted);
+}
+
+.table-skeleton {
+  display: block;
+  border-radius: var(--radius-2);
+  background: linear-gradient(
+    90deg,
+    var(--bg-sunken) 25%,
+    var(--bg-hover) 50%,
+    var(--bg-sunken) 75%
+  );
+  background-size: 200% 100%;
+  animation: table-shimmer 1.2s ease-in-out infinite;
+}
+
+.table-skeleton--line {
+  height: 14px;
+  width: 70%;
+}
+
+.table-skeleton--box {
+  width: 16px;
+  height: 16px;
+  margin: 0 auto;
+}
+
+@keyframes table-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.table-pagination {
+  @include themes.flex(row, center, center, nowrap, var(--space-6));
+  padding: var(--space-6) var(--space-8);
   border-top: 1px solid var(--border-subtlest);
 
   .para-xs {
     @include typo.para-xs-mixin();
-    --custom-color: var(--text-subtler);
+    --custom-color: var(--text-muted);
   }
 }
 
-// Responsive
-
 @media (max-width: 900px) {
-  .data-table {
-    th,
-    td {
-      padding: var(--space-6) var(--space-7);
-    }
+  .table {
+    min-width: 560px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-skeleton {
+    animation: none;
   }
 }

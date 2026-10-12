@@ -5,11 +5,16 @@ import {
   useSearch,
 } from "@tanstack/react-router";
 import { useStore } from "../store/store";
-import { useUserOrganization } from "../features/home/api/home.api";
+import { useGetUserOrganization } from "../features/home/api/home.api";
 import {
   getOrgIdFromSearch,
   withOrgSearch,
 } from "../lib/orgParams";
+import { ROUTES } from "../constants/routes.constants";
+
+const KNOWN_PATHS = new Set<string>(
+  Object.values(ROUTES).map((r) => r.path as string),
+);
 
 /**
  * Single source of truth for "whichever org is active".
@@ -25,7 +30,7 @@ export function useActiveOrg() {
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
   const location = useLocation();
-  const { data, isLoading } = useUserOrganization();
+  const { data, isLoading } = useGetUserOrganization();
 
   const storedOrgId = useStore((s) => s.activeOrgId);
   const setStoredOrgId = useStore((s) => s.setActiveOrgId);
@@ -69,6 +74,8 @@ export function useActiveOrg() {
     if (isLoading) return;
     if (!activeOrgId) return;
     if (urlOrgId === activeOrgId) return;
+    // Unknown path (true 404) — don't fight the router, let NotFound render.
+    if (!KNOWN_PATHS.has(location.pathname)) return;
     // Don't force params on auth-only pages without org context.
     if (
       location.pathname === "/login" ||
@@ -83,7 +90,9 @@ export function useActiveOrg() {
       search: (prev: Record<string, unknown>) =>
         withOrgSearch(activeOrgId, prev),
       replace: true,
-    }).catch(() => {});
+    }).catch((err) => {
+      console.warn("Failed to sync org search param:", err);
+    });
   }, [isLoading, activeOrgId, urlOrgId, location.pathname, navigate]);
 
   const switchOrg = useCallback(
@@ -94,7 +103,9 @@ export function useActiveOrg() {
         search: (prev: Record<string, unknown>) =>
           withOrgSearch(nextOrgId, prev),
         replace: false,
-      }).catch(() => {});
+      }).catch((err) => {
+        console.warn("Failed to switch workspace:", err);
+      });
     },
     [navigate, setStoredOrgId],
   );
@@ -104,10 +115,11 @@ export function useActiveOrg() {
     (to: string, orgId?: string | null) => {
       const id = orgId ?? activeOrgId;
       navigate({
-        // @ts-expect-error — dynamic `to` with shared org search
         to,
         search: withOrgSearch(id),
-      }).catch(() => {});
+      }).catch((err) => {
+        console.warn(`Navigation to ${to} failed:`, err);
+      });
     },
     [navigate, activeOrgId],
   );

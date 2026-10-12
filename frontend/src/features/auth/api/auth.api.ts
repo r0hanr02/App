@@ -11,7 +11,15 @@ export const authMe = async () => {
     success: boolean;
     message: string;
     accessToken: string;
-    user: { id: string; name: string; email: string; profilepic: string };
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      occupation: string;
+      phone?: string;
+      dateOfBirth?: string;
+      profilepic: string;
+    };
   }>({
     method: "GET",
     path: "/auth/me",

@@ -9,7 +9,10 @@ export type UserType = {
   id: string;
   name: string;
   email: string;
+  occupation: string;
   profilepic: string;
+  phone?: string;
+  dateOfBirth?: string;
 };
 
 export type AuthStoreType = {

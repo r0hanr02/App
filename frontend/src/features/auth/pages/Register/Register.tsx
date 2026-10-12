@@ -12,6 +12,7 @@ type RegisterFormData = {
   name: string;
   email: string;
   dob: string;
+  occupation: string;
   password: string;
   phone: string;
   pic: File | null;
@@ -22,6 +23,7 @@ const Register = () => {
     name: "",
     email: "",
     dob: "",
+    occupation: "",
     password: "",
     phone: "",
     pic: null,
@@ -77,6 +79,9 @@ const Register = () => {
 
     if (formData.dob) {
       fd.append("dateOfBirth", formData.dob);
+    }
+    if (formData.occupation.trim()) {
+      fd.append("occupation", formData.occupation.trim());
     }
     if (formData.pic) {
       fd.append("profilepic", formData.pic);
@@ -162,6 +167,16 @@ const Register = () => {
             type="email"
             value={formData.email}
             label="Work Email:"
+            onChange={handleChange}
+          />
+
+          {/* Occupation (optional) */}
+          <Input
+            name="occupation"
+            type="text"
+            value={formData.occupation}
+            label="Occupation (optional):"
+            placeholder="e.g. Senior software engineer"
             onChange={handleChange}
           />
 

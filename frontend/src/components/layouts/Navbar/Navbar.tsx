@@ -1,6 +1,5 @@
 import {
   Bell,
-  ChevronRight,
   File,
   Layers,
   LogOut,
@@ -18,8 +17,6 @@ import { DialogTrigger, Popover } from "react-aria-components";
 import { useState } from "react";
 import { ROUTES } from "../../../constants/routes.constants";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
-import { useActiveOrg } from "../../../hooks/useActiveOrg";
-import { withOrgSearch } from "../../../lib/orgParams";
 
 /** Fallback label for routes not listed in the sidebar (e.g. /profile). */
 function prettifyPath(pathname: string): string {
@@ -39,8 +36,6 @@ export const Navbar = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useStore((s) => s.theme);
-  const { activeOrg, activeOrgId } = useActiveOrg();
-  const orgName = activeOrg?.organization_id?.organization_name;
 
   const currentPage =
     SIDEBAR.find((item) =>
@@ -85,16 +80,6 @@ export const Navbar = () => {
   ) : (
     <div className="navbar">
       <nav className="navbar-breadcrumb" aria-label="Breadcrumb">
-        {orgName && (
-          <>
-            <span className="crumb crumb-org">{orgName}</span>
-            <ChevronRight
-              size={14}
-              className="crumb-separator"
-              aria-hidden="true"
-            />
-          </>
-        )}
         <span className="crumb crumb-page" aria-current="page">
           {currentPage}
         </span>
@@ -145,9 +130,10 @@ export const Navbar = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     navigate({
-                      to: ROUTES.PROFILE.path as any,
-                      search: withOrgSearch(activeOrgId) as any,
-                    }).catch(() => {});
+                      to: ROUTES.PROFILE.path,
+                    }).catch((err) => {
+                      console.warn("Navigation to profile failed:", err);
+                    });
                   }}
                 >
                   <File />

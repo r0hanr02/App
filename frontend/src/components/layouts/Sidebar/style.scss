@@ -1,8 +1,3 @@
-/* Sidebar — theme-token driven so light and dark both render correctly.
-   All colors/borders/shadows come from themes.scss semantic tokens.
-   The org popover renders in a portal (outside .sidebar), so its classes
-   stay top-level but still use the same tokens. */
-
 .sidebar {
   width: 300px;
   flex-shrink: 0;
@@ -72,6 +67,7 @@
       border-radius: var(--radius-4);
       color: var(--text-secondary);
       cursor: pointer;
+      text-decoration: none;
       transition:
         background-color 0.15s ease,
         color 0.15s ease;

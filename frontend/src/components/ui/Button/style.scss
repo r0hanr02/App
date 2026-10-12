@@ -87,6 +87,35 @@
     }
   }
 
+  &[data-variant="outline"] {
+    background: transparent;
+    color: var(--text-default);
+    border: 1px solid var(--border-default);
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+      border-color: var(--border-strong);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--bg-selected);
+    }
+  }
+
+  &[data-variant="ghost"] {
+    background: transparent;
+    color: var(--text-default);
+    border: 1px solid transparent;
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+    }
+
+    &:active:not(:disabled) {
+      background: var(--bg-selected);
+    }
+  }
+
   &[data-variant="danger"] {
     background: var(--bg-red-500);
     color: var(--text-white);

@@ -7,17 +7,17 @@ import {
   PanelLeftOpen,
   Plus,
 } from "lucide-react";
-import { useUserOrganization } from "../../../features/home/api/home.api";
+import { useGetUserOrganization } from "../../../features/home/api/home.api";
 import "./style.scss";
 import { Label } from "../../ui/Form/Form";
 import { Button } from "../../ui/Button/Button";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
-import { useNavigate } from "@tanstack/react-router";
-import { Dialog, DialogTrigger, Popover } from "react-aria-components";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useActiveOrg } from "../../../hooks/useActiveOrg";
 import { withOrgSearch } from "../../../lib/orgParams";
 import { ROUTES } from "../../../constants/routes.constants";
+import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 
 function formatRole(role: string): string {
   const lower = role.toLowerCase();
@@ -25,9 +25,8 @@ function formatRole(role: string): string {
 }
 
 const Sidebar = () => {
-  const { isLoading } = useUserOrganization();
-  const { organizations, activeOrg, activeOrgId, switchOrg, navigateWithOrg } =
-    useActiveOrg();
+  const { isLoading } = useGetUserOrganization();
+  const { organizations, activeOrg, activeOrgId, switchOrg } = useActiveOrg();
   const navigate = useNavigate();
   const [isPopOverOpen, setIsPopOverOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -87,7 +86,7 @@ const Sidebar = () => {
               <div className="org-popover-header">
                 <Label className="label-sm org-popover-title">Workspaces</Label>
               </div>
-              {organizations.map((org) => {
+              {organizations.map((org: any) => {
                 const orgId = org.organization_id?._id;
                 const isActive = orgId === activeOrgId;
                 return (
@@ -110,9 +109,7 @@ const Sidebar = () => {
                         {/* {formatRole(org.role)} */}
                       </span>
                     </span>
-                    {isActive && (
-                      <Check size={16} className="org-check" />
-                    )}
+                    {isActive && <Check size={16} className="org-check" />}
                   </Button>
                 );
               })}
@@ -128,9 +125,11 @@ const Sidebar = () => {
                 onPress={() => {
                   setIsPopOverOpen(false);
                   navigate({
-                    to: ROUTES.ONBOARDING.path as any,
-                    search: withOrgSearch(activeOrgId) as any,
-                  }).catch(() => {});
+                    to: ROUTES.ONBOARDING.path,
+                    search: withOrgSearch(activeOrgId),
+                  }).catch((err) => {
+                    console.warn("Navigation to onboarding failed:", err);
+                  });
                 }}
               >
                 <Plus size={16} />
@@ -152,16 +151,28 @@ const Sidebar = () => {
           {SIDEBAR.map((item, id) => {
             const Icon = item.logo;
             return (
-              <Button
+              <Link
                 className="sidebar-btn"
-                variant="ghost"
+                activeProps={{
+                  className: "sidebar-btn sidebar-btn-active",
+                }}
+                inactiveProps={{
+                  className: "sidebar-btn",
+                }}
+                activeOptions={{
+                  // "/" is a prefix of every path, so Dashboard needs exact matching.
+                  exact: item.routeTo === ROUTES.HOME.path,
+                }}
                 aria-label={item.label}
-                onClick={() => navigateWithOrg(item.routeTo)}
+                to={item.routeTo}
+                search={(prev: Record<string, unknown>) =>
+                  withOrgSearch(activeOrgId, prev)
+                }
                 key={`${item.label}-${id}`}
               >
                 <Icon />
                 <Label className="label-md">{item.label}</Label>
-              </Button>
+              </Link>
             );
           })}
         </div>

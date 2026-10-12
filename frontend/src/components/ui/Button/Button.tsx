@@ -1,4 +1,3 @@
-import type { ElementType, ReactNode } from "react";
 import { Button as RACButton } from "react-aria-components/Button";
 import { composeRenderProps } from "react-aria-components/composeRenderProps";
 import { ProgressBar } from "react-aria-components/ProgressBar";

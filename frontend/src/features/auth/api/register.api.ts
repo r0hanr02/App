@@ -9,6 +9,7 @@ export interface RegisterResponse {
     email: string;
     phone: string;
     dateOfBirth?: string;
+    occupation: string;
     profilepic: string;
   };
 }

@@ -23,6 +23,30 @@ export const ROUTES = {
     path:"/profile",
     requiresAuth:true,
   },
+  PROJECTS: {
+    path: "/projects",
+    requiresAuth: true,
+  },
+  TASKS: {
+    path: "/tasks",
+    requiresAuth: true,
+  },
+  USERS: {
+    path: "/users",
+    requiresAuth: true,
+  },
+  ORGANIZATION: {
+    path: "/organization",
+    requiresAuth: true,
+  },
+  NOTIFICATION: {
+    path: "/notification",
+    requiresAuth: true,
+  },
+  SETTINGS: {
+    path: "/settings",
+    requiresAuth: true,
+  },
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

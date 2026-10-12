@@ -12,7 +12,7 @@ import {
 import { ROUTES, type AppRouteKey } from "../constants/routes.constants";
 import { COMPONENTS } from "./ComponentFactory";
 import { Loader2 } from "lucide-react";
-
+import { userOrganizationQueryOptions } from "../features/home/api/home.api";
 
 function withSuspense(
   Component: LazyExoticComponent<ComponentType<object>>,
@@ -33,27 +33,23 @@ function withSuspense(
   };
 }
 
-function validateOrgSearch(search: Record<string, unknown>): {
-  orgId?: string;
-} {
-  const orgId = search.orgId;
-  return {
-    orgId:
-      typeof orgId === "string" && orgId.length > 0 ? orgId : undefined,
-  };
-}
-
 export function createAppRoutes(rootRoute: AnyRootRoute) {
   return (Object.keys(ROUTES) as AppRouteKey[]).map((key) =>
     createRoute({
       getParentRoute: () => rootRoute,
-      // Same routing — paths unchanged. Active org travels as `?orgId=`.
       path: ROUTES[key].path,
-      validateSearch: validateOrgSearch,
       component: withSuspense(COMPONENTS[key]),
-      beforeLoad: ({ context }) => {
+      beforeLoad: async ({ context }) => {
         if (ROUTES[key].requiresAuth && !context.auth.isLoggedIn) {
           throw redirect({ to: ROUTES.LOGIN.path });
+        }
+        if (key === "NOORGANIZATION") {
+          const organization = await context.queryClient.ensureQueryData(
+            userOrganizationQueryOptions,
+          );
+          if (organization.data.data.length !== 0) {
+            throw redirect({ to: ROUTES.HOME.path });
+          }
         }
       },
     }),

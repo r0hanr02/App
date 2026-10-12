@@ -7,7 +7,7 @@ import {
 } from "react-aria-components/SearchField";
 import { Label, FieldError, Description } from "../Form/Form";
 import { Search, X } from "lucide-react";
-import "./SearchField.css";
+import "./style.scss";
 
 export interface SearchFieldProps extends AriaSearchFieldProps {
   label?: string;
@@ -22,7 +22,7 @@ export function SearchField({
   errorMessage,
   placeholder,
   ...props
-}: SearchFieldProps) {
+}: Readonly<SearchFieldProps>) {
   return (
     <AriaSearchField {...props}>
       {label && <Label>{label}</Label>}

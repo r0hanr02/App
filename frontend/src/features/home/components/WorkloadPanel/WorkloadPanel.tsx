@@ -1,18 +1,14 @@
 import { useMemo } from "react";
 import { ArrowRight } from "lucide-react";
 import { Button } from "../../../../components/ui/Button/Button";
-import type { DashboardTask, OrgMember } from "../../api/home.api";
-import {
-  assigneeIdOf,
-  memberIdOf,
-  memberNameOf,
-} from "../../utils/home.utils";
+import type { DashboardTask, OrgMember } from "../../data/home.dummy";
+import { assigneeIdOf, memberIdOf, memberNameOf } from "../../utils/home.utils";
 import { Avatar } from "../Avatar/Avatar";
 
 interface WorkloadPanelProps {
-  tasks: DashboardTask[];
-  members: OrgMember[];
-  onViewTeam: () => void;
+  readonly tasks: DashboardTask[];
+  readonly members: OrgMember[];
+  readonly onViewTeam: () => void;
 }
 
 const BAR_TONES = ["indigo", "pink", "teal", "amber"];
@@ -74,7 +70,7 @@ export function WorkloadPanel({
       )}
       <div className="workload-key">
         <i />
-        Active tasks assigned
+        Active tasks assigned{" "}
       </div>
     </section>
   );

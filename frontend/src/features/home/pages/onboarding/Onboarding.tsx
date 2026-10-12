@@ -4,13 +4,14 @@ import { Label } from "../../../../components/ui/Form/Form";
 import { Input } from "../../../../components/ui/Input/Input";
 import "./style.scss";
 import { useEffect, useState } from "react";
-import { useCreateOrganization } from "../../api/home.api";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useNavigate } from "@tanstack/react-router";
 import { ROUTES } from "../../../../constants/routes.constants";
 
+// Dummy-only onboarding — no API calls. Wire the real mutation back in later.
 const Onboarding = () => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
   const [formData, setFormData] = useState({
     organization_name: "",
     organization_slug: "",
@@ -19,7 +20,6 @@ const Onboarding = () => {
   });
 
   const navigate = useNavigate();
-  const { mutate, isPending } = useCreateOrganization();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
@@ -56,24 +56,20 @@ const Onboarding = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData();
-    fd.append("organization_name", formData.organization_name);
-    fd.append("organization_slug", formData.organization_slug);
-    fd.append("organization_description", formData.organization_description);
-    if (formData.organization_logo) {
-      fd.append("organization_logo", formData.organization_logo);
+    if (!formData.organization_name.trim()) {
+      toast.warning("Organization name is required");
+      return;
     }
-
-    mutate(fd, {
-      onSuccess: (response) => {
-        toast.success(response.message, "Organization created successfully");
-        navigate({ to: ROUTES.HOME.path });
-      },
-      onError: (error) => {
-        toast.error("Error creating organization.");
-        console.error("Error creating organization:", error);
-      },
-    });
+    setIsPending(true);
+    // Dummy delay so the UI still shows a pending state.
+    setTimeout(() => {
+      setIsPending(false);
+      toast.success(
+        "Organization created successfully",
+        `"${formData.organization_name.trim()}" is ready (dummy).`,
+      );
+      navigate({ to: ROUTES.HOME.path });
+    }, 600);
   };
 
   return (

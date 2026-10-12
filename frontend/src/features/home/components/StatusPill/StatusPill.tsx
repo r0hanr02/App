@@ -1,4 +1,4 @@
-import type { DashboardTaskStatus } from "../../api/home.api";
+import type { DashboardTaskStatus } from "../../data/home.dummy";
 
 export const STATUS_META: Record<
   DashboardTaskStatus,
@@ -11,7 +11,9 @@ export const STATUS_META: Record<
   CANCELLED: { label: "Cancelled", tone: "grey" },
 };
 
-export function StatusPill({ status }: { status: DashboardTaskStatus }) {
+export function StatusPill({
+  status,
+}: Readonly<{ status: DashboardTaskStatus }>) {
   const meta = STATUS_META[status] ?? STATUS_META.TODO;
   return <span className={`status-pill ${meta.tone}`}>{meta.label}</span>;
 }

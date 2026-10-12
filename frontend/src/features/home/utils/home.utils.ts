@@ -1,4 +1,4 @@
-import type { DashboardTask, OrgMember } from "../api/home.api";
+import type { DashboardTask, OrgMember } from "../data/home.dummy";
 
 /* Pure dashboard helpers — no React, no side effects. */
 

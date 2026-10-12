@@ -10,12 +10,20 @@ import {
   ListTodo,
   Plus,
 } from "lucide-react";
-import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import { useStore } from "../../../../store/store";
 import { Button } from "../../../../components/ui/Button/Button";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { ROUTES } from "../../../../constants/routes.constants";
-import { useHomeDashboard, type DashboardTask } from "../../api/home.api";
+import {
+  DUMMY_ACTIVE_ORG,
+  DUMMY_MEMBERS,
+  DUMMY_ORGANIZATIONS,
+  DUMMY_PROJECTS,
+  DUMMY_TASKS,
+  DUMMY_USER,
+  type DashboardTask,
+  type DashboardTaskPriority,
+} from "../../data/home.dummy";
 import {
   eyebrowFor,
   greetingFor,
@@ -33,29 +41,25 @@ import { WorkloadPanel } from "../../components/WorkloadPanel/WorkloadPanel";
 import { CreateTaskModal } from "../../components/CreateTaskModal/CreateTaskModal";
 import "./style.scss";
 
+// Dummy-only Home — no API calls. Wire real hooks back in later.
 const Home = () => {
   const navigate = useNavigate();
-  const user = useStore((s) => s.data?.user);
-  const { organizations, activeOrg, activeOrgId, navigateWithOrg, isLoading } =
-    useActiveOrg();
-  const dashboard = useHomeDashboard(activeOrgId);
+  const storeUser = useStore((s) => s.data?.user);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // Dummy workspace state (local only).
+  const [tasks, setTasks] = useState<DashboardTask[]>(DUMMY_TASKS);
+  const projects = DUMMY_PROJECTS;
+  const members = DUMMY_MEMBERS;
+  const organizations = DUMMY_ORGANIZATIONS;
+  const activeOrg = DUMMY_ACTIVE_ORG;
 
   const now = useMemo(() => new Date(), []);
   const today = useMemo(() => startOfToday(), []);
 
-  const tasks = useMemo(() => dashboard.data?.tasks ?? [], [dashboard.data]);
-  const projects = useMemo(
-    () => dashboard.data?.projects ?? [],
-    [dashboard.data],
-  );
-  const members = useMemo(
-    () => dashboard.data?.members ?? [],
-    [dashboard.data],
-  );
-
-  const currentUserId = user?.id ?? null;
-  const firstName = user?.name?.split(" ")[0] || "there";
+  const currentUserId = storeUser?.id ?? DUMMY_USER.id;
+  const firstName =
+    storeUser?.name?.split(" ")[0] || DUMMY_USER.name.split(" ")[0];
   const orgName = activeOrg?.organization_id?.organization_name;
 
   const totalTasks = tasks.length;
@@ -76,7 +80,11 @@ const Home = () => {
     ).length;
   }, [tasks]);
 
-  const go = (to: string) => navigateWithOrg(to);
+  const go = (to: string) => {
+    navigate({ to }).catch((err) => {
+      console.warn(`Navigation to ${to} failed:`, err);
+    });
+  };
 
   const showTask = (task: DashboardTask) => {
     toast.info(
@@ -85,7 +93,34 @@ const Home = () => {
     );
   };
 
-  if (!isLoading && organizations.length === 0) {
+  const handleCreateTask = (input: {
+    task_name: string;
+    priority: DashboardTaskPriority;
+    due_date?: string;
+    projectId: string;
+  }) => {
+    const project = projects.find((p) => p._id === input.projectId);
+    const nowIso = new Date().toISOString();
+    const newTask: DashboardTask = {
+      _id: `task-dummy-${Date.now()}`,
+      task_name: input.task_name,
+      status: "TODO",
+      priority: input.priority,
+      due_date: input.due_date || null,
+      project_id: input.projectId,
+      projectName: project?.project_name,
+      organization_id: activeOrg.organization_id._id,
+      creator_id: { _id: currentUserId, name: DUMMY_USER.name },
+      assignee_id: { _id: currentUserId, name: DUMMY_USER.name },
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    setTasks((prev) => [newTask, ...prev]);
+    toast.success("Task created successfully");
+    setIsCreateOpen(false);
+  };
+
+  if (organizations.length === 0) {
     return (
       <div className="home-empty">
         <span className="home-empty-icon">
@@ -112,36 +147,6 @@ const Home = () => {
             Learn more
           </Button>
         </div>
-      </div>
-    );
-  }
-
-  if (isLoading || !activeOrgId || dashboard.isLoading) {
-    return (
-      <div
-        className="home-loading"
-        aria-busy="true"
-        aria-label="Loading dashboard"
-      >
-        <div className="skeleton skeleton-heading" />
-        <div className="skeleton-grid">
-          {[0, 1, 2, 3].map((i) => (
-            <div className="skeleton skeleton-card" key={i} />
-          ))}
-        </div>
-        <div className="skeleton skeleton-panel" />
-      </div>
-    );
-  }
-
-  if (dashboard.isError) {
-    return (
-      <div className="home-empty">
-        <h1>Couldn&apos;t load your workspace</h1>
-        <p>Check your connection and try again.</p>
-        <Button variant="primary" onPress={() => dashboard.refetch()}>
-          Retry
-        </Button>
       </div>
     );
   }
@@ -249,9 +254,7 @@ const Home = () => {
               </Button>
             </div>
             {projects.length === 0 ? (
-              <p className="empty-note">
-                No projects in this workspace yet.
-              </p>
+              <p className="empty-note">No projects in this workspace yet.</p>
             ) : (
               <div className="project-grid dashboard-projects">
                 {projects.slice(0, 3).map((project) => {
@@ -291,7 +294,7 @@ const Home = () => {
             tasks={tasks}
             onTaskPress={showTask}
             onViewAll={() => go(ROUTES.NOTIFICATION.path)}
-            onRefresh={() => dashboard.refetch()}
+            onRefresh={() => toast.info("Already up to date")}
           />
           <WorkloadPanel
             tasks={tasks}
@@ -304,7 +307,7 @@ const Home = () => {
       <div className="dashboard-footer">
         <span>
           <span className="live-dot" />
-          All systems operational
+          All systems operational{" "}
         </span>
         <span>
           Made for teams that build.{" "}
@@ -318,8 +321,8 @@ const Home = () => {
       <CreateTaskModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        orgId={activeOrgId}
         projects={projects}
+        onCreate={handleCreateTask}
       />
     </>
   );

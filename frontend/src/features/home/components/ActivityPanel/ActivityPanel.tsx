@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ArrowRight, Check, MessageSquare } from "lucide-react";
 import { Button } from "../../../../components/ui/Button/Button";
 import { ThreeDotMenu } from "../../../../components/ui/ThreeDotMenu/ThreeDotMenu";
-import type { DashboardTask } from "../../api/home.api";
+import type { DashboardTask } from "../../data/home.dummy";
 import {
   assigneeNameOf,
   creatorNameOf,

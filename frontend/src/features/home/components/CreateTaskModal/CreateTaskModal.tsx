@@ -5,17 +5,23 @@ import { Input } from "../../../../components/ui/Input/Input";
 import { DropDown } from "../../../../components/ui/DropDown/DropDown";
 import { Label } from "../../../../components/ui/Form/Form";
 import { toast } from "../../../../components/ui/Toast/toast.api";
-import {
-  useCreateTask,
-  type DashboardProject,
-  type DashboardTaskPriority,
-} from "../../api/home.api";
+import type {
+  DashboardProject,
+  DashboardTaskPriority,
+} from "../../data/home.dummy";
+
+interface CreateTaskInput {
+  task_name: string;
+  priority: DashboardTaskPriority;
+  due_date?: string;
+  projectId: string;
+}
 
 interface CreateTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  orgId: string | null;
   projects: DashboardProject[];
+  onCreate: (input: CreateTaskInput) => void;
 }
 
 const PRIORITY_OPTIONS: { label: string; value: DashboardTaskPriority }[] = [
@@ -25,11 +31,12 @@ const PRIORITY_OPTIONS: { label: string; value: DashboardTaskPriority }[] = [
   { label: "Critical", value: "Critical" },
 ];
 
+// Dummy-only modal — no API calls. Parent updates local state via onCreate.
 export function CreateTaskModal({
   isOpen,
   onClose,
-  orgId,
   projects,
+  onCreate,
 }: CreateTaskModalProps) {
   const [projectId, setProjectId] = useState<string>(
     projects[0]?._id ?? "",
@@ -49,8 +56,6 @@ export function CreateTaskModal({
     }
   }, [isOpen, projects]);
 
-  const createTask = useCreateTask(orgId, projectId || null);
-
   const handleSubmit = () => {
     if (!taskName.trim()) {
       setNameError("Task name is required");
@@ -60,19 +65,12 @@ export function CreateTaskModal({
       toast.warning("No project selected", "Pick a project first.");
       return;
     }
-    createTask.mutate(
-      {
-        task_name: taskName.trim(),
-        priority,
-        ...(dueDate ? { due_date: dueDate } : {}),
-      },
-      {
-        onSuccess: (res) => {
-          toast.success(res.message || "Task created successfully");
-          onClose();
-        },
-      },
-    );
+    onCreate({
+      task_name: taskName.trim(),
+      priority,
+      ...(dueDate ? { due_date: dueDate } : {}),
+      projectId,
+    });
   };
 
   return (
@@ -93,7 +91,6 @@ export function CreateTaskModal({
               submit: {
                 text: "Create task",
                 onPress: handleSubmit,
-                loading: createTask.isPending,
               },
             }
       }

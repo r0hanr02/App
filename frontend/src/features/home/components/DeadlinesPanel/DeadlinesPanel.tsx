@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Button } from "../../../../components/ui/Button/Button";
-import type { DashboardTask } from "../../api/home.api";
+import type { DashboardTask } from "../../data/home.dummy";
 import { dueLabelFor, isOverdue } from "../../utils/home.utils";
 
 interface DeadlinesPanelProps {
@@ -16,13 +16,12 @@ export function DeadlinesPanel({
   today,
   onTaskPress,
   onViewAll,
-}: DeadlinesPanelProps) {
+}: Readonly<DeadlinesPanelProps>) {
   const deadlines = useMemo(
     () =>
       tasks
         .filter(
-          (t) =>
-            t.due_date && t.status !== "DONE" && t.status !== "CANCELLED",
+          (t) => t.due_date && t.status !== "DONE" && t.status !== "CANCELLED",
         )
         .sort(
           (a, b) =>
@@ -49,6 +48,14 @@ export function DeadlinesPanel({
             !overdue &&
             due !== null &&
             due.getTime() - today.getTime() < 3 * 24 * 60 * 60 * 1000;
+
+          let deadlineDateClass = "indigo";
+          if (overdue) {
+            deadlineDateClass = "red";
+          } else if (soon) {
+            deadlineDateClass = "amber";
+          }
+
           return (
             <button
               type="button"
@@ -56,9 +63,7 @@ export function DeadlinesPanel({
               key={task._id}
               onClick={() => onTaskPress(task)}
             >
-              <span
-                className={`deadline-date ${overdue ? "red" : soon ? "amber" : "indigo"}`}
-              >
+              <span className={`deadline-date ${deadlineDateClass}`}>
                 <small>
                   {due
                     ? due

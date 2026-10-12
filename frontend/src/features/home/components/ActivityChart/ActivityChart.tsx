@@ -3,7 +3,7 @@ import { ArrowUpRight, ChevronDown } from "lucide-react";
 import { Button } from "../../../../components/ui/Button/Button";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { buildActivity, linePath } from "../../utils/home.utils";
-import type { DashboardTask } from "../../api/home.api";
+import type { DashboardTask } from "../../data/home.dummy";
 
 export function ActivityChart({ tasks }: { tasks: DashboardTask[] }) {
   const data = useMemo(() => buildActivity(tasks), [tasks]);

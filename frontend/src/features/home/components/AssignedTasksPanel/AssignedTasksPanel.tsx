@@ -8,7 +8,7 @@ import type { TableColumn } from "../../../../components/ui/Table/table.types";
 import type {
   DashboardProject,
   DashboardTask,
-} from "../../api/home.api";
+} from "../../data/home.dummy";
 import {
   assigneeIdOf,
   dueLabelFor,

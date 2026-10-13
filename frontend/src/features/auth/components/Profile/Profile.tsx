@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, Loader2, Mail, Shield } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { Button } from "../../../../components/ui/Button/Button";
 import { Label } from "../../../../components/ui/Form/Form";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useStore } from "../../../../store/store";
 import { ROUTES } from "../../../../constants/routes.constants";
-import { useActiveOrg } from "../../../../hooks/useActiveOrg";
+import { useGetUserOrganization } from "../../../home/api/home.api";
+import { getOrgIdFromSearch } from "../../../../lib/orgParams";
 import {
   useUpdateProfile,
   type UpdateProfilePayload,
@@ -53,7 +54,28 @@ function formatRole(role: string): string {
 const Profile = () => {
   const user = useStore((s) => s.data?.user);
   const { mutate: updateMutate, isPending: isSaving } = useUpdateProfile();
-  const { activeOrg } = useActiveOrg();
+  const { data: orgData } = useGetUserOrganization();
+  const storedOrgId = useStore((s) => s.activeOrgId);
+  const search = useSearch({ strict: false });
+
+  const activeOrg = useMemo(() => {
+    const organizations = orgData?.data ?? [];
+    if (organizations.length === 0) return null;
+    const urlOrgId = getOrgIdFromSearch(search);
+    if (urlOrgId) {
+      const match = organizations.find(
+        (o) => o.organization_id?._id === urlOrgId,
+      );
+      if (match) return match;
+    }
+    if (storedOrgId) {
+      const match = organizations.find(
+        (o) => o.organization_id?._id === storedOrgId,
+      );
+      if (match) return match;
+    }
+    return organizations[0] ?? null;
+  }, [orgData, storedOrgId, search]);
 
   const saved = useMemo(() => toForm(user), [user]);
   const [editing, setEditing] = useState<ProfileForm>(saved);

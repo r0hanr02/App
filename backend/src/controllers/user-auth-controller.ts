@@ -100,6 +100,8 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
       email: isUserExist.email,
       occupation: isUserExist.occupation ?? "",
       profilepic: isUserExist.profilepic,
+      phone: isUserExist.phone,
+      dateOfBirth: isUserExist.dateOfBirth,
     },
   });
 });

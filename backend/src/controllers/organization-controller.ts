@@ -28,9 +28,6 @@ export const createOrganization = asyncHandler(
     if (!organization_name?.trim()) {
       throw new AppError("Organization Name cannot be Empty", 400);
     }
-
-    // Multer file (field `organization_logo`) takes precedence over body URL string.
-    // With CloudinaryStorage, the uploaded URL is in `req.file.path`.
     const uploadedLogoPath = (req.file as Express.Multer.File | undefined)?.path;
     const bodyLogo =
       typeof organization_logo === "string" && organization_logo.trim()
@@ -40,7 +37,7 @@ export const createOrganization = asyncHandler(
 
     const session = await mongoose.startSession();
     try {
-      await session.startTransaction();
+      session.startTransaction();
       const normalizedSlug: string = slug
         ? slug.trim().toLowerCase()
         : organization_name.trim().toLowerCase().replaceAll(" ", "_");
@@ -101,7 +98,7 @@ export const getAllOrganization = asyncHandler(
     const userId = (req as any).userId || (req as any).user?.id;
     const memberships = await OrganizationMember.find({
       user_id: userId,
-    }).populate("organization_id", "organization_name");
+    }).populate("organization_id", "organization_name slug");
     // .populate("user_id", "name email")
     res.status(200).json({
       message: "data fetched Successfully",

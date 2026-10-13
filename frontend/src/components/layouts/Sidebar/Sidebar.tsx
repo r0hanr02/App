@@ -7,17 +7,16 @@ import {
   PanelLeftOpen,
   Plus,
 } from "lucide-react";
-import { useGetUserOrganization } from "../../../features/home/api/home.api";
 import "./style.scss";
 import { Label } from "../../ui/Form/Form";
 import { Button } from "../../ui/Button/Button";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useActiveOrg } from "../../../hooks/useActiveOrg";
-import { withOrgSearch } from "../../../lib/orgParams";
-import { ROUTES } from "../../../constants/routes.constants";
 import { Dialog, DialogTrigger, Popover } from "react-aria-components";
+import { useActiveOrg } from "../../../hooks/useActiveOrg";
+import { useStore } from "../../../store/store";
+import { ROUTES } from "../../../constants/routes.constants";
 
 function formatRole(role: string): string {
   const lower = role.toLowerCase();
@@ -25,17 +24,19 @@ function formatRole(role: string): string {
 }
 
 const Sidebar = () => {
-  const { isLoading } = useGetUserOrganization();
-  const { organizations, activeOrg, activeOrgId, switchOrg } = useActiveOrg();
+  const { orgs, activeOrg, activeOrgId, isLoading } = useActiveOrg();
+  const setStoredOrgId = useStore((s) => s.setActiveOrgId);
   const navigate = useNavigate();
   const [isPopOverOpen, setIsPopOverOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const activeOrgName = activeOrg?.organization_id?.organization_name;
-  const handleSwitchOrg = (nextOrgId: string) => {
+
+  const handleSwitchOrg = (orgId: string) => {
+    setStoredOrgId(orgId);
     setIsPopOverOpen(false);
-    if (nextOrgId !== activeOrgId) switchOrg(nextOrgId);
   };
+
 
   return (
     <div className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}`}>
@@ -86,7 +87,7 @@ const Sidebar = () => {
               <div className="org-popover-header">
                 <Label className="label-sm org-popover-title">Workspaces</Label>
               </div>
-              {organizations.map((org: any) => {
+              {(orgs ?? []).map((org) => {
                 const orgId = org.organization_id?._id;
                 const isActive = orgId === activeOrgId;
                 return (
@@ -105,15 +106,13 @@ const Sidebar = () => {
                       <span className="org-name label-sm">
                         {org.organization_id.organization_name}
                       </span>
-                      <span className="org-plan">
-                        {/* {formatRole(org.role)} */}
-                      </span>
+                      <span className="org-plan">{formatRole(org.role)}</span>
                     </span>
                     {isActive && <Check size={16} className="org-check" />}
                   </Button>
                 );
               })}
-              {organizations.length === 0 && !isLoading && (
+              {orgs.length === 0 && !isLoading && (
                 <span className="para-xs org-popover-hint">
                   No workspaces yet
                 </span>
@@ -126,7 +125,7 @@ const Sidebar = () => {
                   setIsPopOverOpen(false);
                   navigate({
                     to: ROUTES.ONBOARDING.path,
-                    search: withOrgSearch(activeOrgId),
+                    // search: withOrgSearch(activeOrgId),
                   }).catch((err) => {
                     console.warn("Navigation to onboarding failed:", err);
                   });
@@ -137,8 +136,8 @@ const Sidebar = () => {
               </Button>
               {activeOrg && (
                 <span className="para-xs org-popover-hint">
-                  {organizations.length} workspace
-                  {organizations.length === 1 ? "" : "s"}
+                  {orgs.length} workspace
+                  {orgs.length === 1 ? "" : "s"}
                 </span>
               )}
             </Dialog>
@@ -165,9 +164,9 @@ const Sidebar = () => {
                 }}
                 aria-label={item.label}
                 to={item.routeTo}
-                search={(prev: Record<string, unknown>) =>
-                  withOrgSearch(activeOrgId, prev)
-                }
+                // search={(prev: Record<string, unknown>) =>
+                //   // withOrgSearch(activeOrgId, prev)
+                // }
                 key={`${item.label}-${id}`}
               >
                 <Icon />

@@ -3,6 +3,7 @@ import "./style.scss";
 import { Label } from "../../../../components/ui/Form/Form";
 import NoOrgCard from "../../components/NoOrgCard/NoOrgCard";
 import { useNavigate } from "@tanstack/react-router";
+import { ROUTES } from "../../../../constants/routes.constants";
 
 function NoOrganization() {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ function NoOrganization() {
           subheading="Start fresh with a shared workspace for your projects, tasks, and team."
           btnText="Create Organization"
           btnOnclick={() => {
-            navigate({ to: "/onboarding" });
+            void navigate({ to: ROUTES.ONBOARDING.path });
           }}
           btnVariant="primary"
           note="You’ll  be the organization Owner."

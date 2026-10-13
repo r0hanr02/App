@@ -17,13 +17,13 @@ type LoginFormData = {
 
 const Login = () => {
   const navigate = useNavigate();
-  const isLoggedIn = useStore.getState().isLoggedIn
-  const { mutate: loginMutate, isPaused: loginIsPending } = useLoginUser();
+  const isLoggedIn = useStore((s) => s.isLoggedIn);
+  const { mutate: loginMutate, isPending: loginIsPending } = useLoginUser();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
-// const userData = useStore((s)=>s.data)
+  // const userData = useStore((s)=>s.data)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -32,22 +32,23 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (loginIsPending) return;
     loginMutate(formData, {
       onSuccess: (res) => {
         toast.success("Login successful");
         useStore.getState().setData(res);
-        navigate({ to: ROUTES.HOME.path });
+        void navigate({ to: ROUTES.HOME.path });
       },
     });
   };
 
-  useEffect(()=>{
-    if(isLoggedIn){
-      navigate({to:ROUTES.HOME.path})
+  useEffect(() => {
+    if (isLoggedIn) {
+      void navigate({ to: ROUTES.HOME.path });
     }
-  },[])
+  }, []);
 
   return (
     <div className="login-page flex w100 aic jcc fdc g12">

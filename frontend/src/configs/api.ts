@@ -31,6 +31,7 @@ export const apifetch = async <TData>(
         ...configOptions.headers,
       },
     });
+    // console.log(response)
     return response;
   } catch (error) {
     if (!configOptions.silent) {

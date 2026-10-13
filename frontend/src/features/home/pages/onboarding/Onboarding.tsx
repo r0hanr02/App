@@ -7,11 +7,11 @@ import { useEffect, useState } from "react";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useNavigate } from "@tanstack/react-router";
 import { ROUTES } from "../../../../constants/routes.constants";
+import { useCreateOrganization } from "../../api/home.api";
 
 // Dummy-only onboarding — no API calls. Wire the real mutation back in later.
 const Onboarding = () => {
   const [preview, setPreview] = useState<string | null>(null);
-  const [isPending, setIsPending] = useState(false);
   const [formData, setFormData] = useState({
     organization_name: "",
     organization_slug: "",
@@ -19,6 +19,7 @@ const Onboarding = () => {
     organization_logo: null as File | null,
   });
 
+  const { mutate, isPending } = useCreateOrganization();
   const navigate = useNavigate();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -60,16 +61,26 @@ const Onboarding = () => {
       toast.warning("Organization name is required");
       return;
     }
-    setIsPending(true);
+    const fd = new FormData();
+    fd.append("organization_name", formData.organization_name);
+    fd.append("organization_slug", formData.organization_slug);
+    fd.append("organization_description", formData.organization_description);
+
+    if (formData.organization_logo) {
+      fd.append("organization_logo", formData.organization_logo);
+    }
+    mutate(fd, {
+      onSuccess: () => {
+        toast.success(
+          "Organization created successfully",
+          `"${formData.organization_name.trim()}" is ready.`,
+        );
+        void navigate({ to: ROUTES.HOME.path });
+      },
+      // onError:()=
+    });
+
     // Dummy delay so the UI still shows a pending state.
-    setTimeout(() => {
-      setIsPending(false);
-      toast.success(
-        "Organization created successfully",
-        `"${formData.organization_name.trim()}" is ready (dummy).`,
-      );
-      navigate({ to: ROUTES.HOME.path });
-    }, 600);
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useGetUserOrganization } from "../features/home/api/home.api";
 import { useStore } from "../store/store";
+// import { useParams } from "@tanstack/react-router";
 
 export function useActiveOrg() {
   const { data, isLoading } = useGetUserOrganization();
@@ -17,7 +18,8 @@ export function useActiveOrg() {
     [orgs, storedOrgId],
   );
   const activeOrgId = activeOrg?.organization_id._id ?? null;
-  
+  const activeOrgSlug =activeOrg?.organization_id.slug
+  // const {} = useParams()
   useEffect(() => {
     if (activeOrgId && activeOrgId !== storedOrgId) {
       setStoredOrgId(activeOrgId);
@@ -30,6 +32,7 @@ export function useActiveOrg() {
   return {
     orgs,
     activeOrg,
+    activeOrgSlug,
     activeOrgId,
     storedOrgId,
     isLoading,

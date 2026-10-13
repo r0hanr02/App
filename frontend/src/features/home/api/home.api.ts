@@ -12,6 +12,7 @@ export type UserOrgMembership = {
   organization_id: {
     organization_name: string;
     _id: string;
+    slug:string
   };
   user_id: string;
   role: "OWNER" | "ADMIN" | "MEMBER";

@@ -40,11 +40,20 @@ function RoutePending() {
     </div>
   );
 }
+// function getRoutePath(key: AppRouteKey): string {
+//   const route = ROUTES[key];
+
+//   if (!route.orgScoped) {
+//     return route.path;
+//   }
+//   return route.path === "/" ? "/$orgSlug" : `/:orgSlug${route.path}`;
+// }
 
 export function createAppRoutes(rootRoute: AnyRootRoute) {
   return (Object.keys(ROUTES) as AppRouteKey[]).map((key) =>
     createRoute({
       getParentRoute: () => rootRoute,
+      // path: getRoutePath(key),
       path: ROUTES[key].path,
       component: withSuspense(COMPONENTS[key]),
       pendingComponent: RoutePending,
@@ -53,7 +62,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
 
       beforeLoad: async ({ context }) => {
         if (ROUTES[key].requiresAuth && !context.auth.isLoggedIn) {
-          throw redirect({ to: ROUTES.LOGIN.path });
+          throw redirect({ to: ROUTES.LOGIN.path as never });
         }
 
         if (key === "LOGIN" || key === "REGISTER") {
@@ -89,7 +98,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
 
         if (orgs.length === 0) {
           throw redirect({
-            to: ROUTES.NOORGANIZATION.path,
+            to: ROUTES.NOORGANIZATION.path as never,
           });
         }
       },

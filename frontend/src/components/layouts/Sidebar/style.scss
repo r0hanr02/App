@@ -123,16 +123,13 @@
     }
   }
 
-  // Accordion wrapper: only layout + border, trigger handles interaction.
   .sidebar-org-accordion {
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-4);
     background: var(--bg-surface);
     margin-bottom: var(--space-4);
-    // Don't use flex/cursor here — the RAC Button inside is the interactive element.
   }
 
-  // Reset custom Button (RAC Button) so it looks like an accordion row, not a CTA.
   .org-accordion-trigger.react-aria-Button,
   .org-accordion-trigger {
     width: 100%;

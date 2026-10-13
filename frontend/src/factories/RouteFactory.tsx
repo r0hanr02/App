@@ -48,22 +48,18 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
       path: ROUTES[key].path,
       component: withSuspense(COMPONENTS[key]),
       pendingComponent: RoutePending,
-      pendingMs: 150, 
-      pendingMinMs: 300, 
+      pendingMs: 150,
+      pendingMinMs: 300,
 
       beforeLoad: async ({ context }) => {
         if (ROUTES[key].requiresAuth && !context.auth.isLoggedIn) {
           throw redirect({ to: ROUTES.LOGIN.path });
         }
 
-        // Public-only routes never need the org check.
         if (key === "LOGIN" || key === "REGISTER") {
           return;
         }
 
-        // Routes without org context (onboarding, no-organization landing):
-        // bounce users who already belong to an org back home so they never
-        // sit on the empty-state page by mistake.
         if (!ROUTES[key].requiresAuth || !ROUTES[key].requireOrg) {
           if (key === "NOORGANIZATION" && context.auth.isLoggedIn) {
             let orgs: unknown[] = [];
@@ -81,10 +77,6 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           }
           return;
         }
-
-        // Org-gated routes: block Home (etc.) from ever mounting when the
-        // user has no org, so there is no Home -> NoOrg flash. The fetch is
-        // cached (staleTime 30s), so repeat navigations resolve instantly.
         let orgs: unknown[] = [];
         try {
           const res = await context.queryClient.ensureQueryData(
@@ -92,8 +84,6 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           );
           orgs = res.data ?? [];
         } catch {
-          // API error (already toasted by apifetch): let the page render
-          // instead of trapping the user on a failed guard.
           return;
         }
 

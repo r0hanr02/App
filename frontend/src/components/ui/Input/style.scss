@@ -33,6 +33,7 @@
     background: var(--bg-surface);
     @include themes.border(var(--border-subtle), var(--radius-3));
     padding: var(--space-5) var(--space-7);
+    // border: 1px solid var(--subtle);
     transition:
       border-color 150ms ease,
       box-shadow 150ms ease;

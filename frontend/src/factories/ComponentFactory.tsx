@@ -14,13 +14,15 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   ONBOARDING: lazy(
     () => import("../features/home/pages/onboarding/Onboarding"),
   ),
-  PROFILE:lazy(()=>import("../features/auth/components/Profile/Profile")),
+  PROFILE: lazy(() => import("../features/auth/components/Profile/Profile")),
   // Pages not built yet render the shared NotFound page inside the layout.
   PROJECTS: lazy(() => import("../components/NotFound/NotFound")),
   TASKS: lazy(() => import("../components/NotFound/NotFound")),
   USERS: lazy(() => import("../components/NotFound/NotFound")),
   ORGANIZATION: lazy(() => import("../components/NotFound/NotFound")),
   NOTIFICATION: lazy(() => import("../components/NotFound/NotFound")),
-  SETTINGS: lazy(() => import("../components/NotFound/NotFound")),
+  SETTINGS: lazy(() => import("../features/settings/pages/Settings/Settings")),
   // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
+
+  // settings page component
 };

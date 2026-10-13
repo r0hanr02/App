@@ -1,0 +1,91 @@
+@use "../../../styles/typography" as typo;
+
+// Shared component styles for settings tabs.
+// Page layout (.settings-layout / .settings-nav / .settings-panel) lives in
+// pages/Settings/style.scss — this file covers reusable rows/cards used
+// inside General, Members, Invitation, DangerZone, etc.
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 18px;
+}
+
+.member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.member-avatar {
+  @include typo.label-sm-mixin();
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --custom-color: #6366f1;
+  background: var(--indigo-tint);
+  color: #6366f1;
+  flex-shrink: 0;
+}
+
+.member-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-right: auto;
+  min-width: 0;
+}
+
+.member-meta .label-sm {
+  @include typo.label-sm-mixin();
+}
+
+.member-meta span {
+  @include typo.para-xs-mixin();
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.role-badge {
+  @include typo.label-xs-mixin();
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.member-row .ui-select {
+  min-width: 128px;
+  flex-shrink: 0;
+}
+
+.danger-zone-card {
+  border: 1px solid #ef444445;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 18px;
+  background: var(--red-tint);
+}
+
+.danger-zone-card h3 {
+  @include typo.label-md-mixin();
+}
+
+.danger-zone-card p {
+  @include typo.para-sm-mixin();
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.danger-zone-card .form-footer {
+  border-top: 0;
+  padding-top: 16px;
+}

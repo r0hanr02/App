@@ -1,0 +1,192 @@
+@use "../../../../styles/typography" as typo;
+
+.setting-page {
+  width: 100%;
+  max-width: 1120px;
+  padding: var(--space-16);
+  color: var(--text-default);
+}
+
+// Settings
+.settings-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 650px);
+  gap: 25px;
+  padding-top: 25px;
+}
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  justify-content: start;
+  align-items: stretch;
+}
+.settings-nav button {
+  @include typo.label-sm-mixin();
+  display: flex;
+  //   flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: left;
+  border-radius: 6px;
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+.settings-nav button.active {
+  background: var(--indigo-tint);
+  --custom-color: #6366f1;
+  color: #6366f1;
+}
+.settings-panel {
+  padding: 27px;
+  background: var(--bg-surface);
+  border-radius: 10px;
+}
+.settings-panel h2 {
+  @include typo.title-sm-mixin();
+}
+.settings-panel > p {
+  @include typo.para-sm-mixin();
+  margin: 10px 0 25px;
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+.settings-panel form {
+  margin-top: 25px;
+}
+.settings-panel form label,
+.settings-panel label.toggle-row {
+  @include typo.label-sm-mixin();
+  display: block;
+  margin-bottom: 19px;
+}
+// Section titles use the Label component with a type class, so they are
+// excluded from the form-label rule above and sized by their class.
+.settings-panel > label:first-child {
+  display: block;
+  margin-bottom: 0;
+}
+.settings-panel > .label-md {
+  margin-top: 30px;
+}
+// The shared Input component renders its own label + field, so the wrapper
+// carries the field spacing instead of the inner label.
+.settings-panel .ui-input {
+  margin-bottom: 19px;
+}
+.settings-panel .ui-input__label {
+  margin-bottom: 0;
+}
+// Label + Dropdown pairs (e.g. role picker) follow the same field rhythm
+// as plain labels.
+.settings-panel form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 19px;
+}
+.settings-panel form .form-field > label {
+  margin-bottom: 0;
+}
+.settings-panel input,
+.settings-panel textarea,
+.settings-panel select {
+  @include typo.para-sm-mixin();
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 10px 11px;
+  width: 100%;
+  --custom-color: var(--text-default);
+  color: var(--text-default);
+  margin-top: 8px;
+}
+.settings-panel textarea {
+  min-height: 85px;
+  resize: vertical;
+}
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.url-input {
+  @include typo.para-sm-mixin();
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.url-input > span {
+  @include typo.para-sm-mixin();
+  padding: 10px;
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+  background: var(--background);
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.url-input input {
+  border: 0;
+  margin: 0;
+}
+.theme-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 18px;
+}
+.theme-options button {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.theme-options button.selected {
+  border-color: #6366f1;
+  background: var(--indigo-tint);
+  --custom-color: #6366f1;
+  color: #6366f1;
+}
+.theme-options strong {
+  @include typo.label-sm-mixin();
+}
+.settings-panel label.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+.toggle-row input {
+  width: 17px;
+  height: 17px;
+}
+.toggle-row small {
+  @include typo.para-xs-mixin();
+  display: block;
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+.permission-list > div {
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+.permission-list > div > label {
+  display: block;
+  margin-bottom: 0;
+}
+.permission-list p {
+  @include typo.para-sm-mixin();
+  --custom-color: var(--text-secondary);
+  color: var(--text-secondary);
+  margin-top: 8px;
+}

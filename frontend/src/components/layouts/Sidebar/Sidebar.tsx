@@ -37,7 +37,6 @@ const Sidebar = () => {
     setIsPopOverOpen(false);
   };
 
-
   return (
     <div className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}`}>
       <div className="logo flex aic g8">

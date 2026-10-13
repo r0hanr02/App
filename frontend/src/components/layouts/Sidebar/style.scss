@@ -174,60 +174,7 @@
     }
   }
 
-  .org-logo {
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    background-color: var(--indigo-tint);
-    border: 1px solid var(--border-subtle);
-    color: var(--color-primary);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-4);
-  }
 
-  .org-logo-sm {
-    width: 32px;
-    height: 32px;
-    font-size: var(--text-para-sm);
-  }
-
-  .org-meta {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  .org-name {
-    width: 100%;
-    color: var(--text-default);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.3;
-  }
-
-  .org-plan {
-    font-size: var(--text-para-xs);
-    line-height: 1.3;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-  }
-
-  .org-chevron {
-    flex-shrink: 0;
-    display: inline-flex;
-    color: var(--text-muted);
-    transition: transform 0.15s ease;
-  }
 
   .sidebar-projects-menu {
     display: flex;
@@ -376,6 +323,7 @@
 
 /* Workspace switcher popover (rendered in a portal — top-level on purpose). */
 .org-popover-menu {
+  width: var(--trigger-width, 264px);
   min-width: 264px;
   max-width: 320px;
   display: flex;
@@ -516,3 +464,59 @@
     }
   }
 }
+
+.org-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2px;
+}
+
+.org-name {
+  width: 100%;
+  color: var(--text-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.org-plan {
+  font-size: var(--text-para-xs);
+  line-height: 1.3;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.org-chevron {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+  .org-logo {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background-color: var(--indigo-tint);
+    border: 1px solid var(--border-subtle);
+    color: var(--color-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-4);
+  }
+
+  .org-logo-sm {
+    width: 32px;
+    height: 32px;
+    font-size: var(--text-para-sm);
+  }

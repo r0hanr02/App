@@ -3,14 +3,14 @@
 .setting-page {
   width: 100%;
   max-width: 1120px;
-  padding: var(--space-16);
+  padding: var(--space-8) var(--space-10);
   color: var(--text-default);
 }
 
 // Settings
 .settings-layout {
   display: grid;
-  grid-template-columns: 250px minmax(0, 650px);
+  grid-template-columns: 250px minmax(0, 1500px);
   gap: 100px;
   padding-top: 25px;
 }

@@ -81,4 +81,14 @@
     border-top: 1px solid var(--border-subtlest);
     flex-shrink: 0;
   }
+  &__title-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  &__icon {
+    padding: 10px;
+    // border: var(--bg-primary);
+  }
 }

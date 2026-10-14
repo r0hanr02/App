@@ -1,12 +1,4 @@
-import {
-  Bell,
-  File,
-  Layers,
-  LogOut,
-  Moon,
-  Plus,
-  Sun,
-} from "lucide-react";
+import { Bell, File, Layers, LogOut, Moon, Plus, Sun } from "lucide-react";
 import "./style.scss";
 import { Label } from "../../ui/Form/Form";
 import { useStore } from "../../../store/store";
@@ -37,7 +29,7 @@ export const Navbar = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useStore((s) => s.theme);
-  const { activeOrgSlug } = useActiveOrg();
+  const { activeOrgSlug, activeOrg } = useActiveOrg();
   const homePath = activeOrgSlug ? `/${activeOrgSlug}` : null;
 
   const resolveFullPath = (routeKey: keyof typeof ROUTES, routeTo: string) =>
@@ -47,18 +39,19 @@ export const Navbar = () => {
 
   const currentPage =
     (homePath && location.pathname === homePath ? "Dashboard" : undefined) ??
-    (SIDEBAR.find((item) => {
+    SIDEBAR.find((item) => {
       const fullPath = resolveFullPath(item.routeKey, item.routeTo);
       if (item.routeKey === "HOME") {
-        return (
-          location.pathname === fullPath || location.pathname === homePath
-        );
+        return location.pathname === fullPath || location.pathname === homePath;
       }
       return (
         location.pathname === fullPath ||
         location.pathname.startsWith(`${fullPath}/`)
       );
-    })?.label ?? prettifyPath(location.pathname));
+    })?.label ??
+    prettifyPath(location.pathname);
+
+  const activeOrgName = activeOrg.organization_id?.organization_name;
   const handleLogout = () => {
     if (isLoggingOut) return;
     logoutMutate();
@@ -96,7 +89,7 @@ export const Navbar = () => {
     <div className="navbar">
       <nav className="navbar-breadcrumb" aria-label="Breadcrumb">
         <span className="crumb crumb-page" aria-current="page">
-          {currentPage}
+          {`${activeOrgName} > ${currentPage}`}
         </span>
       </nav>
       <div className="user-details">
@@ -145,7 +138,7 @@ export const Navbar = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     navigate({
-                      to: ROUTES.PROFILE.path,
+                      to: ROUTES.PROFILE.path as any,
                     }).catch((err) => {
                       console.warn("Navigation to profile failed:", err);
                     });

@@ -19,7 +19,9 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   PROJECTS: lazy(() => import("../components/NotFound/NotFound")),
   TASKS: lazy(() => import("../components/NotFound/NotFound")),
   USERS: lazy(() => import("../components/NotFound/NotFound")),
-  ORGANIZATION: lazy(() => import("../components/NotFound/NotFound")),
+  ORGANIZATION: lazy(
+    () => import("../features/organization/pages/Organization/Organization"),
+  ),
   NOTIFICATION: lazy(() => import("../components/NotFound/NotFound")),
   SETTINGS: lazy(() => import("../features/settings/pages/Settings/Settings")),
   // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))

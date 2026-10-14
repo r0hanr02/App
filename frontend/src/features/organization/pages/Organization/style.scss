@@ -1,0 +1,586 @@
+@use "../../../../styles/typography" as type;
+
+// Organization overview — theme-token driven, typography via mixins.
+// Layout mirrors Settings (.setting-page) + Profile (.profile-page) so the
+// page feels native: same .page-heading / .panel / .section-heading language.
+
+.organization-page {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+  color: var(--text-default);
+
+  .org-muted {
+    color: var(--text-secondary);
+  }
+
+  // ---------- shared panel ----------
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    overflow: hidden;
+  }
+
+  .badge {
+    @include type.label-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-10);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    white-space: nowrap;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  .badge.green {
+    background: var(--bg-green-00);
+    border-color: var(--bg-green-200);
+    color: var(--text-success);
+  }
+
+  // ---------- page heading ----------
+  .page-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+
+    .eyebrow {
+      @include type.subheading-xs-mixin;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0 0 var(--space-3);
+    }
+
+    h1 {
+      @include type.title-md-mixin;
+      margin: 0;
+    }
+
+    p {
+      @include type.para-sm-mixin;
+      margin: var(--space-2) 0 0;
+      color: var(--text-muted);
+    }
+
+    .heading-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      flex-shrink: 0;
+    }
+  }
+
+  // ---------- hero ----------
+  .account-hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 28px;
+    margin-bottom: var(--space-8);
+
+    h2 {
+      margin: 0;
+    }
+
+    p {
+      margin: 7px 0 0;
+    }
+
+    .account-hero-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .org-manage-link {
+      margin-left: auto;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+  }
+
+  .organization-avatar {
+    width: 74px;
+    height: 74px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: var(--indigo-tint);
+    color: var(--color-primary);
+    font-weight: 600;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  img.organization-avatar {
+    object-fit: cover;
+    background: var(--bg-sunken);
+  }
+
+  .account-badges {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding: 14px 18px 0;
+    margin-bottom: 10px;
+
+    h2 {
+      @include type.label-sm-mixin;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+
+    svg {
+      color: var(--text-muted);
+    }
+  }
+
+  .count-pill {
+    @include type.para-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-10);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .text-button {
+    @include type.label-sm-mixin;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // ---------- metrics ----------
+  .account-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 17px;
+    margin-bottom: var(--space-8);
+  }
+
+  .account-metric {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 21px;
+    color: var(--text-secondary);
+    text-decoration: none;
+
+    > svg:first-child {
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+
+    > span {
+      @include type.para-xs-mixin;
+      flex: 1;
+      min-width: 0;
+    }
+
+    strong {
+      @include type.title-sm-mixin;
+      display: block;
+      margin-top: 8px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > svg:last-child {
+      color: var(--text-subtlest);
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background: var(--bg-hover);
+    }
+  }
+
+  // ---------- grids / sections ----------
+  .account-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 22px;
+    margin-bottom: var(--space-8);
+    align-items: start;
+  }
+
+  .account-section {
+    padding-bottom: 6px;
+  }
+
+  .account-facts {
+    margin: 0;
+    padding: 0 22px 8px;
+
+    > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      padding: 15px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    dt {
+      @include type.para-xs-mixin;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    dd {
+      @include type.label-sm-mixin;
+      margin: 0;
+      text-align: right;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .account-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px 20px;
+    background: var(--bg-sunken);
+    border-top: 1px solid var(--border-subtle);
+
+    p {
+      @include type.para-xs-mixin;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin: 0;
+    }
+
+    svg {
+      color: var(--color-primary);
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+  }
+
+  // ---------- people ----------
+  .account-person {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 12px 20px;
+
+    > span:nth-child(2) {
+      flex: 1;
+      min-width: 0;
+    }
+
+    strong {
+      @include type.label-sm-mixin;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      @include type.para-xs-mixin;
+      display: block;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .account-initials {
+    width: 31px;
+    height: 31px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--indigo-tint);
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  // ---------- projects ----------
+  .account-project {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border-top: 1px solid var(--border-subtle);
+    color: inherit;
+
+    > span:nth-child(2) {
+      flex: 1;
+      min-width: 0;
+    }
+
+    strong {
+      @include type.label-sm-mixin;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      @include type.para-xs-mixin;
+      display: block;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    > svg {
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+  }
+
+  .account-project-icon {
+    padding: 9px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-4);
+    color: var(--color-primary);
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .account-empty {
+    @include type.para-sm-mixin;
+    padding: 20px;
+    margin: 0;
+    color: var(--text-secondary);
+  }
+
+  // Kit Button rendered as footer row (Invite a teammate).
+  .panel .button-base.panel-footer-button {
+    height: auto;
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 0;
+
+    &:hover:not(:disabled) {
+      background: var(--bg-hover);
+      color: var(--color-primary);
+    }
+  }
+
+  .panel .button-base.panel-footer-button > svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  // ---------- empty / loading ----------
+  .org-empty {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    h2 {
+      @include type.title-sm-mixin;
+      margin: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .button-base {
+      text-decoration: none;
+      margin-top: 8px;
+    }
+  }
+
+  .org-loading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+
+    .org-spinner {
+      color: var(--text-muted);
+      animation: org-spin 0.9s linear infinite;
+    }
+
+    .skeleton {
+      border-radius: var(--radius-6);
+      background: linear-gradient(
+        90deg,
+        var(--bg-sunken) 25%,
+        var(--bg-hover) 50%,
+        var(--bg-sunken) 75%
+      );
+      background-size: 200% 100%;
+      animation: org-skeleton 1.2s ease-in-out infinite;
+    }
+
+    .skeleton-hero {
+      height: 130px;
+    }
+
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 17px;
+    }
+
+    .skeleton-card {
+      height: 110px;
+    }
+
+    .skeleton-panel {
+      height: 300px;
+    }
+  }
+
+  @keyframes org-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes org-skeleton {
+    from {
+      background-position: 200% 0;
+    }
+
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  // ---------- responsive ----------
+  @media (max-width: 1000px) {
+    .account-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .page-heading {
+      flex-direction: column;
+
+      .heading-actions {
+        width: 100%;
+
+        .button-base {
+          flex: 1;
+        }
+      }
+    }
+
+    .account-hero {
+      flex-wrap: wrap;
+      padding: 22px;
+      gap: 15px;
+
+      .org-manage-link {
+        margin-left: 0;
+      }
+    }
+
+    .organization-avatar {
+      width: 55px;
+      height: 55px;
+    }
+
+    .account-metrics {
+      gap: 8px;
+    }
+
+    .account-metric {
+      padding: 14px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .account-metric > svg:last-child {
+      display: none;
+    }
+
+    .org-loading .skeleton-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .org-loading .skeleton,
+    .org-loading .org-spinner {
+      animation: none;
+    }
+  }
+}
+
+// Invite dialog form — same field rhythm as Settings (.settings-panel form).
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .ui-input {
+    margin-bottom: 19px;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 19px;
+  }
+
+  .org-muted {
+    color: var(--text-secondary);
+  }
+
+  .form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 20px;
+    margin-top: 8px;
+  }
+}

@@ -4,9 +4,10 @@ import "./style.scss";
 import { Input } from "../../../../components/ui/Input/Input";
 import { useEffect, useState } from "react";
 import { Button } from "../../../../components/ui/Button/Button";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useRegisterUserProfile } from "../../api/register.api";
 import { toast } from "../../../../components/ui/Toast/toast.api";
+import { ROUTES } from "../../../../constants/routes.constants";
 
 type RegisterFormData = {
   name: string;
@@ -19,6 +20,7 @@ type RegisterFormData = {
 };
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<RegisterFormData>({
     name: "",
     email: "",
@@ -89,6 +91,7 @@ const Register = () => {
     registerMutate(fd, {
       onSuccess: () => {
         toast.success("Registeration successfull", "you can log in now");
+        navigate({ to: ROUTES.LOGIN.path as any });
       },
     });
   };
@@ -198,7 +201,7 @@ const Register = () => {
             Create Account
           </Button>
           <span>
-            Already have an Account? <Link to={"/login"}>Login</Link>
+            Already have an Account? <Link to={ROUTES.LOGIN as any}>Login</Link>
           </span>
         </form>
       </div>

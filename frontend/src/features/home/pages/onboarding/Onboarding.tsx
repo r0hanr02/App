@@ -9,6 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { userOrganizationQueryOptions } from "../../api/home.api";
 import { useCreateOrganization } from "../../api/home.api";
+import { getRoutePath } from "../../../../factories/RouteFactory";
 
 // Dummy-only onboarding — no API calls. Wire the real mutation back in later.
 const Onboarding = () => {
@@ -107,6 +108,8 @@ const Onboarding = () => {
                 .catch(() => {});
             }
           });
+
+        navigate({ to: getRoutePath("HOME") });
       },
       // onError:()=
     });

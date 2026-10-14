@@ -27,7 +27,7 @@ function NoOrganization() {
           subheading="Start fresh with a shared workspace for your projects, tasks, and team."
           btnText="Create Organization"
           btnOnclick={() => {
-            void navigate({ to: ROUTES.ONBOARDING.path });
+            void navigate({ to: ROUTES.ONBOARDING.path as any });
           }}
           btnVariant="primary"
           note="You’ll  be the organization Owner."

@@ -5,11 +5,14 @@ import { useStore } from "../store/store";
 
 export function useActiveOrg() {
   const { data, isLoading } = useGetUserOrganization();
-  // URL slug wins (HOME is "/$orgSlug") — falls back to stored/first org.
   const params = useParams({ strict: false }) as { orgSlug?: string };
   const urlSlug = params?.orgSlug;
 
-  const orgs = useMemo(() => data?.data ?? [], [data]);
+
+  const orgs = useMemo(
+    () => (Array.isArray(data?.data) ? data.data : []),
+    [data],
+  );
   const storedOrgId = useStore((s) => s.activeOrgId);
   const setStoredOrgId = useStore((s) => s.setActiveOrgId);
 

@@ -94,7 +94,9 @@ const Onboarding = () => {
               void queryClient
                 .ensureQueryData(userOrganizationQueryOptions)
                 .then((orgs) => {
-                  const slug = orgs.data?.[0]?.organization_id?.slug;
+                  const slug = Array.isArray(orgs.data)
+                    ? orgs.data[0]?.organization_id?.slug
+                    : undefined;
                   if (slug) {
                     void navigate({
                       to: "/$orgSlug" as never,

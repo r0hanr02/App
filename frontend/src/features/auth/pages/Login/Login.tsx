@@ -32,7 +32,9 @@ const Login = () => {
       const res = await queryClient.ensureQueryData(
         userOrganizationQueryOptions,
       );
-      const slug = res.data?.[0]?.organization_id?.slug;
+      const slug = Array.isArray(res.data)
+        ? res.data[0]?.organization_id?.slug
+        : undefined;
       if (slug) {
         await navigate({
           to: "/$orgSlug" as never,

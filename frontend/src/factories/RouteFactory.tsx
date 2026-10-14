@@ -82,7 +82,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
             const res = await context.queryClient.ensureQueryData(
               userOrganizationQueryOptions,
             );
-            orgs = res.data ?? [];
+            orgs = Array.isArray(res.data) ? res.data : [];
           } catch {
             return;
           }

@@ -6,7 +6,8 @@ import "./style.scss";
 import { useEffect, useState } from "react";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useNavigate } from "@tanstack/react-router";
-import { ROUTES } from "../../../../constants/routes.constants";
+import { useQueryClient } from "@tanstack/react-query";
+import { userOrganizationQueryOptions } from "../../api/home.api";
 import { useCreateOrganization } from "../../api/home.api";
 
 // Dummy-only onboarding — no API calls. Wire the real mutation back in later.
@@ -21,6 +22,7 @@ const Onboarding = () => {
 
   const { mutate, isPending } = useCreateOrganization();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
 
@@ -70,12 +72,39 @@ const Onboarding = () => {
       fd.append("organization_logo", formData.organization_logo);
     }
     mutate(fd, {
-      onSuccess: () => {
+      onSuccess: (res) => {
         toast.success(
           "Organization created successfully",
           `"${formData.organization_name.trim()}" is ready.`,
         );
-        void navigate({ to: ROUTES.HOME.path });
+        // HOME is org-scoped — navigate to /{newSlug} and refresh memberships.
+        const newSlug =
+          res?.data?.slug?.trim() || formData.organization_slug.trim();
+        void queryClient
+          .invalidateQueries({ queryKey: ["user_organization"] })
+          .catch(() => {})
+          .finally(() => {
+            if (newSlug) {
+              void navigate({
+                to: "/$orgSlug" as never,
+                params: { orgSlug: newSlug } as never,
+              });
+            } else {
+              // Fallback: let the route guard resolve the slug.
+              void queryClient
+                .ensureQueryData(userOrganizationQueryOptions)
+                .then((orgs) => {
+                  const slug = orgs.data?.[0]?.organization_id?.slug;
+                  if (slug) {
+                    void navigate({
+                      to: "/$orgSlug" as never,
+                      params: { orgSlug: slug } as never,
+                    });
+                  }
+                })
+                .catch(() => {});
+            }
+          });
       },
       // onError:()=
     });

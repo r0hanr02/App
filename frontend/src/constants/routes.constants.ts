@@ -33,7 +33,8 @@ export const ROUTES = {
     path: "/profile",
     requiresAuth: true,
     requireOrg: true,
-    orgScoped: true,
+    // HOME-only test: keep org slug scoping on HOME for now.
+    orgScoped: false,
   },
   PROJECTS: {
     path: "/projects",

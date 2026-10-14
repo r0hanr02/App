@@ -4,16 +4,27 @@ import "./style.scss";
 import { Label } from "../ui/Form/Form";
 import { Button } from "../ui/Button/Button";
 import { ROUTES } from "../../constants/routes.constants";
+import { useActiveOrg } from "../../hooks/useActiveOrg";
 
 const NotFound = () => {
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();
+  const { activeOrgSlug } = useActiveOrg();
 
   const goHome = () => {
-    navigate({ to: ROUTES.HOME.path }).catch((err) => {
-      console.warn("Navigation home failed:", err);
-    });
+    if (activeOrgSlug) {
+      navigate({
+        to: "/$orgSlug" as never,
+        params: { orgSlug: activeOrgSlug } as never,
+      }).catch((err) => {
+        console.warn("Navigation home failed:", err);
+      });
+    } else {
+      navigate({ to: ROUTES.NOORGANIZATION.path }).catch((err) => {
+        console.warn("Navigation home failed:", err);
+      });
+    }
   };
 
   return (

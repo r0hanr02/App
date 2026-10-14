@@ -9,6 +9,8 @@ import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useLoginUser } from "../../api/login.api";
 import { useStore } from "../../../../store/store";
 import { ROUTES } from "../../../../constants/routes.constants";
+import { queryClient } from "../../../../lib/queryClient";
+import { userOrganizationQueryOptions } from "../../../home/api/home.api";
 
 type LoginFormData = {
   email: string;
@@ -24,6 +26,25 @@ const Login = () => {
     password: "",
   });
   // const userData = useStore((s)=>s.data)
+  // HOME is org-scoped ("/$orgSlug") — resolve the slug before navigating.
+  const goHomeWithOrg = async () => {
+    try {
+      const res = await queryClient.ensureQueryData(
+        userOrganizationQueryOptions,
+      );
+      const slug = res.data?.[0]?.organization_id?.slug;
+      if (slug) {
+        await navigate({
+          to: "/$orgSlug" as never,
+          params: { orgSlug: slug } as never,
+        });
+      } else {
+        await navigate({ to: ROUTES.NOORGANIZATION.path });
+      }
+    } catch {
+      await navigate({ to: ROUTES.NOORGANIZATION.path });
+    }
+  };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -39,14 +60,14 @@ const Login = () => {
       onSuccess: (res) => {
         toast.success("Login successful");
         useStore.getState().setData(res);
-        void navigate({ to: ROUTES.HOME.path });
+        void goHomeWithOrg();
       },
     });
   };
 
   useEffect(() => {
     if (isLoggedIn) {
-      void navigate({ to: ROUTES.HOME.path });
+      void goHomeWithOrg();
     }
   }, []);
 

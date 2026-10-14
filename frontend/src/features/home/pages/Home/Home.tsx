@@ -1,11 +1,15 @@
+import { useParams } from "@tanstack/react-router";
 import { useActiveOrg } from "../../../../hooks/useActiveOrg";
-import { useStore } from "../../../../store/store";
 
 const Home = () => {
-  const { activeOrg } = useActiveOrg();
-  console.log(activeOrg);
-  // const orgData = useStore((s)=>s.)
-  return <div>Home</div>;
+  const { activeOrg, activeOrgSlug } = useActiveOrg();
+  const params = useParams({ strict: false }) as { orgSlug?: string };
+  return (
+    <div>
+      Home — {activeOrg?.organization_id?.organization_name ?? "No org"} (
+      {params.orgSlug ?? activeOrgSlug ?? "no slug"})
+    </div>
+  );
 };
 
 export default Home;

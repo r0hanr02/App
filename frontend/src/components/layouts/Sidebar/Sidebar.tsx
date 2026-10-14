@@ -17,6 +17,7 @@ import { Dialog, DialogTrigger, Popover } from "react-aria-components";
 import { useActiveOrg } from "../../../hooks/useActiveOrg";
 import { useStore } from "../../../store/store";
 import { ROUTES } from "../../../constants/routes.constants";
+import { getRoutePath } from "../../../factories/RouteFactory";
 
 function formatRole(role: string): string {
   const lower = role.toLowerCase();
@@ -24,7 +25,8 @@ function formatRole(role: string): string {
 }
 
 const Sidebar = () => {
-  const { orgs, activeOrg, activeOrgId, isLoading } = useActiveOrg();
+  const { orgs, activeOrg, activeOrgId, activeOrgSlug, isLoading } =
+    useActiveOrg();
   const setStoredOrgId = useStore((s) => s.setActiveOrgId);
   const navigate = useNavigate();
   const [isPopOverOpen, setIsPopOverOpen] = useState(false);
@@ -33,8 +35,19 @@ const Sidebar = () => {
   const activeOrgName = activeOrg?.organization_id?.organization_name;
 
   const handleSwitchOrg = (orgId: string) => {
+    const target = orgs.find((o) => o.organization_id?._id === orgId);
+    const targetSlug = target?.organization_id?.slug;
     setStoredOrgId(orgId);
     setIsPopOverOpen(false);
+    // HOME is org-scoped — keep the URL in sync when switching workspaces.
+    if (targetSlug) {
+      navigate({
+        to: "/$orgSlug" as never,
+        params: { orgSlug: targetSlug } as never,
+      }).catch((err) => {
+        console.warn("Navigation to workspace failed:", err);
+      });
+    }
   };
 
   return (
@@ -123,7 +136,7 @@ const Sidebar = () => {
                 onPress={() => {
                   setIsPopOverOpen(false);
                   navigate({
-                    to: ROUTES.ONBOARDING.path,
+                    to: ROUTES.ONBOARDING.path as any,
                     // search: withOrgSearch(activeOrgId),
                   }).catch((err) => {
                     console.warn("Navigation to onboarding failed:", err);
@@ -148,6 +161,8 @@ const Sidebar = () => {
         <div className="sidebar-menu-btn">
           {SIDEBAR.map((item, id) => {
             const Icon = item.logo;
+            const isHome = item.routeKey === "HOME";
+            const isScoped = ROUTES[item.routeKey].orgScoped;
             return (
               <Link
                 className="sidebar-btn"
@@ -159,10 +174,15 @@ const Sidebar = () => {
                 }}
                 activeOptions={{
                   // "/" is a prefix of every path, so Dashboard needs exact matching.
-                  exact: item.routeTo === ROUTES.HOME.path,
+                  exact: isHome,
                 }}
                 aria-label={item.label}
-                to={item.routeTo}
+                to={getRoutePath(item.routeKey) as never}
+                params={
+                  isScoped && activeOrgSlug
+                    ? ({ orgSlug: activeOrgSlug } as never)
+                    : undefined
+                }
                 // search={(prev: Record<string, unknown>) =>
                 //   // withOrgSearch(activeOrgId, prev)
                 // }

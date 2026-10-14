@@ -17,6 +17,7 @@ import { DialogTrigger, Popover } from "react-aria-components";
 import { useState } from "react";
 import { ROUTES } from "../../../constants/routes.constants";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
+import { useActiveOrg } from "../../../hooks/useActiveOrg";
 
 /** Fallback label for routes not listed in the sidebar (e.g. /profile). */
 function prettifyPath(pathname: string): string {
@@ -36,14 +37,28 @@ export const Navbar = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const navigate = useNavigate();
   const theme = useStore((s) => s.theme);
+  const { activeOrgSlug } = useActiveOrg();
+  const homePath = activeOrgSlug ? `/${activeOrgSlug}` : null;
+
+  const resolveFullPath = (routeKey: keyof typeof ROUTES, routeTo: string) =>
+    ROUTES[routeKey].orgScoped && activeOrgSlug
+      ? `/${activeOrgSlug}${routeTo === "/" ? "" : routeTo}`
+      : routeTo;
 
   const currentPage =
-    SIDEBAR.find((item) =>
-      item.routeTo === ROUTES.HOME.path
-        ? location.pathname === item.routeTo
-        : location.pathname === item.routeTo ||
-          location.pathname.startsWith(`${item.routeTo}/`),
-    )?.label ?? prettifyPath(location.pathname);
+    (homePath && location.pathname === homePath ? "Dashboard" : undefined) ??
+    (SIDEBAR.find((item) => {
+      const fullPath = resolveFullPath(item.routeKey, item.routeTo);
+      if (item.routeKey === "HOME") {
+        return (
+          location.pathname === fullPath || location.pathname === homePath
+        );
+      }
+      return (
+        location.pathname === fullPath ||
+        location.pathname.startsWith(`${fullPath}/`)
+      );
+    })?.label ?? prettifyPath(location.pathname));
   const handleLogout = () => {
     if (isLoggingOut) return;
     logoutMutate();

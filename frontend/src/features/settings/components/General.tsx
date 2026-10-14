@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { Button } from "../../../components/ui/Button/Button";
 import { Input } from "../../../components/ui/Input/Input";
 import { useActiveOrg } from "../../../hooks/useActiveOrg";
 import { useOrganization, useUpdateOrganization } from "../api/settings.api";
 import { toast } from "../../../components/ui/Toast/toast.api";
+import { getRoutePath } from "../../../factories/RouteFactory";
 
 const General = () => {
   const { activeOrgId, activeOrg } = useActiveOrg();
   const { data: org, isLoading } = useOrganization(activeOrgId);
   const update = useUpdateOrganization(activeOrgId);
+  const navigate = useNavigate();
+  const { orgSlug: urlSlug } = useParams({ strict: false }) as {
+    orgSlug?: string;
+  };
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -34,7 +40,27 @@ const General = () => {
         ...(slug.trim() ? { slug: slug.trim() } : {}),
       },
       {
-        onSuccess: () => toast.success("Workspace updated"),
+        onSuccess: (updated) => {
+          toast.success("Workspace updated");
+          // Instant UI: sync form from the response. The hook already
+          // invalidates ["user_organization"] + ["org", id], so the
+          // sidebar/navbar pick up the new name/slug on refetch.
+          if (updated) {
+            setName(updated.organization_name ?? "");
+            setDescription(updated.organization_description ?? "");
+            setSlug(updated.slug ?? "");
+            // The URL still holds the old slug (/$orgSlug/settings).
+            // Swap it via SPA navigation — not window.location.reload().
+            const newSlug = updated.slug?.trim();
+            if (urlSlug && newSlug && urlSlug !== newSlug) {
+              void navigate({
+                to: getRoutePath("SETTINGS") as never,
+                params: { orgSlug: newSlug } as never,
+                replace: true,
+              });
+            }
+          }
+        },
       },
     );
   };

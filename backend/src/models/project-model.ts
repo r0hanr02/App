@@ -12,6 +12,10 @@ const projectSchema = new mongoose.Schema(
         message: "Project Name cannot be empty",
       },
     },
+    project_description:{
+type: String,
+ trim: true,
+    },
     organization_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",

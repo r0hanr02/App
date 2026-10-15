@@ -51,7 +51,7 @@ export const Navbar = () => {
     })?.label ??
     prettifyPath(location.pathname);
 
-  const activeOrgName = activeOrg.organization_id?.organization_name;
+  const activeOrgName = activeOrg?.organization_id?.organization_name;
   const handleLogout = () => {
     if (isLoggingOut) return;
     logoutMutate();

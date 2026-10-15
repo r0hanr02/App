@@ -23,6 +23,7 @@ const OrganizationHero = ({ org, role, orgSlug }: Props) => {
           src={org.organization_logo}
           alt={name}
           className="organization-avatar organization-avatar-img"
+          loading="lazy"
         />
       ) : (
         <span className="organization-avatar title-md" aria-hidden="true">

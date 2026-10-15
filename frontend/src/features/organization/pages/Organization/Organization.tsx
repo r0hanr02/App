@@ -18,14 +18,18 @@ import {
   OrganizationProjects,
 } from "../../components";
 import "./style.scss";
+import { Label } from "../../../../components/ui/Form/Form";
 
 const Organization = () => {
-  const { activeOrgId, activeOrg, activeOrgSlug, isLoading: isOrgsLoading } =
-    useActiveOrg();
+  const {
+    activeOrgId,
+    activeOrg,
+    activeOrgSlug,
+    isLoading: isOrgsLoading,
+  } = useActiveOrg();
   const [isInviteOpen, setIsInviteOpen] = useState(false);
 
-  const { data: org, isLoading: isOrgLoading } =
-    useOrganization(activeOrgId);
+  const { data: org, isLoading: isOrgLoading } = useOrganization(activeOrgId);
   const { data: members = [], isLoading: isMembersLoading } =
     useOrganizationMembers(activeOrgId);
   const { data: projects = [], isLoading: isProjectsLoading } =
@@ -42,7 +46,7 @@ const Organization = () => {
         <div className="page-heading">
           <div>
             <p className="eyebrow subheading-xs">Workspace overview</p>
-            <h1 className="title-lg">Organization</h1>
+            <Label className="title-lg">Organization</Label>
             <p className="para-sm org-muted">
               The people, projects, and purpose behind your workspace.
             </p>

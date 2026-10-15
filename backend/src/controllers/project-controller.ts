@@ -13,7 +13,7 @@ import mongoose from "mongoose";
 
 export const createProject = asyncHandler(
   async (req: AuthenticatedRequest<OrganizationParams>, res: Response) => {
-    const { project_name } = req.body;
+    const { project_name,project_description } = req.body;
     const organization_id = (req.params as any).organizationId;
 
     if (!project_name?.trim()) {
@@ -44,7 +44,7 @@ export const createProject = asyncHandler(
     try {
       session.startTransaction();
       const [newProject] = await Project.create(
-        [{ project_name: project_name.trim(), organization_id }],
+        [{ project_name: project_name.trim(),project_description, organization_id }],
         { session }
       );
       if (!newProject) throw new AppError("Failed to create project", 500);

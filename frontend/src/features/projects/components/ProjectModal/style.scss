@@ -1,0 +1,10 @@
+.line {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-subtlest);
+}
+.project-btn {
+  justify-content: end;
+  display: flex;
+  gap: 10px;
+}

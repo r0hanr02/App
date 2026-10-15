@@ -8,19 +8,9 @@ import { useStore } from "../../../../store/store";
 import { ROUTES } from "../../../../constants/routes.constants";
 import { useGetUserOrganization } from "../../../home/api/home.api";
 import { getOrgIdFromSearch } from "../../../../lib/orgParams";
-import {
-  useUpdateProfile,
-  type UpdateProfilePayload,
-} from "../../api/profile.api";
+import { useUpdateProfile } from "../../api/profile.api";
+import type { ProfileForm, UpdateProfilePayload } from "../../types";
 import "./style.scss";
-
-type ProfileForm = {
-  name: string;
-  email: string;
-  occupation: string;
-  phone: string;
-  dateOfBirth: string;
-};
 
 const toForm = (user?: {
   name?: string;

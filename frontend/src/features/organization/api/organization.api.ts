@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { apifetch } from "../../../configs/api";
+import type { OrgProject, ProjectsResponse } from "../types";
 
 // Re-export the org hooks/types so the Organization feature has a single
 // import surface. The backend is the source of truth:
@@ -20,26 +21,7 @@ export {
   type OrgRole,
 } from "../../settings/api/settings.api";
 
-export interface OrgProject {
-  _id: string;
-  project_name: string;
-  organization_id: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface ProjectsResponse {
-  message: string;
-  data: OrgProject[];
-  pagination?: {
-    currentPage: number;
-    pageLimit: number;
-    totalRecords: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-}
+export type { OrgProject, ProjectsResponse } from "../types";
 
 export const useOrganizationProjects = (orgId: string | null) => {
   return useQuery({

@@ -1,38 +1,20 @@
 import { useApiMutation, useApiQuery } from "../../../hooks/useApi";
+import type {
+  AllProjectsDataResponse,
+  projectPayload,
+  projectResponse,
+} from "../types";
 
-export type ProjectData = {
-  _id: string;
-  project_name: string;
-  project_description?: string;
-  organization_id: string;
-  createdAt: string;
-  updatedAt: string;
-};
+export type {
+  AllProjectsDataResponse,
+  Pagination,
+  ProjectCardProps,
+  ProjectData,
+  ProjectModalProps,
+  projectPayload,
+  projectResponse,
+} from "../types";
 
-type projectResponse = {
-  message: string;
-  data: ProjectData;
-};
-
-type Pagination = {
-  currentPage: number;
-  pageLimit: number;
-  totalRecords: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-};
-
-type AllProjectsDataResponse = {
-  message: string;
-  data: ProjectData[];
-  pagination:Pagination
-};
-
-export type projectPayload = {
-  project_name: string;
-  project_description: string;
-};
 export const useCreateProjects = (orgId: string) => {
   return useApiMutation<projectResponse, projectPayload>({
     path: `/organization/${orgId}/projects`,

@@ -8,16 +8,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useRegisterUserProfile } from "../../api/register.api";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { ROUTES } from "../../../../constants/routes.constants";
-
-type RegisterFormData = {
-  name: string;
-  email: string;
-  dob: string;
-  occupation: string;
-  password: string;
-  phone: string;
-  pic: File | null;
-};
+import type { RegisterFormData } from "../../types";
 
 const Register = () => {
   const navigate = useNavigate();

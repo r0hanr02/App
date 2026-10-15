@@ -1,18 +1,7 @@
 import { useApiMutation } from "../../../hooks/useApi";
+import type { RegisterResponse } from "../types";
 
-export interface RegisterResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    dateOfBirth?: string;
-    occupation: string;
-    profilepic: string;
-  };
-}
+export type { RegisterResponse } from "../types";
 
 export const useRegisterUserProfile = () => {
   return useApiMutation<RegisterResponse, FormData>({

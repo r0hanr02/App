@@ -10,15 +10,8 @@ import { Button } from "../../../../components/ui/Button/Button";
 import { useCreateProjects } from "../../api/projects.api";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { queryClient } from "../../../../lib/queryClient";
-const ProjectModal = ({
-  isOpen,
-  onClose,
-  orgId,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  orgId: string;
-}) => {
+import type { ProjectModalProps } from "../../types";
+const ProjectModal = ({ isOpen, onClose, orgId }: ProjectModalProps) => {
   const [formData, setFormData] = useState({
     project_name: "",
     project_description: "",

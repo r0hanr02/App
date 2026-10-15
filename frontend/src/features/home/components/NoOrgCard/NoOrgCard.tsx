@@ -16,6 +16,8 @@ const renderIcon = (icon: LucideIcon | React.ReactNode) => {
   return icon;
 };
 
+import type { NoOrgCardProps } from "../../types";
+
 const NoOrgCard = ({
   logo,
   title,
@@ -26,16 +28,7 @@ const NoOrgCard = ({
   btnVariant,
   btnlogo,
   note,
-}: {
-  logo: LucideIcon | React.ReactNode;
-  title: string;
-  subheading: string;
-  btnText: string;
-  btnOnclick: () => void;
-  btnVariant: "primary" | "secondary" | "outline" | "ghost" | "danger";
-  btnlogo?: LucideIcon | React.ReactNode;
-  note: string;
-}) => {
+}: NoOrgCardProps) => {
   return (
     <div className="no-org-card ">
       <div className="no-org-option-icon">{renderIcon(logo)}</div>

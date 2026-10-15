@@ -1,20 +1,14 @@
 import { Building2, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getRoutePath } from "../../../factories/RouteFactory";
-import type { Organization } from "../api/organization.api";
-
-interface Props {
-  org: Organization;
-  role: string;
-  orgSlug: string | null;
-}
+import type { OrganizationHeroProps } from "../types";
 
 function formatRole(role: string): string {
   const lower = role.toLowerCase();
   return `${lower.charAt(0).toUpperCase()}${lower.slice(1)}`;
 }
 
-const OrganizationHero = ({ org, role, orgSlug }: Props) => {
+const OrganizationHero = ({ org, role, orgSlug }: OrganizationHeroProps) => {
   const name = org.organization_name ?? "Untitled workspace";
   return (
     <section className="panel account-hero">

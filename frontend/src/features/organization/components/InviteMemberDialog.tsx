@@ -7,13 +7,7 @@ import { Label } from "../../../components/ui/Form/Form";
 import { Modal } from "../../../components/ui/Modal/Modal";
 import { toast } from "../../../components/ui/Toast/toast.api";
 import { useAddMember } from "../api/organization.api";
-
-interface Props {
-  orgId: string | null;
-  isOwner: boolean;
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { InviteMemberDialogProps } from "../types";
 
 const ROLE_OPTIONS = [
   { label: "Member", value: "MEMBER" },
@@ -25,7 +19,12 @@ type RoleInput = (typeof ROLE_OPTIONS)[number]["value"];
 // The backend has no email-invite endpoint yet
 // (POST /organization/:id/member takes a user_id + role),
 // so "invite" adds a user ID directly — same pattern as Settings > Members.
-const InviteMemberDialog = ({ orgId, isOwner, isOpen, onClose }: Props) => {
+const InviteMemberDialog = ({
+  orgId,
+  isOwner,
+  isOpen,
+  onClose,
+}: InviteMemberDialogProps) => {
   const addMember = useAddMember(orgId);
   const [userId, setUserId] = useState("");
   const [role, setRole] = useState<RoleInput>("MEMBER");

@@ -1,6 +1,6 @@
 import "./style.scss";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import type { ProjectData } from "../../api/projects.api";
+import type { ProjectData, ProjectCardProps } from "../../types";
 import {
   Folder,
   Rocket,
@@ -58,11 +58,6 @@ const formatDate = (iso: string) => {
     day: "numeric",
     year: "numeric",
   }).format(d);
-};
-
-export type ProjectCardProps = {
-  project: ProjectData;
-  onOpen?: (project: ProjectData) => void;
 };
 
 const ProjectCard = ({ project, onOpen }: ProjectCardProps) => {

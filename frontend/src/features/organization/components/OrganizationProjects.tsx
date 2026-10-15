@@ -1,12 +1,7 @@
 import { ArrowRight, Folder } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getRoutePath } from "../../../factories/RouteFactory";
-import type { OrgProject } from "../api/organization.api";
-
-interface Props {
-  projects: OrgProject[];
-  orgSlug: string | null;
-}
+import type { OrganizationProjectsProps } from "../types";
 
 function formatDate(iso?: string): string {
   if (!iso) return "No date";
@@ -19,7 +14,10 @@ function formatDate(iso?: string): string {
   });
 }
 
-const OrganizationProjects = ({ projects, orgSlug }: Props) => {
+const OrganizationProjects = ({
+  projects,
+  orgSlug,
+}: OrganizationProjectsProps) => {
   return (
     <section className="panel account-section">
       <div className="section-heading">

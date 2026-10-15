@@ -11,11 +11,7 @@ import { useStore } from "../../../../store/store";
 import { ROUTES } from "../../../../constants/routes.constants";
 import { queryClient } from "../../../../lib/queryClient";
 import { userOrganizationQueryOptions } from "../../../home/api/home.api";
-
-type LoginFormData = {
-  email: string;
-  password: string;
-};
+import type { LoginFormData } from "../../types";
 
 const Login = () => {
   const navigate = useNavigate();

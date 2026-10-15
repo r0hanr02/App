@@ -1,11 +1,5 @@
 import { Building2, Shield } from "lucide-react";
-import type { Organization } from "../api/organization.api";
-
-interface Props {
-  org: Organization;
-  role: string;
-  memberCount: number;
-}
+import type { OrganizationDetailsProps } from "../types";
 
 const ROLE_LABEL: Record<string, string> = {
   OWNER: "Workspace administrator",
@@ -13,7 +7,11 @@ const ROLE_LABEL: Record<string, string> = {
   MEMBER: "Workspace member",
 };
 
-const OrganizationDetails = ({ org, role, memberCount }: Props) => {
+const OrganizationDetails = ({
+  org,
+  role,
+  memberCount,
+}: OrganizationDetailsProps) => {
   const isAdmin = role === "OWNER" || role === "ADMIN";
   return (
     <section className="panel account-section">

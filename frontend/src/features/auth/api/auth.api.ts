@@ -5,6 +5,7 @@ import { ROUTES } from "../../../constants/routes.constants";
 import { toast } from "../../../components/ui/Toast/toast.api";
 import { queryClient } from "../../../lib/queryClient";
 import { router } from "../../../router";
+import type { logoutResponse } from "../types";
 
 export const authMe = async () => {
   const { data } = await apifetch<{
@@ -28,8 +29,6 @@ export const authMe = async () => {
   });
   return data;
 };
-
-type logoutResponse = { success: boolean; message: string };
 
 const cleanupAndRedirect = () => {
   queryClient.clear();

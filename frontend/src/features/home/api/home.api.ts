@@ -6,35 +6,16 @@ import {
 } from "@tanstack/react-query";
 import { useApiMutation } from "../../../hooks/useApi";
 import { apifetch } from "../../../configs/api";
+import type {
+  CreateOrganizationResponse,
+  org_response,
+} from "../types";
 
-export type UserOrgMembership = {
-  _id: string;
-  organization_id: {
-    organization_name: string;
-    _id: string;
-    slug:string
-  };
-  user_id: string;
-  role: "OWNER" | "ADMIN" | "MEMBER";
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type org_response = {
-  message: string;
-  data: UserOrgMembership[];
-};
-
-export interface CreateOrganizationResponse {
-  message: string;
-  data: {
-    organization_name: string;
-    organization_logo: string;
-    organization_description: string;
-    slug: string;
-    _id: string;
-  };
-}
+export type {
+  CreateOrganizationResponse,
+  org_response,
+  UserOrgMembership,
+} from "../types";
 
 export const userOrganizationQueryOptions = queryOptions({
   queryKey: ["user_organization"],

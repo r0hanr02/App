@@ -11,8 +11,8 @@ import {
   useLeaveOrganization,
   useOrganizationMembers,
   useRemoveMember,
-  type OrgMember,
 } from "../api/settings.api";
+import type { OrgMember } from "../types";
 import { toast } from "../../../components/ui/Toast/toast.api";
 
 const userIdOf = (m: OrgMember): string =>

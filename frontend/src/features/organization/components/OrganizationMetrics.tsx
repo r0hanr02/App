@@ -1,13 +1,7 @@
 import { ArrowRight, Folder, Shield, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { getRoutePath } from "../../../factories/RouteFactory";
-
-interface Props {
-  memberCount: number;
-  projectCount: number;
-  role: string;
-  orgSlug: string | null;
-}
+import type { OrganizationMetricsProps } from "../types";
 
 function formatRole(role: string): string {
   if (!role) return "—";
@@ -20,7 +14,7 @@ const OrganizationMetrics = ({
   projectCount,
   role,
   orgSlug,
-}: Props) => {
+}: OrganizationMetricsProps) => {
   const items = [
     {
       icon: Users,

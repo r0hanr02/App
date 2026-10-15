@@ -1,38 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apifetch } from "../../../configs/api";
+import type {
+  MembersResponse,
+  OrgMember,
+  Organization,
+  OrgResponse,
+} from "../types";
 
-export type OrgRole = "OWNER" | "ADMIN" | "MEMBER";
-
-export interface Organization {
-  _id: string;
-  organization_name: string;
-  slug?: string;
-  organization_description?: string;
-  organization_logo?: string;
-}
-
-export interface OrgMemberUser {
-  _id: string;
-  name: string;
-  email: string;
-}
-
-export interface OrgMember {
-  _id: string;
-  organization_id: string;
-  user_id: OrgMemberUser | string;
-  role: OrgRole;
-}
-
-interface OrgResponse {
-  message: string;
-  data: Organization;
-}
-
-interface MembersResponse {
-  message: string;
-  data: OrgMember[];
-}
+export type {
+  MembersResponse,
+  NotificationPrefs,
+  Organization,
+  OrgMember,
+  OrgMemberUser,
+  OrgResponse,
+  OrgRole,
+} from "../types";
 
 const orgKeys = {
   detail: (orgId: string | null) => ["org", orgId],

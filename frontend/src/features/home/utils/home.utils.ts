@@ -1,4 +1,8 @@
-import type { DashboardTask, OrgMember } from "../data/home.dummy";
+import type {
+  ActivityPoint,
+  DashboardTask,
+  OrgMember,
+} from "../types";
 
 /* Pure dashboard helpers — no React, no side effects. */
 
@@ -109,13 +113,6 @@ export function timeAgoFor(iso: string): string {
     month: "short",
     day: "numeric",
   });
-}
-
-export interface ActivityPoint {
-  key: string;
-  day: string;
-  created: number;
-  completed: number;
 }
 
 export function buildActivity(tasks: DashboardTask[]): ActivityPoint[] {

@@ -2,14 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "../../../components/ui/Button/Button";
 import { getRoutePath } from "../../../factories/RouteFactory";
-import type { OrgMember } from "../api/organization.api";
-
-interface Props {
-  members: OrgMember[];
-  canInvite: boolean;
-  orgSlug: string | null;
-  onInvite: () => void;
-}
+import type { OrgMember, OrganizationPeopleProps } from "../types";
 
 const nameOf = (m: OrgMember): string =>
   typeof m.user_id === "string" ? m.user_id : (m.user_id?.name ?? "Unknown");
@@ -35,7 +28,7 @@ const OrganizationPeople = ({
   canInvite,
   orgSlug,
   onInvite,
-}: Props) => {
+}: OrganizationPeopleProps) => {
   return (
     <section className="panel account-section">
       <div className="section-heading">

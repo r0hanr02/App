@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
+import type { NotificationPrefs } from "../types";
 
 const STORAGE_KEY = "orbit-notification-prefs";
 
-interface Prefs {
-  taskAssigned: boolean;
-  mentions: boolean;
-  weeklyDigest: boolean;
-}
+const DEFAULTS: NotificationPrefs = {
+  taskAssigned: true,
+  mentions: true,
+  weeklyDigest: false,
+};
 
-const DEFAULTS: Prefs = { taskAssigned: true, mentions: true, weeklyDigest: false };
-
-const load = (): Prefs => {
+const load = (): NotificationPrefs => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULTS;
@@ -21,13 +20,13 @@ const load = (): Prefs => {
 };
 
 const Notification = () => {
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULTS);
+  const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULTS);
 
   useEffect(() => {
     setPrefs(load());
   }, []);
 
-  const toggle = (key: keyof Prefs) => {
+  const toggle = (key: keyof NotificationPrefs) => {
     setPrefs((prev) => {
       const next = { ...prev, [key]: !prev[key] };
       try {

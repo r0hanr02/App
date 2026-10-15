@@ -14,6 +14,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import ThreeDotMenu from "../../../../components/ui/ThreeDotMenu/ThreeDotMenu";
+import { getRoutePath } from "../../../../factories/RouteFactory";
 
 const ICONS: LucideIcon[] = [
   Folder,
@@ -60,24 +61,19 @@ const formatDate = (iso: string) => {
   }).format(d);
 };
 
-const ProjectCard = ({ project, onOpen }: ProjectCardProps) => {
+const ProjectCard = ({ project }: ProjectCardProps) => {
   const navigate = useNavigate();
-  const { orgSlug } = useParams({ strict: false }) as { orgSlug?: string };
 
   const Icon = pick(ICONS, project?._id || project.project_name);
   const tint = pick(TINTS, project?._id || project.project_name);
 
   const handleOpen = () => {
-    if (onOpen) {
-      onOpen(project);
-      return;
-    }
-    if (orgSlug) {
-      navigate({
-        to: "/$orgSlug/projects" as never,
-        params: { orgSlug } as never,
-      });
-    }
+    navigate({
+      to: getRoutePath("PROJECTDETAILS"),
+      params: {
+        projectId: project._id,
+      },
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

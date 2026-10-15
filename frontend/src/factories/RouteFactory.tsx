@@ -73,8 +73,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           return;
         }
 
-        // Fetch memberships once for any guard that needs org state.
-        const needsOrgs =
+       const needsOrgs =
           routeDef.requireOrg || routeDef.orgScoped || key === "NOORGANIZATION";
         let orgs: UserOrgMembership[] = [];
         if (needsOrgs) {
@@ -92,7 +91,6 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           if (key === "NOORGANIZATION" && context.auth.isLoggedIn) {
             if (orgs.length > 0) {
               const firstSlug = orgs[0]?.organization_id?.slug;
-              // Old `ROUTES.HOME.path` ("/") no longer exists — HOME is now "/$orgSlug".
               if (firstSlug) {
                 throw redirect({
                   to: "/$orgSlug" as never,
@@ -122,7 +120,6 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           if (!orgSlug || !validSlugs.has(orgSlug)) {
             const fallback = orgs[0]?.organization_id?.slug;
             if (fallback && fallback !== orgSlug) {
-              // Preserve the sub-path (e.g. /acme/projects) while swapping in a valid slug.
               throw redirect({
                 to: getRoutePath(key) as never,
                 params: { orgSlug: fallback } as never,

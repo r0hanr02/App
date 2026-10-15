@@ -25,6 +25,9 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   NOTIFICATION: lazy(() => import("../components/NotFound/NotFound")),
   SETTINGS: lazy(() => import("../features/settings/pages/Settings/Settings")),
   // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
-
+  PROJECTDETAILS: lazy(
+    () =>
+      import("../features/projects/components/ProjectDetails/ProjectDetails"),
+  ),
   // settings page component
 };

@@ -1,21 +1,40 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./style.scss";
 import { Button } from "../../../../components/ui/Button/Button";
-import { Plus } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, Plus, Search } from "lucide-react";
 import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import ProjectModal from "../../components/ProjectModal/ProjectModal";
 import { Label } from "../../../../components/ui/Form/Form";
 import { useGetAllProjects } from "../../api/projects.api";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
+import { TextField } from "../../../../components/ui/TextField/TextField";
 const Projects = () => {
   const { activeOrgId, activeOrg, isLoading: isOrgsLoading } = useActiveOrg();
 
   const canCreate = activeOrg?.role === "OWNER" || activeOrg?.role === "ADMIN";
   const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortAscending, setSortAscending] = useState(true);
   const { data: ProjectsData, isPending } = useGetAllProjects(activeOrgId);
 
   const projects = ProjectsData?.data ?? [];
   const isLoading = isOrgsLoading || isPending;
+
+  const visibleProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? projects.filter(
+          (project) =>
+            project.project_name.toLowerCase().includes(query) ||
+            project.project_description?.toLowerCase().includes(query),
+        )
+      : [...projects];
+    filtered.sort((a, b) => {
+      const comparison = a.project_name.localeCompare(b.project_name);
+      return sortAscending ? comparison : -comparison;
+    });
+    return filtered;
+  }, [projects, searchQuery, sortAscending]);
 
   return (
     <div className="project-page">
@@ -42,7 +61,25 @@ const Projects = () => {
         )}
       </div>
 
-      <div className="page-search"></div>
+      <div className="page-search">
+        <TextField
+          placeholder="Search Projects"
+          aria-label="Search projects"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          leftIcon={<Search size={16} />}
+        />
+        <Button
+          leftIcon={
+            sortAscending ? <ArrowDownAZ size={15} /> : <ArrowUpAZ size={15} />
+          }
+          variant="secondary"
+          aria-label={sortAscending ? "Sort Z to A" : "Sort A to Z"}
+          onPress={() => setSortAscending((prev) => !prev)}
+        >
+          {sortAscending ? "Name A-Z" : "Name Z-A"}
+        </Button>
+      </div>
 
       <div className="project-grid">
         {isLoading
@@ -53,16 +90,18 @@ const Projects = () => {
                 <span className="skeleton skeleton-line short" />
               </div>
             ))
-          : projects.map((project) => (
+          : visibleProjects.map((project) => (
               <ProjectCard key={project._id} project={project} />
             ))}
       </div>
 
-      {!isLoading && projects.length === 0 && (
+      {!isLoading && visibleProjects.length === 0 && (
         <div className="panel org-empty">
-          <h2>No projects yet</h2>
+          <h2>{searchQuery ? "No matching projects" : "No projects yet"}</h2>
           <p className="para-sm org-muted">
-            Create your first project to start organizing work.
+            {searchQuery
+              ? `Nothing found for "${searchQuery}". Try a different search.`
+              : "Create your first project to start organizing work."}
           </p>
         </div>
       )}

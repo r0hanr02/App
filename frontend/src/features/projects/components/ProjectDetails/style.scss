@@ -1,0 +1,819 @@
+@use "../../../../styles/typography" as type;
+.project-details-page {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  color: var(--text-default);
+
+  .org-muted {
+    color: var(--text-secondary);
+  }
+
+  // ---------- shared panel ----------
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    overflow: hidden;
+  }
+
+  .panel.padded {
+    padding: 20px;
+  }
+
+  .badge {
+    @include type.label-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-10);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .badge.green {
+    background: var(--bg-green-00);
+    border-color: var(--bg-green-200);
+    color: var(--text-success);
+  }
+
+  // ---------- page heading ----------
+  .page-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+
+    .eyebrow {
+      @include type.subheading-xs-mixin;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0 0 var(--space-3);
+    }
+
+    p {
+      @include type.para-sm-mixin;
+      margin: var(--space-2) 0 0;
+      color: var(--text-muted);
+    }
+
+    .heading-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      flex-shrink: 0;
+    }
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding: 14px 18px 0;
+    margin-bottom: 10px;
+
+    h2 {
+      @include type.label-sm-mixin;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+  }
+
+  .count-pill {
+    @include type.para-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-10);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .text-button {
+    @include type.label-sm-mixin;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .account-initials {
+    width: 31px;
+    height: 31px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--indigo-tint);
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  // ---------- empty ----------
+  .org-empty {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    h2 {
+      @include type.title-sm-mixin;
+      margin: 0;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .button-base {
+      text-decoration: none;
+      margin-top: 8px;
+    }
+  }
+
+  // ---------- project details tabs (react-aria TabList) ----------
+  .page-tabs {
+    margin-bottom: var(--space-8);
+    width: fit-content;
+    max-width: 100%;
+
+    .react-aria-TabList {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: var(--radius-6);
+      max-width: 100%;
+      overflow-x: auto;
+      border-bottom: 0;
+    }
+
+    .react-aria-Tab {
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: var(--radius-4);
+
+      cursor: pointer;
+      white-space: nowrap;
+      @include type.label-sm-mixin;
+
+      &:hover,
+      &[data-hovered] {
+        background: var(--bg-hover);
+        color: var(--text-default);
+      }
+
+      &[data-selected] {
+        background: var(--bg-surface);
+        color: var(--text-default);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+        border-bottom: 2px solid var(--border-subtle);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  // ---------- overview ----------
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 22px;
+    margin-bottom: var(--space-8);
+    align-items: start;
+
+    h2 {
+      @include type.label-sm-mixin;
+      margin: 0 0 10px;
+    }
+
+    p {
+      @include type.para-sm-mixin;
+      color: var(--text-secondary);
+      margin: 0 0 14px;
+    }
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    @include type.para-xs-mixin;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+
+    strong {
+      @include type.label-sm-mixin;
+      color: var(--text-default);
+    }
+  }
+
+  .progress-track {
+    height: 8px;
+    border-radius: var(--radius-10);
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-subtle);
+    overflow: hidden;
+    margin-bottom: 14px;
+
+    .progress-fill {
+      display: block;
+      height: 100%;
+      background: var(--color-primary);
+      border-radius: inherit;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .overview-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    @include type.para-xs-mixin;
+    color: var(--text-secondary);
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+
+  .avatar-stack {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+
+    .account-initials {
+      margin-left: -8px;
+      border: 2px solid var(--bg-surface);
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+  }
+
+  .overview-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-subtle);
+
+    &:first-of-type {
+      border-top: 0;
+    }
+
+    strong {
+      @include type.title-sm-mixin;
+    }
+  }
+
+  .status-todo {
+    background: var(--bg-sunken);
+  }
+  .status-in_progress {
+    background: var(--bg-green-00);
+    border-color: var(--bg-green-200);
+    color: var(--text-success);
+  }
+  .status-in_review {
+    background: var(--indigo-tint);
+    color: var(--color-primary);
+  }
+  .status-done {
+    background: var(--bg-green-00);
+    border-color: var(--bg-green-200);
+    color: var(--text-success);
+  }
+  .status-cancelled {
+    opacity: 0.7;
+  }
+
+  // ---------- toolbar ----------
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+
+    .toolbar-search {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .ui-select {
+      min-width: 160px;
+    }
+  }
+
+  .view-switch {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    margin-left: auto;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 7px 12px;
+      border-radius: var(--radius-4);
+      cursor: pointer;
+      @include type.label-sm-mixin;
+
+      &.active {
+        background: var(--bg-surface);
+        color: var(--text-default);
+        box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+      }
+    }
+  }
+
+  .bulk-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    @include type.para-xs-mixin;
+  }
+
+  // ---------- board ----------
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(220px, 1fr));
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .kanban-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+  }
+
+  .kanban-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 14px 14px;
+  }
+
+  .kanban-card {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-4);
+    padding: 12px;
+    background: var(--bg-surface);
+
+    strong {
+      @include type.label-sm-mixin;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    p {
+      @include type.para-xs-mixin;
+      color: var(--text-secondary);
+      margin: 0 0 10px;
+    }
+  }
+
+  .kanban-meta {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .kanban-actions {
+    margin-top: 8px;
+
+    .ui-select {
+      width: 100%;
+    }
+  }
+
+  .kanban-empty {
+    padding: 12px;
+    text-align: center;
+  }
+
+  // ---------- table helpers ----------
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border-subtle);
+    @include type.para-xs-mixin;
+    color: var(--text-secondary);
+
+    .page-current {
+      min-width: 24px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-default);
+    }
+
+    > span:first-child {
+      flex: 1;
+    }
+  }
+
+  .cell-sub {
+    display: block;
+    @include type.para-xs-mixin;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 320px;
+  }
+
+  .row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .ui-select {
+      min-width: 140px;
+    }
+  }
+
+  .member-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .member-add {
+    display: flex;
+    gap: 10px;
+    padding: 14px 18px 0;
+    flex-wrap: wrap;
+
+    .ui-select {
+      flex: 1;
+      min-width: 220px;
+    }
+  }
+
+  // ---------- project settings (same grid layout as workspace Settings) ----------
+  .project-settings-layout {
+    width: 100%;
+    max-width: 1150px;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1500px);
+    gap: 100px;
+    padding-top: 25px;
+  }
+
+  .project-settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: start;
+    align-items: stretch;
+  }
+
+  .project-settings-nav .button-base {
+    @include type.label-sm-mixin;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    text-align: left;
+    border-radius: 6px;
+    --custom-color: var(--text-secondary);
+    color: var(--text-secondary);
+
+    &.active {
+      background: var(--indigo-tint);
+      --custom-color: #6366f1;
+      color: #6366f1;
+    }
+  }
+
+  .project-settings-layout .settings-panel {
+    max-width: none;
+    padding: 27px;
+    background: var(--bg-surface);
+    border-radius: 10px;
+
+    h2 {
+      @include type.title-sm-mixin;
+      margin: 0;
+    }
+
+    > p {
+      @include type.para-sm-mixin;
+      margin: 10px 0 25px;
+      --custom-color: var(--text-secondary);
+      color: var(--text-secondary);
+    }
+
+    form {
+      margin-top: 25px;
+    }
+
+    form label {
+      @include type.label-sm-mixin;
+      display: block;
+      margin-bottom: 19px;
+    }
+
+    // Section titles use the Label component with a type class, so they are
+    // excluded from the form-label rule above and sized by their class.
+    > label:first-child {
+      display: block;
+      margin-bottom: 0;
+    }
+
+    > .label-md {
+      margin-top: 30px;
+    }
+
+    // The shared Input component renders its own label + field, so the wrapper
+    // carries the field spacing instead of the inner label.
+    .ui-input {
+      margin-bottom: 19px;
+    }
+
+    .ui-input__label {
+      margin-bottom: 0;
+    }
+
+    // Label + Dropdown pairs (e.g. member picker) follow the same field rhythm
+    // as plain labels.
+    form .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 19px;
+    }
+
+    form .form-field > label {
+      margin-bottom: 0;
+    }
+
+    .ui-select {
+      width: 100%;
+    }
+
+    input,
+    textarea,
+    select {
+      @include type.para-sm-mixin;
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 10px 11px;
+      width: 100%;
+      --custom-color: var(--text-default);
+      color: var(--text-default);
+      margin-top: 8px;
+    }
+
+    textarea {
+      min-height: 85px;
+      resize: vertical;
+    }
+
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 15px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 20px;
+      margin-top: 16px;
+    }
+
+    .url-input {
+      @include type.para-sm-mixin;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .url-input > span {
+      @include type.para-sm-mixin;
+      padding: 10px;
+      --custom-color: var(--text-secondary);
+      color: var(--text-secondary);
+      background: var(--background);
+      border-right: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    .url-input input {
+      border: 0;
+      margin: 0;
+    }
+
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      margin-top: 18px;
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .member-avatar {
+      @include type.label-sm-mixin;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--indigo-tint);
+      color: #6366f1;
+      flex-shrink: 0;
+    }
+
+    .member-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      margin-right: auto;
+      min-width: 0;
+    }
+
+    .permission-list > div {
+      padding: 18px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .permission-list > div > label {
+      display: block;
+      margin-bottom: 0;
+    }
+
+    .permission-list p {
+      @include type.para-sm-mixin;
+      --custom-color: var(--text-secondary);
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    .danger-zone-card {
+      border: 1px solid #ef444445;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 18px;
+      background: var(--red-tint);
+
+      h3 {
+        @include type.label-md-mixin;
+        margin: 0;
+      }
+
+      p {
+        @include type.para-sm-mixin;
+        color: var(--text-secondary);
+        margin-top: 8px;
+      }
+
+      .form-footer {
+        border-top: 0;
+        padding-top: 16px;
+      }
+    }
+  }
+
+  .settings-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .project-btn {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .line {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 14px 0 0;
+  }
+
+  // ---------- responsive ----------
+  @media (max-width: 1100px) {
+    .kanban {
+      grid-template-columns: repeat(5, 240px);
+    }
+  }
+
+  @media (max-width: 1000px) {
+    .overview-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .project-settings-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .project-settings-nav {
+      flex-direction: row;
+      overflow-x: auto;
+    }
+
+    .project-settings-nav .button-base {
+      width: auto;
+      white-space: nowrap;
+    }
+  }
+
+  @media (max-width: 650px) {
+    .page-heading {
+      flex-direction: column;
+
+      .heading-actions {
+        width: 100%;
+
+        .button-base {
+          flex: 1;
+        }
+      }
+    }
+
+    .page-tabs {
+      width: 100%;
+    }
+
+    .view-switch {
+      margin-left: 0;
+      width: 100%;
+
+      button {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}

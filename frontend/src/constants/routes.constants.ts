@@ -72,6 +72,12 @@ export const ROUTES = {
     requireOrg: true,
     orgScoped: true,
   },
+  PROJECTDETAILS:{
+    path:"/projects/$projectId",
+     requiresAuth: true,
+    requireOrg: true,
+    orgScoped: true,
+  }
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

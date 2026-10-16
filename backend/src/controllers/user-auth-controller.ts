@@ -35,7 +35,7 @@ export const registerUser = asyncHandler(
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password: hashPassword,
-      phone,
+      phone: typeof phone === "string" && phone.trim() ? phone.trim() : undefined,
       dateOfBirth,
       occupation: typeof occupation === "string" ? occupation.trim() : "",
       profilepic: profilePicUrl,

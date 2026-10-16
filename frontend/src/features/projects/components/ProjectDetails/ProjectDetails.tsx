@@ -1,9 +1,7 @@
 import { Suspense, useState } from "react";
 import { useParams } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
 import "./style.scss";
-import { Label } from "../../../../components/ui/Form/Form";
-import { Button } from "../../../../components/ui/Button/Button";
+import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
 import { Tab, TabList, Tabs } from "../../../../components/ui/Tabs/Tabs";
 import {
   PROJECT_TABS,
@@ -12,6 +10,7 @@ import {
 import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import { useGetProject } from "../../api/projects.api";
 import CreateTaskModal from "./CreateTaskModal";
+import { Loader2 } from "lucide-react";
 
 const getPanel = (label: ProjectTab) =>
   PROJECT_TABS.find((t) => t.label === label)?.component ??
@@ -39,14 +38,10 @@ const ProjectDetails = () => {
   if (!activeOrgId || !projectId) {
     return (
       <div className="project-details-page">
-        <div className="page-heading">
-          <div>
-            <Label className="title-lg">Project</Label>
-            <p className="para-sm org-muted">
-              Select a workspace and project to continue.
-            </p>
-          </div>
-        </div>
+        <PageHeading
+          title="Project"
+          subtitle="Select a workspace and project to continue."
+        />
         <section className="panel org-empty">
           <h2>Missing context</h2>
           <p className="para-sm org-muted">
@@ -63,26 +58,13 @@ const ProjectDetails = () => {
 
   return (
     <div className="project-details-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow subheading-xs">Project overview</p>
-          <Label className="title-lg">{project.project_name}</Label>
-          <p className="para-sm org-muted">
-            {project.project_description?.trim() || "No description yet."}
-          </p>
-        </div>
-        {canManage && (
-          <div className="heading-actions">
-            <Button
-              variant="primary"
-              leftIcon={<Plus size={15} />}
-              onPress={() => setIsCreateOpen(true)}
-            >
-              Create Task
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeading
+        topPara="Project overview"
+        title={project.project_name}
+        subtitle={project.project_description?.trim() || "No description yet."}
+        action={canManage ? "Create Task" : undefined}
+        onAction={canManage ? () => setIsCreateOpen(true) : undefined}
+      />
 
       <Tabs
         selectedKey={tab}
@@ -98,7 +80,13 @@ const ProjectDetails = () => {
         </TabList>
       </Tabs>
 
-      <Suspense fallback={<p>Loading…</p>}>
+      <Suspense
+        fallback={
+          <div className="loading">
+            <Loader2 className="lucide lucide-loader-2" />
+          </div>
+        }
+      >
         {tab === "Overview" && (
           <OverviewPanel
             orgId={activeOrgId}

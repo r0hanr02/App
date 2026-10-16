@@ -28,11 +28,6 @@ const userSchema = new mongoose.Schema(
         },
       ],
     },
-    email_bindex: {
-      type: String,
-      index: true,
-      unique: true,
-    },
     password: {
       type: String,
       required: [true, "password is Required"],
@@ -44,15 +39,10 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "phone is Required"],
+      required: false,
       trim: true,
       unique: true,
       sparse: true,
-    },
-    phone_bindex: {
-      type: String,
-      index: true,
-      unique: true,
     },
     dateOfBirth: {
       type: String,

@@ -20,7 +20,7 @@ const OrganizationMetrics = ({
       icon: Users,
       label: "Team members",
       value: String(memberCount),
-      routeKey: "USERS" as const,
+      routeKey: "TEAMS" as const,
     },
     {
       icon: Folder,

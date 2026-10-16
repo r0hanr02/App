@@ -9,6 +9,7 @@ import { ROUTES } from "../../../../constants/routes.constants";
 import { useGetUserOrganization } from "../../../home/api/home.api";
 import { getOrgIdFromSearch } from "../../../../lib/orgParams";
 import { useUpdateProfile } from "../../api/profile.api";
+import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
 import type { ProfileForm, UpdateProfilePayload } from "../../types";
 import "./style.scss";
 
@@ -153,15 +154,11 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      <div className="page-heading">
-        <div>
-          <span className="label-xs profile-eyebrow">Personal account</span>
-          <h1 className="title-lg">Your profile</h1>
-          <p className="para-sm profile-muted">
-            A little about you. A better way to work together.
-          </p>
-        </div>
-      </div>
+      <PageHeading
+        topPara="Personal account"
+        title="Your profile"
+        subtitle="A little about you. A better way to work together."
+      />
 
       <section className="panel account-hero">
         {user.profilepic ? (

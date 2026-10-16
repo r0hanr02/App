@@ -48,8 +48,8 @@ export const ROUTES = {
     requireOrg: true,
     orgScoped: true,
   },
-  USERS: {
-    path: "/users",
+  TEAMS: {
+    path: "/teams",
     requiresAuth: true,
     requireOrg: true,
     orgScoped: true,

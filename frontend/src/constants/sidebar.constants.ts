@@ -19,7 +19,7 @@ export const SIDEBAR: {
   { label: "Dashboard", logo: LayoutDashboard, routeKey: "HOME", routeTo: ROUTES.HOME.path },
   { label: "Projects", logo: Folder, routeKey: "PROJECTS", routeTo: ROUTES.PROJECTS.path },
   { label: "My Tasks", logo: ListTodo, routeKey: "TASKS", routeTo: ROUTES.TASKS.path },
-  { label: "Users", logo: Users, routeKey: "USERS", routeTo: ROUTES.USERS.path },
+  { label: "Teams", logo: Users, routeKey: "TEAMS", routeTo: ROUTES.TEAMS.path },
   { label: "Organization", logo: Layers, routeKey: "ORGANIZATION", routeTo: ROUTES.ORGANIZATION.path },
   { label: "Notification", logo: Bell, routeKey: "NOTIFICATION", routeTo: ROUTES.NOTIFICATION.path },
   { label: "Settings", logo: Settings, routeKey: "SETTINGS", routeTo: ROUTES.SETTINGS.path },

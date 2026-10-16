@@ -2,6 +2,7 @@ import { Suspense, useState } from "react";
 import { Button } from "../../../../components/ui/Button/Button";
 import { PROJECT_SETTING } from "../../../../constants/project-settings.constants";
 import type { ProjectSettingsProps } from "../../types";
+import { Loader2 } from "lucide-react";
 
 const ProjectSettings = ({
   orgId,
@@ -33,7 +34,13 @@ const ProjectSettings = ({
         ))}
       </nav>
       <section className="panel padded settings-panel">
-        <Suspense fallback={<p>Loading…</p>}>
+        <Suspense
+          fallback={
+            <div className="loading">
+              <Loader2 className="lucide lucide-loader-2" />
+            </div>
+          }
+        >
           <ActiveComponent
             orgId={orgId}
             projectId={projectId}

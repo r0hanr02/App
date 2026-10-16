@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Loader2, Users } from "lucide-react";
-import { Button } from "../../../../components/ui/Button/Button";
+import { Loader2 } from "lucide-react";
+import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
 import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import { getRoutePath } from "../../../../factories/RouteFactory";
 import {
@@ -18,7 +18,6 @@ import {
   OrganizationProjects,
 } from "../../components";
 import "./style.scss";
-import { Label } from "../../../../components/ui/Form/Form";
 
 const Organization = () => {
   const {
@@ -43,15 +42,11 @@ const Organization = () => {
   if (!isOrgsLoading && !activeOrgId) {
     return (
       <div className="organization-page">
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow subheading-xs">Workspace overview</p>
-            <Label className="title-lg">Organization</Label>
-            <p className="para-sm org-muted">
-              The people, projects, and purpose behind your workspace.
-            </p>
-          </div>
-        </div>
+        <PageHeading
+          topPara="Workspace overview"
+          title="Organization"
+          subtitle="The people, projects, and purpose behind your workspace."
+        />
         <section className="panel org-empty">
           <h2 className="title-sm">No workspace selected</h2>
           <p className="para-sm org-muted">
@@ -72,15 +67,11 @@ const Organization = () => {
   if (isLoading || !org) {
     return (
       <div className="organization-page" aria-busy="true">
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow subheading-xs">Workspace overview</p>
-            <h1 className="title-lg">Organization</h1>
-            <p className="para-sm org-muted">
-              The people, projects, and purpose behind your workspace.
-            </p>
-          </div>
-        </div>
+        <PageHeading
+          topPara="Workspace overview"
+          title="Organization"
+          subtitle="The people, projects, and purpose behind your workspace."
+        />
         <div className="org-loading">
           <Loader2 className="org-spinner" size={22} />
           <p className="para-sm org-muted">Loading workspace…</p>
@@ -98,26 +89,13 @@ const Organization = () => {
 
   return (
     <div className="organization-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow subheading-xs">Workspace overview</p>
-          <h1 className="title-lg">Organization</h1>
-          <p className="para-sm org-muted">
-            The people, projects, and purpose behind your workspace.
-          </p>
-        </div>
-        {canManage && (
-          <div className="heading-actions">
-            <Button
-              variant="primary"
-              leftIcon={<Users size={15} />}
-              onPress={() => setIsInviteOpen(true)}
-            >
-              Invite member
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeading
+        topPara="Workspace overview"
+        title="Organization"
+        subtitle="The people, projects, and purpose behind your workspace."
+        action={canManage ? "Invite member" : undefined}
+        onAction={canManage ? () => setIsInviteOpen(true) : undefined}
+      />
 
       <OrganizationHero org={org} role={role} orgSlug={activeOrgSlug} />
 

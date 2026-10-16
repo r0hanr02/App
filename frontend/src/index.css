@@ -24,3 +24,30 @@ body {
     align-items: center;
     height: 100vh;
 }
+
+/* Suspense fallback used inside panels (Settings, Project settings, …) */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    min-height: 120px;
+    padding: var(--space-8);
+    /* color: var(--text-muted); */
+}
+
+.loading .lucide-loader-2 {
+    animation: loading-spin 0.9s linear infinite;
+}
+
+@keyframes loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading .lucide-loader-2 {
+        animation: none;
+    }
+}

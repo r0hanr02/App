@@ -3,6 +3,8 @@ import "./style.scss";
 import "../../components/style.scss";
 import { SETTING } from "../../../../constants/settings.constants";
 import { Button } from "../../../../components/ui/Button/Button";
+import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
+import { Loader2 } from "lucide-react";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState<string>(SETTING[0].label);
@@ -12,14 +14,10 @@ const Settings = () => {
 
   return (
     <div className="setting-page">
-      <div className="page-heading">
-        <div>
-          <h1 className="title-lg">Settings</h1>
-          <p className="para-sm profile-muted">
-            Make this workspace work for you.
-          </p>
-        </div>
-      </div>
+      <PageHeading
+        title="Settings"
+        subtitle="Make this workspace work for you."
+      />
 
       <div className="settings-layout">
         <nav className="settings-nav" aria-label="Settings sections">
@@ -37,7 +35,13 @@ const Settings = () => {
           ))}
         </nav>
         <div className="settings-panel">
-          <Suspense fallback={<p>Loading…</p>}>
+          <Suspense
+            fallback={
+              <div className="loading">
+                <Loader2 className="lucide lucide-loader-2" />
+              </div>
+            }
+          >
             <ActiveComponent />
           </Suspense>
         </div>

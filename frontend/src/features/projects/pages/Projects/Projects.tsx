@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import "./style.scss";
 import { Button } from "../../../../components/ui/Button/Button";
-import { ArrowDownAZ, ArrowUpAZ, Plus, Search } from "lucide-react";
+import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
+import { ArrowDownAZ, ArrowUpAZ, Search } from "lucide-react";
 import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import ProjectModal from "../../components/ProjectModal/ProjectModal";
-import { Label } from "../../../../components/ui/Form/Form";
 import { useGetAllProjects } from "../../api/projects.api";
 import ProjectCard from "../../components/ProjectCard/ProjectCard";
 import { TextField } from "../../../../components/ui/TextField/TextField";
@@ -38,28 +38,13 @@ const Projects = () => {
 
   return (
     <div className="project-page">
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow subheading-xs">
-            Organization Projects overview
-          </p>
-          <Label className="title-lg">Projects</Label>
-          <p className="para-sm org-muted">
-            Big ideas, organized. Keep every project moving forward.
-          </p>
-        </div>
-        {canCreate && (
-          <div className="heading-actions">
-            <Button
-              variant="primary"
-              leftIcon={<Plus size={15} />}
-              onPress={() => setIsProjectsModalOpen(true)}
-            >
-              Create Project
-            </Button>
-          </div>
-        )}
-      </div>
+      <PageHeading
+        topPara="Organization Projects overview"
+        title="Projects"
+        subtitle="Big ideas, organized. Keep every project moving forward."
+        action={canCreate ? "Create Project" : undefined}
+        onAction={canCreate ? () => setIsProjectsModalOpen(true) : undefined}
+      />
 
       <div className="page-search">
         <TextField

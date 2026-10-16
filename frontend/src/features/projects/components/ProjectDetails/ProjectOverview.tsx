@@ -31,16 +31,16 @@ const formatDate = (iso?: string | null) => {
   }).format(d);
 };
 
-const initialsOf = (name: string) =>
-  name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? "")
-    .join("") || "?";
+// const initialsOf = (name: string) =>
+//   name
+//     .trim()
+//     .split(/\s+/)
+//     .slice(0, 2)
+//     .map((w) => w[0]?.toUpperCase() ?? "")
+//     .join("") || "?";
 
-const memberNameOf = (m: { user_id: { name: string } | string }): string =>
-  typeof m.user_id === "string" ? m.user_id : m.user_id.name;
+// const memberNameOf = (m: { user_id: { name: string } | string }): string =>
+//   typeof m.user_id === "string" ? m.user_id : m.user_id.name;
 
 const ProjectOverview = ({
   orgId,
@@ -59,14 +59,14 @@ const ProjectOverview = ({
     orgId,
     projectId,
   );
-  const { data: membersRes } = useGetProjectMembers(orgId, projectId);
+  // const { data: membersRes } = useGetProjectMembers(orgId, projectId);
 
   if (isProjectLoading) return <p>Loading…</p>;
   const project = projectRes?.data;
   if (!project) return <p>Project not found.</p>;
 
   const tasks = tasksRes?.data ?? [];
-  const members = membersRes?.data ?? [];
+  // const members = membersRes?.data ?? [];
   const doneCount = tasks.filter((t) => t.status === "DONE").length;
   const progress =
     tasks.length === 0 ? 0 : Math.round((doneCount / tasks.length) * 100);
@@ -92,7 +92,7 @@ const ProjectOverview = ({
               <CalendarDays size={14} />
               Created {formatDate(project.createdAt)}
             </span>
-            <div className="avatar-stack">
+            {/* <div className="avatar-stack">
               {members.slice(0, 6).map((m) => (
                 <span
                   className="account-initials"
@@ -105,7 +105,7 @@ const ProjectOverview = ({
               {members.length === 0 && (
                 <span className="para-xs org-muted">No members yet</span>
               )}
-            </div>
+            </div> */}
           </div>
         </section>
 

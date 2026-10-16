@@ -1,4 +1,4 @@
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import "./style.scss";
 import PageHeading from "../../../../components/ui/PageHeading/PageHeading";
@@ -11,6 +11,7 @@ import { useActiveOrg } from "../../../../hooks/useActiveOrg";
 import { useGetProject } from "../../api/projects.api";
 import CreateTaskModal from "./CreateTaskModal";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
 
 const getPanel = (label: ProjectTab) =>
   PROJECT_TABS.find((t) => t.label === label)?.component ??
@@ -30,10 +31,23 @@ const ProjectDetails = () => {
   const role = activeOrg?.role ?? "";
   const canManage = role === "OWNER" || role === "ADMIN";
 
-  const { data: projectRes, isLoading } = useGetProject(
-    activeOrgId,
-    projectId ?? null,
-  );
+  // Members / Settings have `show: false` in PROJECT_TABS —
+  // only ADMIN / OWNER (canManage) should see them.
+  const visibleTabs = PROJECT_TABS.filter((t) => t.show || canManage);
+
+  // Guard against staying on a restricted tab after role change
+  // (e.g. deep-link or role downgrade to MEMBER).
+  // useEffect(() => {
+  //   if (!canManage && (tab === "Members" || tab === "Settings")) {
+  //     setTab("Overview");
+  //   }
+  // }, [canManage, tab]);
+
+  const {
+    data: projectRes,
+    isLoading,
+    error,
+  } = useGetProject(activeOrgId, projectId ?? null);
 
   if (!activeOrgId || !projectId) {
     return (
@@ -54,7 +68,14 @@ const ProjectDetails = () => {
 
   if (isLoading) return <p>Loading…</p>;
   const project = projectRes?.data;
-  if (!project) return <p>Project not found.</p>;
+  if (!project)
+    return (
+      <p>
+        {axios.isAxiosError(error)
+          ? error.response?.data?.message
+          : error?.message}
+      </p>
+    );
 
   return (
     <div className="project-details-page">
@@ -72,7 +93,7 @@ const ProjectDetails = () => {
         className="page-tabs"
       >
         <TabList aria-label="Project sections">
-          {PROJECT_TABS.map((item) => (
+          {visibleTabs.map((item) => (
             <Tab key={item.label} id={item.label}>
               {item.label}
             </Tab>
@@ -105,7 +126,7 @@ const ProjectDetails = () => {
           />
         )}
 
-        {tab === "Members" && (
+        {canManage && tab === "Members" && (
           <MembersPanel
             orgId={activeOrgId}
             projectId={projectId}

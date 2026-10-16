@@ -60,7 +60,7 @@ export const useGetProject = (
     path: `/organization/${orgId}/projects/${projectId}`,
     queryKey: ["get_project", orgId, projectId],
     method: "GET",
-    options: { enabled: Boolean(orgId) && Boolean(projectId) },
+    options: { enabled: Boolean(orgId) && Boolean(projectId)},
   });
 };
 

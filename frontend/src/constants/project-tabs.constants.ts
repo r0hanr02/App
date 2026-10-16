@@ -15,6 +15,7 @@ export type ProjectTab = (typeof PROJECT_TAB_LABELS)[number];
 export type ProjectTabItem = {
   label: ProjectTab;
   component: ProjectTabPanel;
+  show:boolean
 };
 
 const ProjectBoardPanel = lazy(
@@ -28,15 +29,18 @@ export const PROJECT_TABS: readonly ProjectTabItem[] = [
       () =>
         import("../features/projects/components/ProjectDetails/ProjectOverview"),
     ) as ProjectTabPanel,
+    show:true
+
   },
-  { label: "Board", component: ProjectBoardPanel },
-  { label: "List", component: ProjectBoardPanel },
+  { label: "Board", component: ProjectBoardPanel,show:true },
+  { label: "List", component: ProjectBoardPanel,show:true },
   {
     label: "Members",
     component: lazy(
       () =>
         import("../features/projects/components/ProjectDetails/ProjectMembers"),
     ) as ProjectTabPanel,
+    show:false
   },
   {
     label: "Settings",
@@ -44,5 +48,6 @@ export const PROJECT_TABS: readonly ProjectTabItem[] = [
       () =>
         import("../features/projects/components/ProjectDetails/ProjectSettings"),
     ) as ProjectTabPanel,
+    show:true
   },
 ];

@@ -73,18 +73,6 @@ export const getAllProject = asyncHandler(
     const organizationId = (req.params as any).organizationId;
     const { search, page, limit, sort } = req.query;
 
-    const currentPage = Number(page) || 1;
-    const pageLimit = Number(limit) || 10;
-    const skip = (currentPage - 1) * pageLimit;
-
-    const sorted = sort ? String(sort) : "createdAt";
-    const filter: any = { organization_id: organizationId };
-    if (search) {
-      filter.project_name = {
-        $regex: String(search),
-        $options: "i",
-      };
-    }
     if (
       !organizationId ||
       !mongoose.Types.ObjectId.isValid(organizationId as string)
@@ -92,10 +80,65 @@ export const getAllProject = asyncHandler(
       throw new AppError("Invalid organization id", 400);
     }
 
+    const userId =
+      (req as any).userId || (req as any).user?.id || (req as any).user?._id;
+    if (!userId) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    // Role comes from requireOrganizationMember, fallback to DB
+    let orgRole = (req as any).organizationMember?.role;
+    if (!orgRole) {
+      const orgMembership = await OrganizationMember.findOne({
+        organization_id: organizationId,
+        user_id: userId,
+      }).lean();
+      orgRole = (orgMembership as any)?.role;
+    }
+
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const pageLimit = Math.min(Math.max(Number(limit) || 10, 1), 100);
+    const skip = (currentPage - 1) * pageLimit;
+
+    const sorted = sort ? String(sort) : "createdAt";
+    const filter: any = { organization_id: organizationId };
+    if (search) {
+      filter.project_name = { $regex: String(search), $options: "i" };
+    }
+
+    // MEMBER: restrict to only his projects (same logic as requireProjectAccess/getProject)
+    if (orgRole !== "OWNER" && orgRole !== "ADMIN") {
+      const memberships = await ProjectMember.find({ user_id: userId })
+        .select("project_id")
+        .lean();
+
+      const projectIds = memberships.map((m: any) => m.project_id);
+
+      if (projectIds.length === 0) {
+        res.status(200).json({
+          message: "All projects data has been fetch",
+          data: [],
+          pagination: {
+            currentPage,
+            pageLimit,
+            totalRecords: 0,
+            totalPages: 0,
+            hasNextPage: false,
+            hasPreviousPage: currentPage > 1,
+          },
+        });
+        return;
+      }
+
+      // _id + organization_id together = only his projects in this org
+      filter._id = { $in: projectIds };
+    }
+
     const [allProjects, totalRecords] = await Promise.all([
-      Project.find(filter).skip(skip).limit(10).sort(sorted),
+      Project.find(filter).skip(skip).limit(pageLimit).sort(sorted),
       Project.countDocuments(filter),
     ]);
+
     const totalPages = Math.ceil(totalRecords / pageLimit);
 
     res.status(200).json({
@@ -106,7 +149,7 @@ export const getAllProject = asyncHandler(
         pageLimit,
         totalRecords,
         totalPages,
-        hasNextPage: currentPage < pageLimit,
+        hasNextPage: currentPage < totalPages,
         hasPreviousPage: currentPage > 1,
       },
     });

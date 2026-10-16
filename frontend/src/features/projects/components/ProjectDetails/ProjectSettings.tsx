@@ -14,13 +14,14 @@ const ProjectSettings = ({
     PROJECT_SETTING.find((s) => s.label === activeTab)?.component ??
     PROJECT_SETTING[0].component;
 
+  const visibleTabs = PROJECT_SETTING.filter((p) => p.show || canManage);
   return (
     <div className="project-settings-layout">
       <nav
         className="project-settings-nav"
         aria-label="Project settings sections"
       >
-        {PROJECT_SETTING.map((s) => (
+        {visibleTabs.map((s) => (
           <Button
             key={s.label}
             type="button"

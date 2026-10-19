@@ -66,6 +66,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
         const routeDef = ROUTES[key];
 
         if (routeDef.requiresAuth && !context.auth.isLoggedIn) {
+          console.log("redirecttting");
           throw redirect({ to: ROUTES.LOGIN.path as never });
         }
 
@@ -73,7 +74,7 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
           return;
         }
 
-       const needsOrgs =
+        const needsOrgs =
           routeDef.requireOrg || routeDef.orgScoped || key === "NOORGANIZATION";
         let orgs: UserOrgMembership[] = [];
         if (needsOrgs) {

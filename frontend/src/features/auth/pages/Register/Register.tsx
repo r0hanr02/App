@@ -1,4 +1,4 @@
-import { Layers } from "lucide-react";
+import { ArrowRight, Layers } from "lucide-react";
 import { Label } from "../../../../components/ui/Form/Form";
 import "./style.scss";
 import { Input } from "../../../../components/ui/Input/Input";
@@ -185,14 +185,16 @@ const Register = () => {
 
           <Button
             type="submit"
-            className="register-button"
+            className="register-button flex jcsb "
             loadingLabel="Registering"
+            rightIcon={<ArrowRight />}
             isPending={registerIsPending}
           >
-            Create Account
+            Create an account
           </Button>
           <span>
-            Already have an Account? <Link to={ROUTES.LOGIN as any}>Login</Link>
+            Already have an Account?{" "}
+            <Link to={ROUTES.LOGIN.path as any}>Login</Link>
           </span>
         </form>
       </div>

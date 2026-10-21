@@ -8,12 +8,14 @@ const HIDE_NAVBAR_PATHS: string[] = [
   ROUTES.LOGIN.path,
   ROUTES.REGISTER.path,
   ROUTES.ONBOARDING.path,
+  ROUTES.FORGETPASSWORD.path,
 ];
 const hideSidebarPaths = new Set<string>([
   ROUTES.LOGIN.path,
   ROUTES.REGISTER.path,
   ROUTES.ONBOARDING.path,
   ROUTES.NOORGANIZATION.path,
+  ROUTES.FORGETPASSWORD.path,
 ]);
 
 const RootLayout = () => {
@@ -30,8 +32,7 @@ const RootLayout = () => {
     HIDE_NAVBAR_PATHS.includes(pathname) ||
     HIDE_NAVBAR_PATHS.includes(resolvedPathname);
   const hideSidebar =
-    hideSidebarPaths.has(pathname) ||
-    hideSidebarPaths.has(resolvedPathname);
+    hideSidebarPaths.has(pathname) || hideSidebarPaths.has(resolvedPathname);
   return (
     <div className="root-layout" style={{ fontFamily: "Inter, sans-serif" }}>
       {/* <Sidebar /> */}

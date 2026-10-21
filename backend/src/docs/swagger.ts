@@ -428,6 +428,88 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
+      "/api/v1/auth/forgot-password": {
+        post: {
+          summary: "Send password reset link",
+          tags: ["Auth"],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["email"],
+                  properties: {
+                    email: { type: "string", format: "email", example: "rohan@example.com" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Reset link sent to the provided email (if the user exists)",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      success: { type: "boolean", example: true },
+                      message: { type: "string", example: "Password reset link sent to your email" },
+                    },
+                  },
+                },
+              },
+            },
+            400: errorRef("Bad request"),
+            404: errorRef("User not found"),
+            500: errorRef("Server error"),
+          },
+        },
+      },
+
+      "/api/v1/auth/reset-password": {
+        patch: {
+          summary: "Reset password using token",
+          tags: ["Auth"],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["token", "password"],
+                  properties: {
+                    token: { type: "string", example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." },
+                    password: { type: "string", format: "password", example: "NewPassword123" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            200: {
+              description: "Password reset successfully",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      success: { type: "boolean", example: true },
+                      message: { type: "string", example: "Password reset successfully" },
+                    },
+                  },
+                },
+              },
+            },
+            400: errorRef("Bad request or invalid/expired token"),
+            401: errorRef("Unauthorized"),
+            404: errorRef("User not found"),
+            500: errorRef("Server error"),
+          },
+        },
+      },
+
       // ---------------- Organization ----------------
       "/api/v1/organization": {
         post: {

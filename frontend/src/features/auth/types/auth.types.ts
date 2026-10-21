@@ -41,6 +41,19 @@ export interface UpdateProfileResponse {
   };
 }
 
+export interface forgetPasswordPayload {
+  email: string;
+}
+
+export interface resetPasswordPayload {
+  password: string;
+}
+
+export interface AuthMessageResponse {
+  success?: boolean;
+  message: string;
+}
+
 export interface RegisterResponse {
   success: boolean;
   message: string;

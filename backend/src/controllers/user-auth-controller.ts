@@ -1,13 +1,18 @@
 import type { Request, Response } from "express";
 import { User } from "../models/index.ts";
 import bcrypt from "bcryptjs";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.ts";
+import {
+  generateAccessToken,
+  generatePasswordResetToken,
+  generateRefreshToken,
+} from "../utils/jwt.ts";
 import type {
   AuthenticatedRequest,
   decodedPayload,
 } from "../middlewares/auth-middleware.ts";
 import { AppError, asyncHandler } from "../middlewares/error-middleware.ts";
 import jwt from "jsonwebtoken";
+import { crypto } from "crypto.js";
 
 const saltRound = process.env.SALT_ROUND
   ? parseInt(process.env.SALT_ROUND)
@@ -35,7 +40,8 @@ export const registerUser = asyncHandler(
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password: hashPassword,
-      phone: typeof phone === "string" && phone.trim() ? phone.trim() : undefined,
+      phone:
+        typeof phone === "string" && phone.trim() ? phone.trim() : undefined,
       dateOfBirth,
       occupation: typeof occupation === "string" ? occupation.trim() : "",
       profilepic: profilePicUrl,
@@ -289,3 +295,75 @@ export const updateMe = asyncHandler(
     });
   }
 );
+
+export const forgetPassword = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response) => {
+    const { email } = req.body;
+    const isUserExists = await User.findOne({ email });
+    if (!isUserExists) {
+      throw new AppError("User Not Found", 404);
+    }
+    const passwordToken = generatePasswordResetToken(
+      isUserExists._id!.toString()
+    );
+
+    const hex = crypto.createHash("sha256").update(passwordToken).digest("hex");
+
+    isUserExists.passwordResetToken = hex;
+    await isUserExists.save();
+
+    res.cookie("passwordResetToken", passwordToken, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 15 * 60 * 1000,
+      path: "/api/v1/auth",
+    });
+    return res.status(200).json({
+      message: "Password reset Link has been sent to your email",
+    });
+  }
+);
+
+export const resetPassword = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response, next) => {
+    const { password } = req.body;
+    const passwordResetToken = req.cookies?.passwordResetToken;
+
+    if (!passwordResetToken) {
+      throw new AppError("Token Not Found", 404);
+    }
+
+    const decoded = jwt.verify(
+      passwordResetToken!,
+      process.env.PASSWORD_RESET_TOKEN_KEY!
+    ) as decodedPayload;
+
+    if (typeof decoded === "string" || !decoded.id) {
+      return next(new AppError("Session Expired", 401));
+    }
+
+    const hashPassword = await bcrypt.hash(password, saltRound);
+    const user = await User.findById(decoded.id);
+    console.log(user);
+
+    if (user) {
+      user.password = hashPassword;
+      user.passwordResetToken = "";
+      await user.save();
+    }
+
+    res.clearCookie("passwordResetToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/api/v1/auth",
+    });
+
+    return res.status(200).json({
+      message: "your password has been changed! try login again",
+    });
+  }
+);
+
+export const captchaGenerator= asyncHandler((req,res)=>{})

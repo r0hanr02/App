@@ -17,6 +17,12 @@ export const ROUTES = {
     requireOrg: false,
     orgScoped: false,
   },
+  FORGETPASSWORD:{
+    path:"/forget-password",
+    requiresAuth: false,
+    requireOrg: false,
+    orgScoped: false,
+  },
   NOORGANIZATION: {
     path: "/no-organization",
     requiresAuth: true,
@@ -77,7 +83,8 @@ export const ROUTES = {
      requiresAuth: true,
     requireOrg: true,
     orgScoped: true,
-  }
+  },
+
 } as const;
 
 export type AppRouteKey = keyof typeof ROUTES;

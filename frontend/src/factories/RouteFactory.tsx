@@ -65,13 +65,13 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
       beforeLoad: async ({ context, params }) => {
         const routeDef = ROUTES[key];
 
+        if (key === "LOGIN" || key === "REGISTER" || key === "FORGETPASSWORD") {
+          return;
+        }
+
         if (routeDef.requiresAuth && !context.auth.isLoggedIn) {
           console.log("redirecttting");
           throw redirect({ to: ROUTES.LOGIN.path as never });
-        }
-
-        if (key === "LOGIN" || key === "REGISTER") {
-          return;
         }
 
         const needsOrgs =

@@ -1,4 +1,4 @@
-import { Layers } from "lucide-react";
+import { ArrowRight, Layers } from "lucide-react";
 import { Label } from "../../../../components/ui/Form/Form";
 import "./style.scss";
 import { Input } from "../../../../components/ui/Input/Input";
@@ -37,10 +37,10 @@ const Login = () => {
           params: { orgSlug: slug } as never,
         });
       } else {
-        await navigate({ to: ROUTES.NOORGANIZATION.path });
+        await navigate({ to: ROUTES.NOORGANIZATION.path as any });
       }
     } catch {
-      await navigate({ to: ROUTES.NOORGANIZATION.path });
+      await navigate({ to: ROUTES.NOORGANIZATION.path as any });
     }
   };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,17 +108,42 @@ const Login = () => {
             onChange={handleChange}
           />
 
+          <Link
+            // to={"/forget-password" as any}
+            to={ROUTES.FORGETPASSWORD.path as any}
+            style={{
+              textDecoration: "none",
+              color: "var(--color-primary)",
+              alignSelf: "end",
+            }}
+          >
+            Forgot Password?
+          </Link>
+
           <Button
             type="submit"
-            className="register-button"
+            className="register-button flex jcsb"
             loadingLabel="Registering"
             isPending={loginIsPending}
+            rightIcon={<ArrowRight />}
           >
             Login
           </Button>
-          <span>
-            New to Orbit? <Link to={"/register"}>Create an Account</Link>
-          </span>
+        
+            <span>
+              New to Orbit?{" "}
+              <Link
+                // to={"register" as any}
+                to={ROUTES.REGISTER.path as any}
+                style={{
+                  textDecoration: "none",
+                  color: "var(--color-primary)",
+                }}
+              >
+                Create an Account
+              </Link>
+            </span>
+          
         </form>
       </div>
     </div>

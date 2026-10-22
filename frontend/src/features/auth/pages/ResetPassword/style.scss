@@ -1,0 +1,25 @@
+@use "../../styles/auth-card";
+
+.reset-password-page {
+  flex: 1;
+  width: 100%;
+  padding-block: var(--space-10);
+
+  &__notice {
+    padding: var(--space-6);
+    border-radius: var(--radius-4);
+    background-color: var(--indigo-tint);
+    color: var(--text-secondary);
+    font-size: var(--text-para-sm);
+
+    a {
+      color: var(--color-primary);
+      font-weight: var(--font-weight-medium);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

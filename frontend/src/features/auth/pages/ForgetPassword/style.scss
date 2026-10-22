@@ -5,38 +5,64 @@
   width: 100%;
   padding-block: var(--space-10);
 
-  .forget-password-steps {
-    width: fit-content;
+  .forget-password-sent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding-block: var(--space-6);
+    text-align: center;
 
-    &__dot {
-      width: 24px;
-      height: 4px;
+    &__icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
       border-radius: var(--radius-7);
-      background-color: var(--border-subtle);
-      transition: background-color 0.2s ease;
+      background-color: var(--indigo-tint);
+      color: var(--color-primary);
+    }
 
-      &.is-active {
-        background-color: var(--color-primary);
-      }
+    &__email {
+      font-weight: var(--font-weight-medium);
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    &__hint {
+      font-size: var(--text-para-sm);
+      color: var(--text-secondary);
     }
   }
 
-  .forget-password-back {
-    align-self: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: var(--text-para-sm);
-    color: var(--text-secondary);
+  .forget-password-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding-top: var(--space-10);
 
-    &:hover:not(:disabled) {
-      color: var(--color-primary);
-      text-decoration: underline;
+    .register-button {
+      margin-top: 0;
     }
 
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
+    > span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-3);
+      font-size: var(--text-para-sm);
+      color: var(--text-secondary);
+
+      a {
+        color: var(--color-primary);
+        font-weight: var(--font-weight-medium);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
     }
   }
 }

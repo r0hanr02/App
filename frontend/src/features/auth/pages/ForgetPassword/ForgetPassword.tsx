@@ -1,95 +1,64 @@
 import "./style.scss";
-import { ArrowRight, Layers } from "lucide-react";
+import { ArrowRight, Layers, MailCheck } from "lucide-react";
 import { Form, Label } from "../../../../components/ui/Form/Form";
 import Input from "../../../../components/ui/Input/Input";
 import { Button } from "../../../../components/ui/Button/Button";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ROUTES } from "../../../../constants/routes.constants";
 import { useState } from "react";
 import { toast } from "../../../../components/ui/Toast/toast.api";
-import { useForgetPassword, useResetPassword } from "../../api/forgetPassword.api";
-
-const MIN_PASSWORD_LENGTH = 8;
+import { useForgetPassword } from "../../api/forgetPassword.api";
+import Captcha from "../../components/Captcha/Captcha";
 
 const ForgetPassword = () => {
-  const navigate = useNavigate();
-  const [steps, setSteps] = useState(0);
+  const [email, setEmail] = useState("");
+  const [captcha, setCaptcha] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
-  const { mutate: forgetMutate, isPending: forgetIsPending } =
-    useForgetPassword();
-  const { mutate: resetMutate, isPending: resetIsPending } = useResetPassword();
-
-  const stepper = [
-    {
-      title: "Forgot your password?",
-      subtitle: "We’ll send you a link to get back into your account.",
-    },
-    {
-      title: "Reset your password",
-      subtitle: "Choose a new password for your account.",
-    },
-  ];
+  const { mutate: forgetMutate, isPending } = useForgetPassword();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
     setError(null);
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setEmail(e.target.value);
   };
 
-  const handleSendResetLink = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (forgetIsPending) return;
+  const handleCaptchaChange = (value: string) => {
+    setCaptchaError(null);
+    setCaptcha(value);
+  };
 
-    if (!formData.email.trim()) {
+  const sendResetLink = () => {
+    if (isPending) return;
+
+    if (!email.trim()) {
       setError("Work email is required");
       return;
     }
 
+    if (!captcha.trim()) {
+      setCaptchaError("Captcha answer is required");
+      return;
+    }
+
     forgetMutate(
-      { email: formData.email.trim() },
+      { email: email.trim(), captcha: captcha.trim() },
       {
         onSuccess: (res) => {
           toast.success(res.message, "Check your inbox to continue");
-          setSteps(1);
+          setSentTo(email.trim());
+          setError(null);
+          setCaptchaError(null);
         },
       },
     );
   };
 
-  const handleResetPassword = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (resetIsPending) return;
-
-    if (formData.password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
-      return;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    resetMutate(
-      { password: formData.password },
-      {
-        onSuccess: (res) => {
-          toast.success(res.message);
-          void navigate({ to: ROUTES.LOGIN.path as any });
-        },
-      },
-    );
+    sendResetLink();
   };
-
-  const isPending = steps === 0 ? forgetIsPending : resetIsPending;
 
   return (
     <div className="forget-password-page flex w100 aic jcc fdc g12">
@@ -103,109 +72,90 @@ const ForgetPassword = () => {
           <Layers size={30} color="#6366F1" />
         </div>
 
-        <div className="flex fdc g8">
-          <Label className="title-md">{stepper[steps].title}</Label>
+        {sentTo ? (
+          <>
+            <div className="flex fdc g8">
+              <Label className="title-md">Check your inbox</Label>
+              <Label className="title-xs">
+                We sent a password reset link to your email.
+              </Label>
+            </div>
 
-          <Label className="title-xs">{stepper[steps].subtitle}</Label>
-        </div>
+            <div className="forget-password-sent">
+              <span className="forget-password-sent__icon">
+                <MailCheck size={26} />
+              </span>
+              <span className="forget-password-sent__email">{sentTo}</span>
+              <span className="forget-password-sent__hint">
+                The link expires in 15 minutes and can only be used once.
+              </span>
+            </div>
 
-        <div className="forget-password-steps flex aic g4">
-          {stepper.map((_, index) => (
-            <span
-              key={index}
-              className={`forget-password-steps__dot${
-                index <= steps ? " is-active" : ""
-              }`}
-            />
-          ))}
-        </div>
+            <div className="forget-password-actions">
+              <Captcha
+                value={captcha}
+                onChange={handleCaptchaChange}
+                error={captchaError ?? undefined}
+              />
 
-        {steps === 0 ? (
-          <Form
-            className="register-form g8"
-            onSubmit={handleSendResetLink}
-          >
-            {/* Email */}
-            <Input
-              name="email"
-              type="email"
-              value={formData.email}
-              label="Work Email:"
-              placeholder="Enter Your Work Email"
-              autoComplete="email"
-              error={error ?? undefined}
-              onChange={handleChange}
-            />
-            <Button
-              type="submit"
-              className="register-button flex jcsb"
-              loadingLabel="Sending"
-              isPending={forgetIsPending}
-              rightIcon={<ArrowRight />}
-            >
-              Send reset link
-            </Button>
-            <span>
-              Remember your password?{" "}
-              <Link to={ROUTES.LOGIN.path as any}>Back to login</Link>
-            </span>
-          </Form>
+              <Button
+                type="button"
+                className="register-button flex jcsb"
+                loadingLabel="Sending"
+                isPending={isPending}
+                onPress={sendResetLink}
+              >
+                Resend link
+              </Button>
+              <span>
+                Remember your password?{" "}
+                <Link to={ROUTES.LOGIN.path as any}>Back to login</Link>
+              </span>
+            </div>
+          </>
         ) : (
-          <Form
-            className="register-form g8"
-            onSubmit={handleResetPassword}
-          >
-            {/* New password */}
-            <Input
-              name="password"
-              type="password"
-              value={formData.password}
-              label="New Password:"
-              placeholder="Enter new password"
-              autoComplete="new-password"
-              onChange={handleChange}
-            />
+          <>
+            <div className="flex fdc g8">
+              <Label className="title-md">Forgot your password?</Label>
+              <Label className="title-xs">
+                We’ll send you a link to get back into your account.
+              </Label>
+            </div>
 
-            {/* Confirm password */}
-            <Input
-              name="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              label="Confirm Password:"
-              placeholder="Re-enter new password"
-              autoComplete="new-password"
-              error={error ?? undefined}
-              onChange={handleChange}
-            />
+            <Form className="register-form g8" onSubmit={handleSubmit}>
+              <Input
+                name="email"
+                type="email"
+                value={email}
+                label="Work Email:"
+                placeholder="Enter Your Work Email"
+                autoComplete="email"
+                error={error ?? undefined}
+                onChange={handleChange}
+              />
 
-            <Button
-              type="submit"
-              className="register-button flex jcsb"
-              loadingLabel="Resetting"
-              isPending={resetIsPending}
-              rightIcon={<ArrowRight />}
-            >
-              Reset password
-            </Button>
-            <span>
-              Remember your password?{" "}
-              <Link to={ROUTES.LOGIN.path as any}>Back to login</Link>
-            </span>
-          </Form>
-        )}
+              <Captcha
+                value={captcha}
+                onChange={handleCaptchaChange}
+                error={captchaError ?? undefined}
+              />
 
-        {steps === 1 && (
-          <button
-            type="button"
-            className="forget-password-back"
-            onClick={() => {
-              setError(null);
-              setSteps(0);
-            }}
-            disabled={isPending}
-          >
-            Use a different email
-          </button>
+              <Button
+                type="submit"
+                className="register-button flex jcsb"
+                loadingLabel="Sending"
+                isPending={isPending}
+                rightIcon={<ArrowRight />}
+              >
+                Send reset link
+              </Button>
+
+              <span>
+                Remember your password?{" "}
+                <Link to={ROUTES.LOGIN.path as any}>Back to login</Link>
+              </span>
+            </Form>
+          </>
         )}
       </div>
     </div>

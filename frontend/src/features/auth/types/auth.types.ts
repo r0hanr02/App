@@ -7,6 +7,7 @@ export type logoutResponse = { success: boolean; message: string };
 export interface loginPayload {
   email: string;
   password: string;
+  captcha: string;
 }
 
 export interface ProfileMeResponse {
@@ -43,15 +44,28 @@ export interface UpdateProfileResponse {
 
 export interface forgetPasswordPayload {
   email: string;
+  captcha: string;
 }
 
 export interface resetPasswordPayload {
+  /** Token from the emailed link (?token=...). Falls back to the httpOnly cookie. */
+  token?: string;
   password: string;
 }
 
 export interface AuthMessageResponse {
   success?: boolean;
   message: string;
+}
+
+export interface CaptchaResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    /** base64 encoded png data url */
+    image: string;
+  };
 }
 
 export interface RegisterResponse {
@@ -81,6 +95,7 @@ export type ProfileForm = {
 export type LoginFormData = {
   email: string;
   password: string;
+  captcha: string;
 };
 
 export type RegisterFormData = {
@@ -91,4 +106,5 @@ export type RegisterFormData = {
   password: string;
   phone: string;
   pic: File | null;
+  captcha: string;
 };

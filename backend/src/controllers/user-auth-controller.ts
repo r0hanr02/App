@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { User } from "../models/index.ts";
-import bcrypt from "bcryptjs";
 import {
   generateAccessToken,
   generatePasswordResetToken,
@@ -12,11 +11,10 @@ import type {
 } from "../middlewares/auth-middleware.ts";
 import { AppError, asyncHandler } from "../middlewares/error-middleware.ts";
 import jwt from "jsonwebtoken";
-import { crypto } from "crypto.js";
-
-const saltRound = process.env.SALT_ROUND
-  ? parseInt(process.env.SALT_ROUND)
-  : 10;
+import { comparePassword, hashPassword, INVALID_TOKEN_MESSAGE, isPasswordValid, MIN_PASSWORD_LENGTH, PASSWORD_RESET_COOKIE, passwordResetCookieOptions } from "../utils/password.ts";
+import { hashPasswordResetToken, isPasswordResetTokenValid } from "../utils/crypto.ts";
+import { sendEmail } from "../services/email.service.ts";
+import { CaptchaGenerator, createCaptcha } from "captcha-canvas";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -35,11 +33,11 @@ export const registerUser = asyncHandler(
       throw new AppError("User Already Exists", 409);
     }
 
-    const hashPassword = await bcrypt.hash(password, saltRound);
+    const hashPasswordValue = await hashPassword(password);
     const newUser = await User.create({
       name: name.trim(),
       email: email.trim().toLowerCase(),
-      password: hashPassword,
+      password: hashPasswordValue,
       phone:
         typeof phone === "string" && phone.trim() ? phone.trim() : undefined,
       dateOfBirth,
@@ -76,7 +74,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError("User not found", 404);
   }
 
-  const isMatch = await bcrypt.compare(password, isUserExist.password);
+  const isMatch = await comparePassword(password, isUserExist.password);
 
   if (!isMatch) {
     throw new AppError("Invalid credentials", 401);
@@ -297,73 +295,129 @@ export const updateMe = asyncHandler(
 );
 
 export const forgetPassword = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
-    const { email } = req.body;
-    const isUserExists = await User.findOne({ email });
-    if (!isUserExists) {
+  async (req: Request, res: Response) => {
+    const { email } = req.body ?? {};
+
+    if (typeof email !== "string" || !email.trim()) {
+      throw new AppError("Email is required", 400);
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
       throw new AppError("User Not Found", 404);
     }
-    const passwordToken = generatePasswordResetToken(
-      isUserExists._id!.toString()
+
+    const passwordResetToken = generatePasswordResetToken(user.id);
+
+    user.passwordResetToken = hashPasswordResetToken(passwordResetToken);
+    await user.save();
+
+    // Awaited so a mail failure surfaces as an error instead of an unhandled
+    // rejection while the user is told the email is on its way.
+    await sendEmail(user.email, passwordResetToken);
+
+    // Same browser convenience: the raw token also travels in an httpOnly
+    // cookie so the reset page can work without the emailed link.
+    res.cookie(
+      PASSWORD_RESET_COOKIE,
+      passwordResetToken,
+      passwordResetCookieOptions(),
     );
 
-    const hex = crypto.createHash("sha256").update(passwordToken).digest("hex");
-
-    isUserExists.passwordResetToken = hex;
-    await isUserExists.save();
-
-    res.cookie("passwordResetToken", passwordToken, {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 15 * 60 * 1000,
-      path: "/api/v1/auth",
-    });
     return res.status(200).json({
-      message: "Password reset Link has been sent to your email",
+      success: true,
+      message: "Password reset link has been sent to your email",
     });
-  }
+  },
 );
+
+
+const readToken = (req: Request): string | undefined => {
+  const fromBody = req.body?.token;
+  if (typeof fromBody === "string" && fromBody.trim()) return fromBody.trim();
+
+  const fromQuery = req.query?.token;
+  if (typeof fromQuery === "string" && fromQuery.trim()) return fromQuery.trim();
+
+  const fromCookie = req.cookies?.[PASSWORD_RESET_COOKIE];
+  if (typeof fromCookie === "string" && fromCookie.trim()) return fromCookie.trim();
+
+  return undefined;
+};
+
 
 export const resetPassword = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response, next) => {
-    const { password } = req.body;
-    const passwordResetToken = req.cookies?.passwordResetToken;
+  async (req: Request, res: Response) => {
+    const { password } = req.body ?? {};
+    const passwordResetToken = readToken(req);
 
     if (!passwordResetToken) {
-      throw new AppError("Token Not Found", 404);
+      throw new AppError("Reset token not found", 400);
     }
 
-    const decoded = jwt.verify(
-      passwordResetToken!,
-      process.env.PASSWORD_RESET_TOKEN_KEY!
-    ) as decodedPayload;
+    if (!isPasswordValid(password)) {
+      throw new AppError(
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters long`,
+        400,
+      );
+    }
+
+    let decoded: decodedPayload;
+
+    try {
+      decoded = jwt.verify(
+        passwordResetToken,
+        process.env.PASSWORD_RESET_TOKEN_KEY!,
+      ) as decodedPayload;
+    } catch {
+      throw new AppError(INVALID_TOKEN_MESSAGE, 401);
+    }
 
     if (typeof decoded === "string" || !decoded.id) {
-      return next(new AppError("Session Expired", 401));
+      throw new AppError(INVALID_TOKEN_MESSAGE, 401);
     }
 
-    const hashPassword = await bcrypt.hash(password, saltRound);
-    const user = await User.findById(decoded.id);
-    console.log(user);
+    const user = await User.findById(decoded.id).select("+passwordResetToken");
 
-    if (user) {
-      user.password = hashPassword;
-      user.passwordResetToken = "";
-      await user.save();
+    if (!user) {
+      throw new AppError("User Not Found", 404);
     }
 
-    res.clearCookie("passwordResetToken", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-      path: "/api/v1/auth",
-    });
+    // The token is single use: it must still match the hash stored on the user.
+    if (
+      !isPasswordResetTokenValid(passwordResetToken, user.passwordResetToken)
+    ) {
+      throw new AppError(
+        "Reset link is invalid or has already been used",
+        400,
+      );
+    }
+
+    user.password = await hashPassword(password);
+    user.passwordResetToken = "";
+    // Force a fresh login with the new credentials.
+    user.refreshToken = "";
+    await user.save();
+
+    res.clearCookie(PASSWORD_RESET_COOKIE, passwordResetCookieOptions());
 
     return res.status(200).json({
-      message: "your password has been changed! try login again",
+      success: true,
+      message: "Your password has been changed, please login again",
     });
-  }
+  },
 );
+export const captchaGenerator= asyncHandler(async(req,res)=>{
+  
+  const captcha = new CaptchaGenerator()
+    .setDimension(150, 400)
+    .setCaptcha({ characters: 6, size: 60 })
+    .setTrace({ color: "#ff0000" });
 
-export const captchaGenerator= asyncHandler((req,res)=>{})
+  const buffer = captcha.generateSync();
+
+  console.log(buffer)
+})

@@ -23,6 +23,12 @@ export const ROUTES = {
     requireOrg: false,
     orgScoped: false,
   },
+  RESETPASSWORD:{
+    path:"/reset-password",
+    requiresAuth: false,
+    requireOrg: false,
+    orgScoped: false,
+  },
   NOORGANIZATION: {
     path: "/no-organization",
     requiresAuth: true,

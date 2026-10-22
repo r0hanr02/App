@@ -9,6 +9,7 @@ import { useRegisterUserProfile } from "../../api/register.api";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { ROUTES } from "../../../../constants/routes.constants";
 import type { RegisterFormData } from "../../types";
+import Captcha from "../../components/Captcha/Captcha";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -20,7 +21,9 @@ const Register = () => {
     password: "",
     phone: "",
     pic: null,
+    captcha: "",
   });
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
 
   const { mutate: registerMutate, isPending: registerIsPending } =
     useRegisterUserProfile();
@@ -62,13 +65,28 @@ const Register = () => {
     };
   }, [formData.pic]);
 
+  const handleCaptchaChange = (value: string) => {
+    setCaptchaError(null);
+    setFormData((prev) => ({
+      ...prev,
+      captcha: value,
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!formData.captcha.trim()) {
+      setCaptchaError("Captcha answer is required");
+      return;
+    }
+
     const fd = new FormData();
     fd.append("name", formData.name);
     fd.append("email", formData.email);
     fd.append("password", formData.password);
     fd.append("phone", formData.phone);
+    fd.append("captcha", formData.captcha.trim());
 
     if (formData.dob) {
       fd.append("dateOfBirth", formData.dob);
@@ -181,6 +199,13 @@ const Register = () => {
             value={formData.password}
             label="Password:"
             onChange={handleChange}
+          />
+
+          {/* Captcha */}
+          <Captcha
+            value={formData.captcha}
+            onChange={handleCaptchaChange}
+            error={captchaError ?? undefined}
           />
 
           <Button

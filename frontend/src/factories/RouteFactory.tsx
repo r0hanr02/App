@@ -65,7 +65,12 @@ export function createAppRoutes(rootRoute: AnyRootRoute) {
       beforeLoad: async ({ context, params }) => {
         const routeDef = ROUTES[key];
 
-        if (key === "LOGIN" || key === "REGISTER" || key === "FORGETPASSWORD") {
+        if (
+          key === "LOGIN" ||
+          key === "REGISTER" ||
+          key === "FORGETPASSWORD" ||
+          key === "RESETPASSWORD"
+        ) {
           return;
         }
 

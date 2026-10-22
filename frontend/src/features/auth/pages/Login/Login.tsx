@@ -12,6 +12,7 @@ import { ROUTES } from "../../../../constants/routes.constants";
 import { queryClient } from "../../../../lib/queryClient";
 import { userOrganizationQueryOptions } from "../../../home/api/home.api";
 import type { LoginFormData } from "../../types";
+import Captcha from "../../components/Captcha/Captcha";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,7 +21,9 @@ const Login = () => {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
+    captcha: "",
   });
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   // const userData = useStore((s)=>s.data)
   // HOME is org-scoped ("/$orgSlug") — resolve the slug before navigating.
   const goHomeWithOrg = async () => {
@@ -43,6 +46,7 @@ const Login = () => {
       await navigate({ to: ROUTES.NOORGANIZATION.path as any });
     }
   };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -51,16 +55,33 @@ const Login = () => {
     }));
   };
 
+  const handleCaptchaChange = (value: string) => {
+    setCaptchaError(null);
+    setFormData((prev) => ({
+      ...prev,
+      captcha: value,
+    }));
+  };
+
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loginIsPending) return;
-    loginMutate(formData, {
-      onSuccess: (res) => {
-        toast.success("Login successful");
-        useStore.getState().setData(res);
-        void goHomeWithOrg();
+
+    if (!formData.captcha.trim()) {
+      setCaptchaError("Captcha answer is required");
+      return;
+    }
+
+    loginMutate(
+      { ...formData, captcha: formData.captcha.trim() },
+      {
+        onSuccess: (res) => {
+          toast.success("Login successful");
+          useStore.getState().setData(res);
+          void goHomeWithOrg();
+        },
       },
-    });
+    );
   };
 
   useEffect(() => {
@@ -120,6 +141,12 @@ const Login = () => {
             Forgot Password?
           </Link>
 
+          <Captcha
+            value={formData.captcha}
+            onChange={handleCaptchaChange}
+            error={captchaError ?? undefined}
+          />
+
           <Button
             type="submit"
             className="register-button flex jcsb"
@@ -129,21 +156,20 @@ const Login = () => {
           >
             Login
           </Button>
-        
-            <span>
-              New to Orbit?{" "}
-              <Link
-                // to={"register" as any}
-                to={ROUTES.REGISTER.path as any}
-                style={{
-                  textDecoration: "none",
-                  color: "var(--color-primary)",
-                }}
-              >
-                Create an Account
-              </Link>
-            </span>
-          
+
+          <span>
+            New to Orbit?{" "}
+            <Link
+              // to={"register" as any}
+              to={ROUTES.REGISTER.path as any}
+              style={{
+                textDecoration: "none",
+                color: "var(--color-primary)",
+              }}
+            >
+              Create an Account
+            </Link>
+          </span>
         </form>
       </div>
     </div>

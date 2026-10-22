@@ -32,5 +32,8 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   FORGETPASSWORD: lazy(
     () => import("../features/auth/pages/ForgetPassword/ForgetPassword"),
   ),
+  RESETPASSWORD: lazy(
+    () => import("../features/auth/pages/ResetPassword/ResetPassword"),
+  ),
   // settings page component
 };

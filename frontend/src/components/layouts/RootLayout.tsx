@@ -9,6 +9,7 @@ const HIDE_NAVBAR_PATHS: string[] = [
   ROUTES.REGISTER.path,
   ROUTES.ONBOARDING.path,
   ROUTES.FORGETPASSWORD.path,
+  ROUTES.RESETPASSWORD.path,
 ];
 const hideSidebarPaths = new Set<string>([
   ROUTES.LOGIN.path,
@@ -16,6 +17,7 @@ const hideSidebarPaths = new Set<string>([
   ROUTES.ONBOARDING.path,
   ROUTES.NOORGANIZATION.path,
   ROUTES.FORGETPASSWORD.path,
+  ROUTES.RESETPASSWORD.path,
 ]);
 
 const RootLayout = () => {

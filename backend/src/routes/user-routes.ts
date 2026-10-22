@@ -1,27 +1,35 @@
 import express from "express";
 import {
   authMe,
-  forgetPassword,
   loginUser,
   logout,
   refreshToken,
   registerUser,
-  resetPassword,
   updateMe,
 } from "../controllers/user-auth-controller.ts";
+import { forgetPassword } from "../controllers/forget-password-controller.ts";
+import { resetPassword } from "../controllers/reset-password-controller.ts";
+import { captchaGenerator } from "../controllers/captcha-controller.ts";
 import { upload } from "../middlewares/upload-middleware.ts";
 import authMiddleware from "../middlewares/auth-middleware.ts";
+import { captchaMiddleware } from "../middlewares/captcha-middleware.ts";
 
 const router = express.Router();
 
 // router.route("/register").post(registerUser);
-router.post("/register", upload.single("profilepic"), registerUser);
-router.post("/login", loginUser);
+router.post(
+  "/register",
+  upload.single("profilepic"),
+  captchaMiddleware,
+  registerUser,
+);
+router.post("/login", captchaMiddleware, loginUser);
 router.post("/logout", logout);
 router.post("/refresh", refreshToken);
 router.get("/me", authMe);
 router.patch("/me", authMiddleware, upload.single("profilepic"), updateMe);
-router.post("/forgot-password",forgetPassword)
-router.patch("/reset-password",resetPassword)
+router.get("/captcha", captchaGenerator);
+router.post("/forgot-password", captchaMiddleware, forgetPassword);
+router.patch("/reset-password", resetPassword);
 
 export default router;

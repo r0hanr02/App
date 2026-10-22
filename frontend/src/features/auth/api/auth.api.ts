@@ -33,7 +33,7 @@ export const authMe = async () => {
 const cleanupAndRedirect = () => {
   queryClient.clear();
   useStore.getState().clearData();
-  router.navigate({ to: ROUTES.LOGIN.path });
+  router.navigate({ to: ROUTES.LOGIN.path as any});
 };
 
 export const useHandleLogout = () => {

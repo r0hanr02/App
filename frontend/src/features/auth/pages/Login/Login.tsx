@@ -43,7 +43,7 @@ const Login = () => {
         await navigate({ to: ROUTES.NOORGANIZATION.path as any });
       }
     } catch {
-      await navigate({ to: ROUTES.NOORGANIZATION.path as any });
+      await navigate({ to: ROUTES.HOME.path as any });
     }
   };
 

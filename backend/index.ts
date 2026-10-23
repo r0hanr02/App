@@ -3,14 +3,18 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { connectDb } from "./src/db/db.ts";
-import { OrgRouter, ProjectRouter, TaskRouter, UserRouter } from "./src/modules/index.ts";
-import cookieParser from "cookie-parser";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./src/docs/swagger.ts";
 import pinoHttp from "pino-http";
 import { logger } from "./src/utils/logger.ts";
 import { errorHandler, notFound } from "./src/middlewares/error-middleware.ts";
-
+import cookieParser from "cookie-parser";
+import {
+  OrgRouter,
+  ProjectRouter,
+  TaskRouter,
+  UserRouter,
+} from "./src/modules/index.ts";
 
 const app = express();
 
@@ -23,6 +27,7 @@ app.use(
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    //  Access-Control-Allow-Origin: *
   })
 );
 
@@ -31,7 +36,6 @@ app.use(
     logger,
   })
 );
-
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,8 +60,10 @@ app.use(notFound);
 app.use(errorHandler);
 
 connectDb().then(() => {
-  app.listen(process.env.PORT || 8000, () => {
+  app.listen(Number(process.env.PORT) || 8000, process.env.HOST ?? "localhost", () => {
     console.log(`Server is running on port ${process.env.PORT || 8000}`);
-    console.log(`For Documentation : http://localhost:8000/api/v1/docs`);
+    console.log(
+      `For Documentation : http://${process.env.HOST || "localhost"}:8000/api/v1/docs`
+    );
   });
 });

@@ -55,6 +55,7 @@ export const swaggerSpec = swaggerJsdoc({
     },
     servers: [
       { url: "http://localhost:8000", description: "Local server" },
+      { url: "http://10.10.10.21:8000", description: "Development server" },
     ],
     tags: [
       { name: "Auth", description: "Register, login, logout, refresh, session" },

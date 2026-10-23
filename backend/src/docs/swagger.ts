@@ -545,7 +545,6 @@ export const swaggerSpec = swaggerJsdoc({
                           id: { type: "string", example: "9f1c0f6e-2b8a-4f0e-9a1b-1f2c3d4e5f60" },
                           image: {
                             type: "string",
-                            format: "byte",
                             description: "Base64 data URL of the captcha image",
                             example: "data:image/svg+xml;base64,PHN2Zy...",
                           },

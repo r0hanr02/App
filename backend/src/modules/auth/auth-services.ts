@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { AppError } from "../../middlewares/error-middleware";
+import { AppError } from "../../middlewares/error-middleware.ts";
 import type { decodedPayload } from "../../middlewares/auth-middleware.ts";
 import { sendEmail } from "../../services/email.service.ts";
 import { hashPasswordResetToken, isPasswordResetTokenValid } from "../../utils/crypto.ts";

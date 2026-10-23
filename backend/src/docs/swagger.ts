@@ -62,6 +62,7 @@ export const swaggerSpec = swaggerJsdoc({
       { name: "Organization", description: "Organizations and members" },
       { name: "Project", description: "Projects and project members" },
       { name: "Task", description: "Tasks" },
+      { name: "Health", description: "Service health" },
     ],
     components: {
       securitySchemes: {
@@ -122,6 +123,17 @@ export const swaggerSpec = swaggerJsdoc({
             profilepic: { type: "string", example: "uploads/profile-123.jpg" },
           },
         },
+        AuthUserSummary: {
+          type: "object",
+          description: "Subset returned by POST /auth/register",
+          properties: {
+            id: { type: "string", example: "68c123456789abcdef123456" },
+            name: { type: "string", example: "Rohan" },
+            email: { type: "string", format: "email", example: "rohan@example.com" },
+            occupation: { type: "string", example: "Senior software engineer" },
+            profilepic: { type: "string", example: "uploads/profile-123.jpg" },
+          },
+        },
         Organization: {
           type: "object",
           properties: {
@@ -146,9 +158,10 @@ export const swaggerSpec = swaggerJsdoc({
         },
         OrganizationMemberPopulated: {
           type: "object",
+          description: "Member row with `user_id` populated (GET /organization/{organizationId}/member)",
           properties: {
             _id: { type: "string" },
-            organization_id: { $ref: "#/components/schemas/Organization" },
+            organization_id: { type: "string" },
             user_id: {
               type: "object",
               properties: {
@@ -160,11 +173,25 @@ export const swaggerSpec = swaggerJsdoc({
             role: { type: "string", enum: ["OWNER", "ADMIN", "MEMBER"] },
           },
         },
+        OrganizationMembershipPopulated: {
+          type: "object",
+          description:
+            "Membership row with `organization_id` populated (GET /organization)",
+          properties: {
+            _id: { type: "string" },
+            organization_id: { $ref: "#/components/schemas/Organization" },
+            user_id: { type: "string" },
+            role: { type: "string", enum: ["OWNER", "ADMIN", "MEMBER"] },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
         Project: {
           type: "object",
           properties: {
             _id: { type: "string" },
             project_name: { type: "string", example: "Website Revamp" },
+            project_description: { type: "string", example: "Rebuild the marketing site" },
             organization_id: { type: "string" },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
@@ -176,6 +203,25 @@ export const swaggerSpec = swaggerJsdoc({
             _id: { type: "string" },
             project_id: { type: "string" },
             user_id: { type: "string" },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        ProjectMemberPopulated: {
+          type: "object",
+          description:
+            "Project member row with `user_id` populated (GET .../members)",
+          properties: {
+            _id: { type: "string" },
+            project_id: { type: "string" },
+            user_id: {
+              type: "object",
+              properties: {
+                _id: { type: "string" },
+                name: { type: "string" },
+                email: { type: "string" },
+              },
+            },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
           },
@@ -203,6 +249,50 @@ export const swaggerSpec = swaggerJsdoc({
             organization_id: { type: "string" },
             creator_id: { type: "string" },
             assignee_id: { type: "string", nullable: true },
+            is_deleted: { type: "boolean", example: false },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        TaskPopulated: {
+          type: "object",
+          description:
+            "Task with `assignee_id` and `creator_id` populated with `name`",
+          properties: {
+            _id: { type: "string" },
+            task_name: { type: "string", example: "Fix login bug" },
+            description: { type: "string", example: "Login fails on expired token" },
+            status: {
+              type: "string",
+              enum: ["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE", "CANCELLED"],
+            },
+            priority: {
+              type: "string",
+              enum: ["Low", "Medium", "High", "Critical"],
+            },
+            type: {
+              type: "string",
+              enum: ["Feature", "Bug", "Improvement", "Task", "Documentation"],
+            },
+            due_date: { type: "string", format: "date-time", nullable: true },
+            project_id: { type: "string" },
+            organization_id: { type: "string" },
+            creator_id: {
+              type: "object",
+              nullable: true,
+              properties: {
+                _id: { type: "string" },
+                name: { type: "string" },
+              },
+            },
+            assignee_id: {
+              type: "object",
+              nullable: true,
+              properties: {
+                _id: { type: "string" },
+                name: { type: "string" },
+              },
+            },
             is_deleted: { type: "boolean", example: false },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
@@ -248,7 +338,7 @@ export const swaggerSpec = swaggerJsdoc({
                     properties: {
                       success: { type: "boolean", example: true },
                       message: { type: "string", example: "User Created Successfully" },
-                      data: { $ref: "#/components/schemas/AuthUser" },
+                      data: { $ref: "#/components/schemas/AuthUserSummary" },
                     },
                   },
                 },
@@ -263,6 +353,8 @@ export const swaggerSpec = swaggerJsdoc({
       "/api/v1/auth/login": {
         post: {
           summary: "Login",
+          description:
+            "Requires a valid captcha. Sets an httpOnly `refreshToken` cookie (path `/api/v1/auth`).",
           tags: ["Auth"],
           requestBody: {
             required: true,
@@ -270,10 +362,11 @@ export const swaggerSpec = swaggerJsdoc({
               "application/json": {
                 schema: {
                   type: "object",
-                  required: ["email", "password"],
+                  required: ["email", "password", "captcha"],
                   properties: {
                     email: { type: "string", format: "email", example: "rohan@example.com" },
                     password: { type: "string", format: "password", example: "Password123" },
+                    captcha: { type: "string", example: "11" },
                   },
                 },
               },
@@ -434,7 +527,7 @@ export const swaggerSpec = swaggerJsdoc({
         get: {
           summary: "Generate a captcha challenge",
           description:
-            "Returns a math question and sets the signed answer in the httpOnly `captchaToken` cookie. Send the answer back as `captcha` on the protected endpoints.",
+            "Returns a captcha image (base64 data URL) and sets the signed answer in the httpOnly `captchaToken` cookie. Send the answer back as `captcha` on the protected endpoints.",
           tags: ["Auth"],
           responses: {
             200: {
@@ -450,7 +543,12 @@ export const swaggerSpec = swaggerJsdoc({
                         type: "object",
                         properties: {
                           id: { type: "string", example: "9f1c0f6e-2b8a-4f0e-9a1b-1f2c3d4e5f60" },
-                          question: { type: "string", example: "4 + 7" },
+                          image: {
+                            type: "string",
+                            format: "byte",
+                            description: "Base64 data URL of the captcha image",
+                            example: "data:image/svg+xml;base64,PHN2Zy...",
+                          },
                         },
                       },
                     },
@@ -618,7 +716,9 @@ export const swaggerSpec = swaggerJsdoc({
                       message: { type: "string" },
                       data: {
                         type: "array",
-                        items: { $ref: "#/components/schemas/OrganizationMember" },
+                        items: {
+                          $ref: "#/components/schemas/OrganizationMembershipPopulated",
+                        },
                       },
                     },
                   },
@@ -988,6 +1088,10 @@ export const swaggerSpec = swaggerJsdoc({
                   required: ["project_name"],
                   properties: {
                     project_name: { type: "string", example: "Website Revamp" },
+                    project_description: {
+                      type: "string",
+                      example: "Rebuild the marketing site",
+                    },
                   },
                 },
               },
@@ -1196,7 +1300,12 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { type: "array", items: { type: "object" } },
+                      data: {
+                        type: "array",
+                        items: {
+                          $ref: "#/components/schemas/ProjectMemberPopulated",
+                        },
+                      },
                     },
                   },
                 },
@@ -1273,7 +1382,7 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { $ref: "#/components/schemas/Task" },
+                      data: { $ref: "#/components/schemas/TaskPopulated" },
                     },
                   },
                 },
@@ -1310,7 +1419,7 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { type: "array", items: { $ref: "#/components/schemas/Task" } },
+                      data: { type: "array", items: { $ref: "#/components/schemas/TaskPopulated" } },
                       pagination: { $ref: "#/components/schemas/Pagination" },
                     },
                   },
@@ -1339,7 +1448,7 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { $ref: "#/components/schemas/Task" },
+                      data: { $ref: "#/components/schemas/TaskPopulated" },
                     },
                   },
                 },
@@ -1385,7 +1494,7 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { $ref: "#/components/schemas/Task" },
+                      data: { $ref: "#/components/schemas/TaskPopulated" },
                     },
                   },
                 },
@@ -1455,7 +1564,7 @@ export const swaggerSpec = swaggerJsdoc({
                     type: "object",
                     properties: {
                       message: { type: "string" },
-                      data: { $ref: "#/components/schemas/Task" },
+                      data: { $ref: "#/components/schemas/TaskPopulated" },
                     },
                   },
                 },
@@ -1466,6 +1575,30 @@ export const swaggerSpec = swaggerJsdoc({
             403: errorRef("Forbidden"),
             404: errorRef("Task/assignee not found"),
             500: errorRef("Server error"),
+          },
+        },
+      },
+
+      // ---------------- Health ----------------
+      "/api/v1/health": {
+        get: {
+          summary: "Health check",
+          tags: ["Health"],
+          responses: {
+            200: {
+              description: "Service is healthy",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      success: { type: "boolean", example: true },
+                      message: { type: "string", example: "OK" },
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       },

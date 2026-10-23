@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { AppError } from "../../middlewares/error-middleware";
+import { AppError } from "../../middlewares/error-middleware.ts";
 import { Project, ProjectMember } from "./project-model.ts";
 import { OrganizationMember } from "../organization/organization-model.ts";
 import { User } from "../auth/user-model.ts";

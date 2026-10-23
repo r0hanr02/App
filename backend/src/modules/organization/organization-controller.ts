@@ -1,6 +1,6 @@
 import type { Response } from "express";
-import type { AuthenticatedRequest } from "../../middlewares/auth-middleware";
-import { asyncHandler } from "../../middlewares/error-middleware";
+import type { AuthenticatedRequest } from "../../middlewares/auth-middleware.ts";
+import { asyncHandler } from "../../middlewares/error-middleware.ts";
 import type {
   AddMemberInput,
   CreateOrganizationInput,

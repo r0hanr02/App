@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { AppError, asyncHandler } from "../../middlewares/error-middleware";
+import { AppError, asyncHandler } from "../../middlewares/error-middleware.ts";
 import type {
   AuthenticatedRequest,
-} from "../../middlewares/auth-middleware";
+} from "../../middlewares/auth-middleware.ts";
 import type { LoginUserInput, UpdateMeInput } from "./auth.types.ts";
 import {
   authMeServices,

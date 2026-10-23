@@ -6,21 +6,16 @@ import type {
 import type { LoginUserInput, UpdateMeInput } from "./auth.types.ts";
 import {
   authMeServices,
-  forgetPasswordServices,
   loginUserServices,
   logoutUserServices,
   refreshTokenServices,
   registerUserService,
-  resetPasswordServices,
   updateMeServices,
 } from "./auth-services.ts";
 import {
   addRefreshTokenCookie,
-  addPasswordResetTokenCookie,
   removeRefreshTokenCookie,
-  removePasswordResetCookie,
 } from "../../utils/cookies.ts";
-import { PASSWORD_RESET_COOKIE } from "../../utils/password.ts";
 
 export const registerUser = asyncHandler(
   async (req: Request, res: Response) => {
@@ -173,58 +168,6 @@ export const updateMe = asyncHandler(
       success: true,
       message: "User Updated successfully",
       data: updatedUser,
-    });
-  }
-);
-
-const readToken = (req: Request): string | undefined => {
-  const fromBody = req.body?.token;
-  if (typeof fromBody === "string" && fromBody.trim()) return fromBody.trim();
-
-  const fromQuery = req.query?.token;
-  if (typeof fromQuery === "string" && fromQuery.trim())
-    return fromQuery.trim();
-
-  const fromCookie = req.cookies?.[PASSWORD_RESET_COOKIE];
-  if (typeof fromCookie === "string" && fromCookie.trim())
-    return fromCookie.trim();
-
-  return undefined;
-};
-
-export const forgetPassword = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { email } = req.body ?? {};
-
-    if (typeof email !== "string" || !email.trim()) {
-      throw new AppError("Email is required", 400);
-    }
-
-    const { passwordResetToken } = await forgetPasswordServices(email);
-
-    // Same browser convenience: the raw token also travels in an httpOnly
-    // cookie so the reset page can work without the emailed link.
-    addPasswordResetTokenCookie(res, passwordResetToken);
-
-    return res.status(200).json({
-      success: true,
-      message: "Password reset link has been sent to your email",
-    });
-  }
-);
-
-export const resetPassword = asyncHandler(
-  async (req: Request, res: Response) => {
-    const { password } = req.body ?? {};
-    const passwordResetToken = readToken(req);
-
-    await resetPasswordServices(password, passwordResetToken);
-
-    removePasswordResetCookie(res);
-
-    return res.status(200).json({
-      success: true,
-      message: "Your password has been changed, please login again",
     });
   }
 );

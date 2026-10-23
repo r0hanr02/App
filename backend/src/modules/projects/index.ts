@@ -10,3 +10,13 @@ export {
   removeMemberFromProject,
   deleteProject,
 } from "./project-controller.ts";
+export {
+  createProjectServices,
+  getAllProjectServices,
+  getProjectServices,
+  updateProjectServices,
+  addMemberInProjectServices,
+  getAllMemberInProjectServices,
+  removeMemberFromProjectServices,
+  deleteProjectServices,
+} from "./project-services.ts";

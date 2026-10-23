@@ -13,3 +13,11 @@ export {
   updateTask,
   deleteTask,
 } from "./task-controller.ts";
+export {
+  createTaskServices,
+  getTaskDetailsServices,
+  getAllTaskServices,
+  assignTaskServices,
+  updateTaskServices,
+  deleteTaskServices,
+} from "./task-services.ts";

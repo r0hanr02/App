@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ParamsDictionary } from "express-serve-static-core";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { User } from "../models/index.ts";
+import { User } from "../modules/auth/user-model.ts";
 import { AppError } from "./error-middleware.ts";
 
 export type AuthenticatedRequest<TParams = ParamsDictionary> = Request<TParams> & {

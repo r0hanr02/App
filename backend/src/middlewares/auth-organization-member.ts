@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "./auth-middleware";
-import { Organization, OrganizationMember } from "../models/index.ts";
+import { Organization, OrganizationMember } from "../modules/organization/organization-model.ts";
 import mongoose from "mongoose";
 import { AppError } from "./error-middleware.ts";
 

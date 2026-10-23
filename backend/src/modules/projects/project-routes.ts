@@ -1,7 +1,7 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth-middleware.ts";
-import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
-import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
+import authMiddleware from "../../middlewares/auth-middleware.ts";
+import { requireOrganizationMember } from "../../middlewares/auth-organization-member.ts";
+import { requireOrganizationRole } from "../../middlewares/auth-required-role.ts";
 import {
   addMemberInProject,
   createProject,
@@ -11,8 +11,8 @@ import {
   getAllMemberInProject,
   removeMemberFromProject,
   deleteProject,
-} from "../controllers/project-controller.ts";
-import { requireProjectAccess } from "../middlewares/auth-project-member.ts";
+} from "./project-controller.ts";
+import { requireProjectAccess } from "../../middlewares/auth-project-member.ts";
 
 const router = express.Router();
 

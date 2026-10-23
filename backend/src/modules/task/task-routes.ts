@@ -1,9 +1,9 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth-middleware.ts";
-import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
-import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
-import { requireProjectAccess } from "../middlewares/auth-project-member.ts";
-import { requireTaskAccess } from "../middlewares/auth-task-access.ts";
+import authMiddleware from "../../middlewares/auth-middleware.ts";
+import { requireOrganizationMember } from "../../middlewares/auth-organization-member.ts";
+import { requireOrganizationRole } from "../../middlewares/auth-required-role.ts";
+import { requireProjectAccess } from "../../middlewares/auth-project-member.ts";
+import { requireTaskAccess } from "../../middlewares/auth-task-access.ts";
 import {
   assignTask,
   createTask,
@@ -11,7 +11,7 @@ import {
   getAllTask,
   getTaskDetails,
   updateTask,
-} from "../controllers/task-controller.ts";
+} from "./task-controller.ts";
 
 const router = express.Router();
 router.post(

@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth-middleware.ts";
+import authMiddleware from "../../middlewares/auth-middleware.ts";
 import {
   addMember,
   changeMemberRole,
@@ -12,10 +12,10 @@ import {
   removeMember,
   transferOwnership,
   updateOrganizationData,
-} from "../controllers/organization-controller.ts";
-import { requireOrganizationMember } from "../middlewares/auth-organization-member.ts";
-import { requireOrganizationRole } from "../middlewares/auth-required-role.ts";
-import { upload } from "../middlewares/upload-middleware.ts";
+} from "./organization-controller.ts";
+import { requireOrganizationMember } from "../../middlewares/auth-organization-member.ts";
+import { requireOrganizationRole } from "../../middlewares/auth-required-role.ts";
+import { upload } from "../../middlewares/upload-middleware.ts";
 
 const router = express.Router();
 

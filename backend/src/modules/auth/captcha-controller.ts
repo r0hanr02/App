@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import { asyncHandler } from "../middlewares/error-middleware.ts";
+import { asyncHandler } from "../../middlewares/error-middleware.ts";
 import {
   CAPTCHA_COOKIE,
   CAPTCHA_TTL_MS,
   generateCaptcha,
-} from "../utils/captcha.ts";
+} from "../../utils/captcha.ts";
 
 /**
  * GET /api/v1/auth/captcha

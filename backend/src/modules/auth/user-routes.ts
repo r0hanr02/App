@@ -6,13 +6,13 @@ import {
   refreshToken,
   registerUser,
   updateMe,
-} from "../controllers/user-auth-controller.ts";
-import { forgetPassword } from "../controllers/forget-password-controller.ts";
-import { resetPassword } from "../controllers/reset-password-controller.ts";
-import { captchaGenerator } from "../controllers/captcha-controller.ts";
-import { upload } from "../middlewares/upload-middleware.ts";
-import authMiddleware from "../middlewares/auth-middleware.ts";
-import { captchaMiddleware } from "../middlewares/captcha-middleware.ts";
+} from "./user-auth-controller.ts";
+import { forgetPassword } from "./forget-password-controller.ts";
+import { resetPassword } from "./reset-password-controller.ts";
+import { captchaGenerator } from "./captcha-controller.ts";
+import { upload } from "../../middlewares/upload-middleware.ts";
+import authMiddleware from "../../middlewares/auth-middleware.ts";
+import { captchaMiddleware } from "../../middlewares/captcha-middleware.ts";
 
 const router = express.Router();
 

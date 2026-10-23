@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import type { AuthenticatedRequest } from "./auth-middleware";
-import { Task } from "../models/index.ts";
+import { Task } from "../modules/task/task-model.ts";
 import { AppError } from "./error-middleware.ts";
 import mongoose from "mongoose";
 

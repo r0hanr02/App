@@ -8,6 +8,7 @@ import {
   VALID_TASK_STATUSES,
   VALID_TASK_TYPES,
 } from "./task-model.ts";
+import { createTaskAssignedNotification } from "../notifications/notification-controller.ts";
 
 export interface CreateTaskInput {
   task_name?: unknown;
@@ -59,7 +60,10 @@ const requireValidObjectId = (value: unknown, message: string): string => {
 };
 
 const assertStatus = (status: unknown) => {
-  if (typeof status !== "string" || !(VALID_TASK_STATUSES as readonly string[]).includes(status)) {
+  if (
+    typeof status !== "string" ||
+    !(VALID_TASK_STATUSES as readonly string[]).includes(status)
+  ) {
     throw new AppError(
       `Status must be one of: ${VALID_TASK_STATUSES.join(", ")}`,
       400
@@ -68,7 +72,10 @@ const assertStatus = (status: unknown) => {
 };
 
 const assertPriority = (priority: unknown) => {
-  if (typeof priority !== "string" || !(VALID_TASK_PRIORITIES as readonly string[]).includes(priority)) {
+  if (
+    typeof priority !== "string" ||
+    !(VALID_TASK_PRIORITIES as readonly string[]).includes(priority)
+  ) {
     throw new AppError(
       `Priority must be one of: ${VALID_TASK_PRIORITIES.join(", ")}`,
       400
@@ -77,7 +84,10 @@ const assertPriority = (priority: unknown) => {
 };
 
 const assertType = (type: unknown) => {
-  if (typeof type !== "string" || !(VALID_TASK_TYPES as readonly string[]).includes(type)) {
+  if (
+    typeof type !== "string" ||
+    !(VALID_TASK_TYPES as readonly string[]).includes(type)
+  ) {
     throw new AppError(
       `Type must be one of: ${VALID_TASK_TYPES.join(", ")}`,
       400
@@ -104,7 +114,10 @@ const assertAssignee = async (
     return null;
   }
 
-  if (typeof assignee_id !== "string" || !mongoose.Types.ObjectId.isValid(assignee_id)) {
+  if (
+    typeof assignee_id !== "string" ||
+    !mongoose.Types.ObjectId.isValid(assignee_id)
+  ) {
     throw new AppError("Invalid assignee id", 400);
   }
   const user = await User.findById(assignee_id);
@@ -116,10 +129,7 @@ const assertAssignee = async (
     user_id: assignee_id,
   });
   if (!membership) {
-    throw new AppError(
-      "Assignee must be a member of this organization",
-      400
-    );
+    throw new AppError("Assignee must be a member of this organization", 400);
   }
   return assignee_id;
 };
@@ -201,6 +211,11 @@ export const createTaskServices = async (
   const newTask = await Task.create(taskData);
   const populated = await populateTask(newTask._id);
 
+  createTaskAssignedNotification({
+    recipientId: taskData.assignee_id,
+    taskId: newTask._id,
+    taskTitle: newTask.task_name,
+  });
   return populated ?? newTask;
 };
 

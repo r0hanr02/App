@@ -306,7 +306,6 @@ export const swaggerSpec = swaggerJsdoc({
       "/api/v1/auth/register": {
         post: {
           summary: "Register a new user",
-          description: "Requires a valid captcha.",
           tags: ["Auth"],
           requestBody: {
             required: true,
@@ -314,12 +313,11 @@ export const swaggerSpec = swaggerJsdoc({
               "multipart/form-data": {
                 schema: {
                   type: "object",
-                  required: ["name", "email", "password", "captcha"],
+                  required: ["name", "email", "password"],
                   properties: {
                     name: { type: "string", example: "Rohan" },
                     email: { type: "string", format: "email", example: "rohan@example.com" },
                     password: { type: "string", format: "password", example: "Password123" },
-                    captcha: { type: "string", example: "11" },
                     phone: { type: "string", example: "9876543210" },
                     dateOfBirth: { type: "string", example: "2000-01-15" },
                     occupation: { type: "string", example: "Senior software engineer" },
@@ -354,8 +352,7 @@ export const swaggerSpec = swaggerJsdoc({
       "/api/v1/auth/login": {
         post: {
           summary: "Login",
-          description:
-            "Requires a valid captcha. Sets an httpOnly `refreshToken` cookie (path `/api/v1/auth`).",
+          description: "Sets an httpOnly `refreshToken` cookie (path `/api/v1/auth`).",
           tags: ["Auth"],
           requestBody: {
             required: true,
@@ -363,11 +360,10 @@ export const swaggerSpec = swaggerJsdoc({
               "application/json": {
                 schema: {
                   type: "object",
-                  required: ["email", "password", "captcha"],
+                  required: ["email", "password"],
                   properties: {
                     email: { type: "string", format: "email", example: "rohan@example.com" },
                     password: { type: "string", format: "password", example: "Password123" },
-                    captcha: { type: "string", example: "11" },
                   },
                 },
               },
@@ -524,48 +520,11 @@ export const swaggerSpec = swaggerJsdoc({
         },
       },
 
-      "/api/v1/auth/captcha": {
-        get: {
-          summary: "Generate a captcha challenge",
-          description:
-            "Returns a captcha image (base64 data URL) and sets the signed answer in the httpOnly `captchaToken` cookie. Send the answer back as `captcha` on the protected endpoints.",
-          tags: ["Auth"],
-          responses: {
-            200: {
-              description: "Captcha challenge generated",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-                    properties: {
-                      success: { type: "boolean", example: true },
-                      message: { type: "string", example: "Captcha generated" },
-                      data: {
-                        type: "object",
-                        properties: {
-                          id: { type: "string", example: "9f1c0f6e-2b8a-4f0e-9a1b-1f2c3d4e5f60" },
-                          image: {
-                            type: "string",
-                            description: "Base64 data URL of the captcha image",
-                            example: "data:image/svg+xml;base64,PHN2Zy...",
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            500: errorRef("Server error"),
-          },
-        },
-      },
 
       "/api/v1/auth/forgot-password": {
         post: {
           summary: "Send password reset link",
-          description:
-            "Creates a short lived reset token, stores its hash on the user and emails the raw token. The token is also set as an httpOnly cookie so the reset page can be used on the same browser. Requires a valid captcha.",
+          description: "Creates a short lived reset token, stores its hash on the user and emails the raw token. The token is also set as an httpOnly cookie so the reset page can be used on the same browser.",
           tags: ["Auth"],
           requestBody: {
             required: true,
@@ -573,10 +532,9 @@ export const swaggerSpec = swaggerJsdoc({
               "application/json": {
                 schema: {
                   type: "object",
-                  required: ["email", "captcha"],
+                  required: ["email"],
                   properties: {
                     email: { type: "string", format: "email", example: "rohan@example.com" },
-                    captcha: { type: "string", example: "11" },
                   },
                 },
               },

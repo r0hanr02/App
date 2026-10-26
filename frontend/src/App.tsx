@@ -1,13 +1,14 @@
 import { useEffect, useMemo } from "react";
 import "./App.css";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider, useLocation } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./router";
 import { queryClient } from "./lib/queryClient";
 import { useStore } from "./store/store";
 import ToastContainer from "./components/ui/Toast/ToastContainer";
 import { authMe } from "./features/auth/api/auth.api";
 import { ROUTES } from "./constants/routes.constants";
+import { socket } from "./lib/socket";
 
 let authMePromise: ReturnType<typeof authMe> | null = null;
 function getAuthMeOnce() {
@@ -24,6 +25,7 @@ function App() {
   const data = useStore((s) => s.data);
   const location = window.location.pathname;
   const isLoginPath = location === ROUTES.LOGIN.path;
+  const accessToken = useStore.getState().data?.accessToken;
 
   useEffect(() => {
     let cancelled: boolean;
@@ -51,6 +53,43 @@ function App() {
     }
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      socket.disconnect();
+      return;
+    }
+
+    socket.auth = { token: accessToken };
+
+    console.log(`has Access Token`, Boolean(accessToken));
+    socket.connect();
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection failed:", error.message);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("connect_error");
+      socket.disconnect();
+    };
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    const pingFromServer = (data: { message: string; received: string }) => {
+      console.warn("received from Backend", data);
+    };
+    socket.on("pong-client", pingFromServer);
+    socket.emit("ping-server", "Hello From frontend");
+    return () => {
+      socket.off("pong-client", pingFromServer);
     };
   }, []);
 

@@ -8,13 +8,10 @@ import { ROUTES } from "../../../../constants/routes.constants";
 import { useState } from "react";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useForgetPassword } from "../../api/forgetPassword.api";
-import Captcha from "../../components/Captcha/Captcha";
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState("");
-  const [captcha, setCaptcha] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   const { mutate: forgetMutate, isPending } = useForgetPassword();
@@ -22,11 +19,6 @@ const ForgetPassword = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     setEmail(e.target.value);
-  };
-
-  const handleCaptchaChange = (value: string) => {
-    setCaptchaError(null);
-    setCaptcha(value);
   };
 
   const sendResetLink = () => {
@@ -37,19 +29,13 @@ const ForgetPassword = () => {
       return;
     }
 
-    if (!captcha.trim()) {
-      setCaptchaError("Captcha answer is required");
-      return;
-    }
-
     forgetMutate(
-      { email: email.trim(), captcha: captcha.trim() },
+      { email: email.trim() },
       {
         onSuccess: (res) => {
           toast.success(res.message, "Check your inbox to continue");
           setSentTo(email.trim());
           setError(null);
-          setCaptchaError(null);
         },
       },
     );
@@ -92,12 +78,6 @@ const ForgetPassword = () => {
             </div>
 
             <div className="forget-password-actions">
-              <Captcha
-                value={captcha}
-                onChange={handleCaptchaChange}
-                error={captchaError ?? undefined}
-              />
-
               <Button
                 type="button"
                 className="register-button flex jcsb"
@@ -118,7 +98,7 @@ const ForgetPassword = () => {
             <div className="flex fdc g8">
               <Label className="title-md">Forgot your password?</Label>
               <Label className="title-xs">
-                We’ll send you a link to get back into your account.
+                We'll send you a link to get back into your account.
               </Label>
             </div>
 
@@ -132,12 +112,6 @@ const ForgetPassword = () => {
                 autoComplete="email"
                 error={error ?? undefined}
                 onChange={handleChange}
-              />
-
-              <Captcha
-                value={captcha}
-                onChange={handleCaptchaChange}
-                error={captchaError ?? undefined}
               />
 
               <Button

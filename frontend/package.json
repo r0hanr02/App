@@ -18,6 +18,7 @@
     "react-aria-components": "^1.21.1",
     "react-dom": "^19.2.8",
     "sass": "^1.105.1",
+    "socket.io-client": "^4.8.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

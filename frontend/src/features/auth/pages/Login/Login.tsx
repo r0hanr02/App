@@ -12,7 +12,6 @@ import { ROUTES } from "../../../../constants/routes.constants";
 import { queryClient } from "../../../../lib/queryClient";
 import { userOrganizationQueryOptions } from "../../../home/api/home.api";
 import type { LoginFormData } from "../../types";
-import Captcha from "../../components/Captcha/Captcha";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -21,9 +20,7 @@ const Login = () => {
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
-    captcha: "",
   });
-  const [captchaError, setCaptchaError] = useState<string | null>(null);
   // const userData = useStore((s)=>s.data)
   // HOME is org-scoped ("/$orgSlug") — resolve the slug before navigating.
   const goHomeWithOrg = async () => {
@@ -55,33 +52,17 @@ const Login = () => {
     }));
   };
 
-  const handleCaptchaChange = (value: string) => {
-    setCaptchaError(null);
-    setFormData((prev) => ({
-      ...prev,
-      captcha: value,
-    }));
-  };
-
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (loginIsPending) return;
 
-    if (!formData.captcha.trim()) {
-      setCaptchaError("Captcha answer is required");
-      return;
-    }
-
-    loginMutate(
-      { ...formData, captcha: formData.captcha.trim() },
-      {
-        onSuccess: (res) => {
-          toast.success("Login successful");
-          useStore.getState().setData(res);
-          void goHomeWithOrg();
-        },
+    loginMutate(formData, {
+      onSuccess: (res) => {
+        toast.success("Login successful");
+        useStore.getState().setData(res);
+        void goHomeWithOrg();
       },
-    );
+    });
   };
 
   useEffect(() => {
@@ -140,12 +121,6 @@ const Login = () => {
           >
             Forgot Password?
           </Link>
-
-          <Captcha
-            value={formData.captcha}
-            onChange={handleCaptchaChange}
-            error={captchaError ?? undefined}
-          />
 
           <Button
             type="submit"

@@ -10,7 +10,6 @@ export {
 } from "./user-auth-controller.ts";
 export { forgetPassword } from "./forget-password-controller.ts";
 export { resetPassword } from "./reset-password-controller.ts";
-export { captchaGenerator } from "./captcha-controller.ts";
 export {
   registerUserService,
   loginUserServices,

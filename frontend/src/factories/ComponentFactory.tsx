@@ -22,7 +22,9 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   ORGANIZATION: lazy(
     () => import("../features/organization/pages/Organization/Organization"),
   ),
-  NOTIFICATION: lazy(() => import("../components/NotFound/NotFound")),
+  NOTIFICATION: lazy(
+    () => import("../features/notification/pages/Notification"),
+  ),
   SETTINGS: lazy(() => import("../features/settings/pages/Settings/Settings")),
   // DASHBOARD:lazy(()=>import("../features/home/pages/dashboard/Dashboard"))
   PROJECTDETAILS: lazy(

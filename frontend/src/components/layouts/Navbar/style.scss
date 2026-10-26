@@ -136,6 +136,52 @@
     color: var(--color-primary);
   }
 
+  /* ── Bell icon with notification badge ─────────────────────────────── */
+  .bell-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: var(--space-2);
+    border-radius: var(--radius-4);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background: var(--bg-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -2px;
+      right: -4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-danger, #ef4444);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1;
+      border-radius: 9999px;
+      border: 2px solid var(--bg-surface);
+      pointer-events: none;
+      user-select: none;
+      animation: badge-pop 0.2s ease-out;
+    }
+  }
+
   .user-img-container {
     display: flex;
     align-items: center;
@@ -324,6 +370,17 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 

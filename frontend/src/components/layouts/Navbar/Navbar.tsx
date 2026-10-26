@@ -10,6 +10,8 @@ import { useState } from "react";
 import { ROUTES } from "../../../constants/routes.constants";
 import { SIDEBAR } from "../../../constants/sidebar.constants";
 import { useActiveOrg } from "../../../hooks/useActiveOrg";
+import { useNotificationCount } from "../../../features/notification/hooks/useNotificationCount";
+import { getRoutePath } from "../../../factories/RouteFactory";
 
 /** Fallback label for routes not listed in the sidebar (e.g. /profile). */
 function prettifyPath(pathname: string): string {
@@ -31,6 +33,8 @@ export const Navbar = () => {
   const theme = useStore((s) => s.theme);
   const { activeOrgSlug, activeOrg } = useActiveOrg();
   const homePath = activeOrgSlug ? `/${activeOrgSlug}` : null;
+
+  const { count: notifCount, reset: resetNotifCount } = useNotificationCount();
 
   const resolveFullPath = (routeKey: keyof typeof ROUTES, routeTo: string) =>
     ROUTES[routeKey].orgScoped && activeOrgSlug
@@ -99,7 +103,21 @@ export const Navbar = () => {
         </Button>
         <div>|</div>
         <div className="user-img-container">
-          <Bell size={22} />
+          <button
+            className="bell-wrapper"
+            aria-label={`Notifications${notifCount > 0 ? `, ${notifCount} unread` : ""}`}
+            onClick={() => {
+              resetNotifCount();
+              navigate({ to: getRoutePath("NOTIFICATION") as any });
+            }}
+          >
+            <Bell size={22} />
+            {notifCount > 0 && (
+              <span className="notif-badge" aria-hidden="true">
+                {notifCount > 99 ? "99+" : notifCount}
+              </span>
+            )}
+          </button>
 
           <div className="user-img-wrapper">
             <DialogTrigger

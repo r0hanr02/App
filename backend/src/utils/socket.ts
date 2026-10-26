@@ -15,17 +15,24 @@ export const initSocket = (server: HttpServer) => {
       credentials: true,
     },
   });
-   io.use(socketAuthMiddleware);
+
+  io.use(socketAuthMiddleware);
 
   io.on("connection", (socket) => {
     console.log(`socket-connected:${socket.data.user.email}`);
+
+    // Join the user's personal room so targeted notifications reach them.
+    // notification-controller emits to "user:<userId>" — without this join
+    // the room is always empty and no notification ever arrives on the client.
+    socket.join(`user:${socket.data.userId}`);
+
     socket.on("disconnect", (reason) => {
       console.log(`Socket disconnected: ${socket.id}`, reason);
     });
-    
+
     socket.on("ping-server", (message) => {
       console.log("Message from frontend:", message);
-    
+
       socket.emit("pong-client", {
         message: "Hello from backend!",
         received: message,

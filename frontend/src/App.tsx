@@ -25,7 +25,6 @@ function App() {
   const data = useStore((s) => s.data);
   const location = window.location.pathname;
   const isLoginPath = location === ROUTES.LOGIN.path;
-  const accessToken = useStore.getState().data?.accessToken;
 
   useEffect(() => {
     let cancelled: boolean;
@@ -61,23 +60,26 @@ function App() {
       socket.disconnect();
       return;
     }
-
+    const accessToken = useStore.getState().data?.accessToken;
     socket.auth = { token: accessToken };
 
     console.log(`has Access Token`, Boolean(accessToken));
     socket.connect();
 
-    socket.on("connect", () => {
+    // Keep named references so we can clean them up precisely.
+    const onConnect = () => {
       console.log("Socket connected:", socket.id);
-    });
-
-    socket.on("connect_error", (error) => {
+    };
+    const onConnectError = (error: Error) => {
       console.error("Socket connection failed:", error.message);
-    });
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("connect_error", onConnectError);
 
     return () => {
-      socket.off("connect");
-      socket.off("connect_error");
+      socket.off("connect", onConnect);
+      socket.off("connect_error", onConnectError);
       socket.disconnect();
     };
   }, [isLoggedIn]);

@@ -19,8 +19,8 @@
   justify-content: space-between;
   align-items: center;
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: var(--text-white, #fff);
+  box-shadow: var(--shadow-medium);
+  color: var(--text-white);
 
   /* Labels inside toast must inherit toast color, not form/typography defaults
      (--text-secondary / --text-default). Higher specificity beats
@@ -40,24 +40,23 @@
   will-change: transform, opacity;
 
   &.success {
-    background: var(--bg-green-400);
-    color: var(--text-white, #fff);
+    background: var(--color-success);
+    color: var(--background);
   }
 
   &.error {
-    background: var(--bg-red-500);
-    color: var(--text-white, #fff);
+    background: var(--color-danger);
+    color: var(--background);
   }
 
   &.warning {
-    background: var(--bg-yellow-500);
-    /* amber bg is too light for white text — use dark text */
-    color: var(--bg-yellow-1000, #451a03);
+    background: var(--color-warning);
+    color: var(--background);
   }
 
   &.info {
-    background: var(--bg-primary-500);
-    color: var(--text-white, #fff);
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
 
   &.leaving {

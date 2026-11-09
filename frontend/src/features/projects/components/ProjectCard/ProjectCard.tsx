@@ -27,15 +27,7 @@ const ICONS: LucideIcon[] = [
   Target,
 ];
 
-const TINTS = [
-  "tint-indigo",
-  "tint-green",
-  "tint-blue",
-  "tint-purple",
-  "tint-orange",
-  "tint-pink",
-  "tint-yellow",
-] as const;
+const TINTS = ["tint-accent", "tint-ink", "tint-muted"] as const;
 
 const hash = (str: string) =>
   [...str].reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) >>> 0, 0);

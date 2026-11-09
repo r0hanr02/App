@@ -34,9 +34,9 @@
   }
 
   .badge.green {
-    background: #e8f7ee;
-    border-color: #bfe6cd;
-    color: #1f7a45;
+    background: var(--bg-success-subtle);
+    border-color: var(--border-success);
+    color: var(--text-success);
   }
 
   .page-heading {
@@ -144,8 +144,8 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: #eed2bc;
-    color: #75513e;
+    background: var(--color-primary-subtle);
+    color: var(--color-primary);
     font-size: var(--text-title-md);
     font-weight: 600;
     flex-shrink: 0;
@@ -159,7 +159,7 @@
 
   .organization-avatar {
     border-radius: 16px;
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
   }
 
@@ -329,7 +329,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
     font-size: 10px;
     flex-shrink: 0;
@@ -405,7 +405,7 @@
     display: grid;
     place-items: center;
     border-radius: 10px;
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
     font-weight: 600;
     flex-shrink: 0;

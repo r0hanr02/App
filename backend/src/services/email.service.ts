@@ -62,6 +62,7 @@ export async function sendEmail(email: string, token: string) {
   });
 
   if (error) {
+    console.log(`Failed to send password reset email: ${error}`);
     throw new Error(`Failed to send password reset email: ${error.message}`);
   }
 

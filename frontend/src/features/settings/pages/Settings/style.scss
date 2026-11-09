@@ -34,9 +34,9 @@
   color: var(--text-secondary);
 }
 .settings-nav button.active {
-  background: var(--indigo-tint);
-  --custom-color: #6366f1;
-  color: #6366f1;
+  background: var(--color-primary-subtle);
+  --custom-color: var(--color-primary);
+  color: var(--color-primary);
 }
 .settings-panel {
   padding: 27px;
@@ -150,10 +150,10 @@
 }
 
 .theme-options button.selected {
-  border-color: #6366f1;
-  background: var(--indigo-tint);
-  --custom-color: #6366f1;
-  color: #6366f1;
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  --custom-color: var(--color-primary);
+  color: var(--color-primary);
 }
 .theme-options strong {
   @include typo.label-sm-mixin();

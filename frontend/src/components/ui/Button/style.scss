@@ -65,15 +65,15 @@
   }
 
   &[data-variant="primary"] {
-    background: var(--bg-primary-300);
-    color: var(--text-white);
+    background: var(--accent);
+    color: var(--accent-foreground);
 
     &:hover:not(:disabled) {
-      background: var(--bg-primary-700);
+      background: var(--color-primary-hover);
     }
 
     &:active:not(:disabled) {
-      background: var(--bg-primary-900);
+      background: var(--color-primary-active);
     }
   }
 
@@ -83,7 +83,7 @@
     border: 1px solid var(--border-subtle);
 
     &:hover:not(:disabled) {
-      background: var(--bg-grey-00);
+      background: var(--bg-hover);
     }
   }
 
@@ -118,7 +118,7 @@
 
   &[data-variant="danger"] {
     background: var(--bg-red-500);
-    color: var(--text-white);
+    color: var(--accent-foreground);
 
     &:hover:not(:disabled) {
       background: var(--bg-red-700);

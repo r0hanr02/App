@@ -53,7 +53,7 @@ const Sidebar = () => {
   return (
     <div className={`sidebar${isCollapsed ? " sidebar-collapsed" : ""}`}>
       <div className="logo flex aic g8">
-        <Layers size={30} color="#6366F1" />
+        <Layers size={30} color="var(--accent)" />
         <Label className="title-xl">orbit .</Label>
       </div>
       <div className="sidebar-org-accordion">

@@ -88,12 +88,13 @@
     }
 
     &.is-selected {
-      --custom-color: var(--text-white);
-      background: var(--bg-orange-700);
+      --custom-color: var(--accent-foreground);
+      background: var(--accent);
+      color: var(--accent-foreground);
       font-weight: 600;
 
       &:hover {
-        background: var(--bg-orange-700);
+        background: var(--color-primary-hover);
       }
     }
   }

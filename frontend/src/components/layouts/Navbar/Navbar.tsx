@@ -60,7 +60,7 @@ export const Navbar = () => {
   return isNoOrgPage ? (
     <div className="navbar">
       <div className="flex aic jcc g8">
-        <Layers size={30} color="#6366F1" />
+        <Layers size={30} color="var(--accent)" />
         <Label className="title-lg">orbit .</Label>
       </div>
       <div className="user-details">

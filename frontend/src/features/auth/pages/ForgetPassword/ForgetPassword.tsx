@@ -49,13 +49,13 @@ const ForgetPassword = () => {
   return (
     <div className="forget-password-page flex w100 aic jcc fdc g12">
       <div className="flex aic jcc g12">
-        <Layers size={30} color="#6366F1" />
+        <Layers size={30} color="var(--accent)" />
         <Label className="title-lg">orbit.</Label>
       </div>
 
       <div className="register g8">
         <div className="register-logo">
-          <Layers size={30} color="#6366F1" />
+          <Layers size={30} color="var(--accent)" />
         </div>
 
         {sentTo ? (

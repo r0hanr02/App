@@ -75,14 +75,14 @@ const Login = () => {
     <div className="login-page flex w100 aic jcc fdc g12">
       {/* Brand */}
       <div className="flex aic jcc g12">
-        <Layers size={30} color="#6366F1" />
+        <Layers size={30} color="var(--accent)" />
         <Label className="title-lg">orbit.</Label>
       </div>
 
       {/* Register Card */}
       <div className="register g8">
         <div className="register-logo">
-          <Layers size={30} color="#6366F1" />
+          <Layers size={30} color="var(--accent)" />
         </div>
 
         <div className="flex fdc g8">

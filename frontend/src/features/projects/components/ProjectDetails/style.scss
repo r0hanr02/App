@@ -124,7 +124,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
     flex-shrink: 0;
   }
@@ -188,7 +188,7 @@
       &[data-selected] {
         background: var(--bg-surface);
         color: var(--text-default);
-        box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+        box-shadow: var(--shadow-x-small);
         border-bottom: 2px solid var(--border-subtle);
       }
 
@@ -305,7 +305,7 @@
     color: var(--text-success);
   }
   .status-in_review {
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
   }
   .status-done {
@@ -359,7 +359,7 @@
       &.active {
         background: var(--bg-surface);
         color: var(--text-default);
-        box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+        box-shadow: var(--shadow-x-small);
       }
     }
   }
@@ -528,9 +528,9 @@
     color: var(--text-secondary);
 
     &.active {
-      background: var(--indigo-tint);
-      --custom-color: #6366f1;
-      color: #6366f1;
+      background: var(--color-primary-subtle);
+      --custom-color: var(--color-primary);
+      color: var(--color-primary);
     }
   }
 
@@ -677,8 +677,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--indigo-tint);
-      color: #6366f1;
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
       flex-shrink: 0;
     }
 
@@ -708,7 +708,8 @@
     }
 
     .danger-zone-card {
-      border: 1px solid #ef444445;
+      border: 1px solid
+      color-mix(in srgb, var(--color-danger) 27%, transparent);
       border-radius: 8px;
       padding: 20px;
       margin-top: 18px;

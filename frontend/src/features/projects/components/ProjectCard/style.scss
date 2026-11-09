@@ -69,39 +69,19 @@
   border: 1px solid var(--border-subtle);
   flex-shrink: 0;
 
-  &.tint-indigo {
-    background: var(--bg-primary-00);
+  &.tint-accent {
+    background: var(--color-primary-subtle);
     color: var(--color-primary);
   }
 
-  &.tint-green {
-    background: var(--bg-green-00);
-    color: var(--text-success);
+  &.tint-ink {
+    background: var(--bg-sunken);
+    color: var(--foreground);
   }
 
-  &.tint-blue {
-    background: var(--bg-blue-00);
-    color: var(--text-info);
-  }
-
-  &.tint-purple {
-    background: var(--bg-purple-00);
-    color: var(--bg-purple-700);
-  }
-
-  &.tint-orange {
-    background: var(--bg-orange-00);
-    color: var(--bg-orange-700);
-  }
-
-  &.tint-pink {
-    background: var(--bg-pink-00);
-    color: var(--bg-pink-700);
-  }
-
-  &.tint-yellow {
-    background: var(--bg-yellow-00);
-    color: var(--text-warning);
+  &.tint-muted {
+    background: var(--bg-sunken);
+    color: var(--text-muted);
   }
 }
 
@@ -185,7 +165,7 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--indigo-tint);
+  background: var(--color-primary-subtle);
   border: 1px solid var(--border-subtle);
   color: var(--color-primary);
   font-weight: 700;

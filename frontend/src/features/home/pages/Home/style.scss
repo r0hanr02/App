@@ -121,7 +121,7 @@
 
   &:hover:not(:disabled) {
     background: var(--bg-hover);
-    color: #6366f1;
+    color: var(--color-primary);
   }
 }
 
@@ -497,7 +497,7 @@
     width: 32px;
     height: 32px;
     border-radius: var(--radius-4);
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     border: 1px solid var(--border-subtle);
     color: var(--color-primary);
     font-weight: 700;
@@ -569,11 +569,15 @@
       display: inline-block;
 
       &.indigo {
-        background: #6366f1;
+        background: var(--color-primary);
       }
 
       &.light-indigo {
-        background: #b6bbfa;
+        background: color-mix(
+          in srgb,
+          var(--color-primary) 45%,
+          var(--background)
+        );
       }
     }
   }
@@ -729,7 +733,7 @@
 
   &:hover {
     background: var(--bg-hover);
-    color: #6366f1;
+    color: var(--color-primary);
   }
 }
 
@@ -788,7 +792,7 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: white;
+  color: var(--accent-foreground);
 
   &.green {
     background: var(--bg-green-500);
@@ -836,7 +840,7 @@
 }
 
 .activity-item > div:last-child > button:hover {
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .activity-item small {
@@ -887,7 +891,7 @@
   min-width: 4px;
 
   &.indigo {
-    background: #6366f1;
+    background: var(--color-primary);
   }
 
   &.pink {
@@ -925,7 +929,7 @@
 .workload-key i {
   width: 5px;
   height: 5px;
-  background: #a6afc0;
+  background: var(--text-subtlest);
   border-radius: 50%;
 }
 
@@ -995,7 +999,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: var(--indigo-tint);
+  background: var(--color-primary-subtle);
   border: 1px solid var(--border-subtle);
   color: var(--color-primary);
   font-weight: 700;

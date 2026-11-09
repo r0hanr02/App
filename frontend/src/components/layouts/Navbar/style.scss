@@ -121,17 +121,15 @@
     background: var(--bg-sunken);
   }
 
-  /* --bg-mute* tokens don't exist in themes.scss; the old
-     var(--bg-muted, #3a3b75) fallback always resolved to a dark indigo
-     that clashed with light-theme text. Use the shared indigo tint so the
-     fallback avatar matches the sidebar org logo in both themes. */
+  /* The fallback avatar uses the shared accent tint so it matches the
+     sidebar org logo in both themes. */
   .user-img-fallback {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     font-weight: 600;
-    background: var(--indigo-tint);
+    background: var(--color-primary-subtle);
     border: 1px solid var(--border-subtle);
     color: var(--color-primary);
   }
@@ -159,7 +157,7 @@
       overflow: hidden;
       padding: 0;
       font-size: 14px;
-      background: var(--indigo-tint);
+      background: var(--color-primary-subtle);
       background-image: none;
       box-shadow: none;
       border: 1px solid var(--border-subtle);

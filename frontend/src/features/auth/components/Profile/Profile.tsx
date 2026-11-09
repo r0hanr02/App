@@ -143,7 +143,7 @@ const Profile = () => {
           <Loader2 className="lucide lucide-loader-2" />
           <p className="label-md">
             Sign in to view your profile.{" "}
-            <Link to={ROUTES.LOGIN.path}>Login</Link>
+            <Link to={ROUTES.LOGIN.path as never}>Login</Link>
           </p>
         </div>
       </div>

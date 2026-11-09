@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import "./style.scss";
 import PageHeading from "../../../../components/ui/PageHeading/PageHeading";

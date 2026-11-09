@@ -23,3 +23,25 @@ export const createTaskAssignedNotification = async ({
 
   return notification;
 };
+
+
+export const createTaskCompletedNotification = async ({
+  recipientId,
+  taskId,
+  taskTitle,
+}: {
+  recipientId: string;
+  taskId: mongoose.Types.ObjectId;
+  taskTitle: string;
+}) => {
+  const notification = await Notification.create({
+    recipient: recipientId,
+    type: "TASK_COMPLETED",
+    title: "Task completed",
+    message: `The task "${taskTitle}" has been completed`,
+    taskId,
+  });
+  getIo().to(`user:${recipientId}`).emit("notification:new", notification);
+
+  return notification;
+};

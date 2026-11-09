@@ -17,7 +17,7 @@ export const COMPONENTS: Record<AppRouteKey, LazyPage> = {
   PROFILE: lazy(() => import("../features/auth/components/Profile/Profile")),
   // Pages not built yet render the shared NotFound page inside the layout.
   PROJECTS: lazy(() => import("../features/projects/pages/Projects/Projects")),
-  TASKS: lazy(() => import("../components/NotFound/NotFound")),
+  TASKS: lazy(() => import("../features/tasks/pages/Tasks/Tasks")),
   TEAMS: lazy(() => import("../features/teams/pages/teams/Teams")),
   ORGANIZATION: lazy(
     () => import("../features/organization/pages/Organization/Organization"),

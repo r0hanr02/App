@@ -9,7 +9,7 @@ import { Modal } from "../../../../components/ui/Modal/Modal";
 import DropDown from "../../../../components/ui/DropDown/DropDown";
 import { toast } from "../../../../components/ui/Toast/toast.api";
 import { useGetProjectMembers } from "../../api/projects.api";
-import { useCreateTask } from "../../api/tasks.api";
+import { useCreateTask } from "../../../tasks/api/tasks.api";
 import type {
   TaskPriority,
   TaskStatus,

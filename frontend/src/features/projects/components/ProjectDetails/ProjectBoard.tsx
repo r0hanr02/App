@@ -19,7 +19,7 @@ import {
   useDeleteTask,
   useGetProjectTasks,
   useUpdateTask,
-} from "../../api/tasks.api";
+} from "../../../tasks/api/tasks.api";
 import type { TaskData, TaskStatus } from "../../types";
 
 const STATUSES: TaskStatus[] = [

@@ -6,8 +6,6 @@
 import type {
   DashboardProject,
   DashboardTask,
-  DashboardTaskPriority,
-  DashboardTaskStatus,
   DummyOrganization,
   DummyUser,
   OrgMember,

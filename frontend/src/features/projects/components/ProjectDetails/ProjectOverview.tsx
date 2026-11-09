@@ -1,7 +1,7 @@
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Table } from "../../../../components/ui/Table/Table";
-import { useGetProject, useGetProjectMembers } from "../../api/projects.api";
-import { useGetProjectTasks } from "../../api/tasks.api";
+import { useGetProject } from "../../api/projects.api";
+import { useGetProjectTasks } from "../../../tasks/api/tasks.api";
 import type { TaskData, TaskStatus } from "../../types";
 
 const STATUSES: TaskStatus[] = [

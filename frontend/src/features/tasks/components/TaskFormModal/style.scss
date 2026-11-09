@@ -1,0 +1,62 @@
+@use "../../../../styles/typography" as type;
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  .task-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .task-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    > label {
+      @include type.label-sm-mixin;
+    }
+
+    .ui-select {
+      width: 100%;
+    }
+  }
+
+  .task-date-input {
+    @include type.para-sm-mixin;
+    width: 100%;
+    height: var(--space-14);
+    padding: 0 11px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-4);
+    background: var(--bg-surface);
+    color: var(--text-default);
+    outline: none;
+
+    &:focus-visible {
+      border-color: var(--color-primary);
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  .task-form-line {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 4px 0 0;
+  }
+
+  .task-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  @media (max-width: 650px) {
+    .task-form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+}

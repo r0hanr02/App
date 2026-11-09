@@ -10,7 +10,7 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["TASK_ASSIGNED"],
+      enum: ["TASK_ASSIGNED", "TASK_COMPLETED"],
       required: true,
     },
     title: {

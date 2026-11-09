@@ -1,6 +1,6 @@
 import "./style.scss";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import type { ProjectData, ProjectCardProps } from "../../types";
+import { useNavigate } from "@tanstack/react-router";
+import type { ProjectCardProps } from "../../types";
 import {
   Folder,
   Rocket,

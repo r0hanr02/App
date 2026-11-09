@@ -69,67 +69,19 @@ export type AddProjectMemberPayload = {
   user_id: string;
 };
 
-/* Tasks under a project: GET /organization/:orgId/projects/:projectId/tasks */
-export type TaskStatus =
-  | "TODO"
-  | "IN_PROGRESS"
-  | "IN_REVIEW"
-  | "DONE"
-  | "CANCELLED";
-
-export type TaskPriority = "Low" | "Medium" | "High" | "Critical";
-
-export type TaskType =
-  | "Feature"
-  | "Bug"
-  | "Improvement"
-  | "Task"
-  | "Documentation";
-
-export type TaskAssignee = {
-  _id: string;
-  name: string;
-} | null;
-
-export type TaskData = {
-  _id: string;
-  task_name: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  type: TaskType;
-  due_date: string | null;
-  project_id: string;
-  organization_id: string;
-  creator_id: TaskAssignee | string;
-  assignee_id: TaskAssignee | string;
-  is_deleted?: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type TasksListResponse = {
-  message: string;
-  data: TaskData[];
-  pagination: Pagination;
-};
-
-export type TaskResponse = {
-  message: string;
-  data: TaskData;
-};
-
-export type TaskCreatePayload = {
-  task_name: string;
-  description?: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
-  type?: TaskType;
-  due_date?: string | null;
-  assignee_id?: string | null;
-};
-
-export type TaskUpdatePayload = Partial<TaskCreatePayload>;
+export type {
+  TaskAssignee,
+  TaskCreatePayload,
+  TaskData,
+  TaskPagination,
+  TaskPriority,
+  TaskResponse,
+  TasksListResponse,
+  TaskStatus,
+  TaskType,
+  TaskUpdatePayload,
+  TaskUserRef,
+} from "../../tasks/types";
 
 /* Projects component props */
 

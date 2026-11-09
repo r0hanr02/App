@@ -21,7 +21,7 @@ const NotFound = () => {
         console.warn("Navigation home failed:", err);
       });
     } else {
-      navigate({ to: ROUTES.NOORGANIZATION.path }).catch((err) => {
+      navigate({ to: ROUTES.NOORGANIZATION.path as never }).catch((err) => {
         console.warn("Navigation home failed:", err);
       });
     }

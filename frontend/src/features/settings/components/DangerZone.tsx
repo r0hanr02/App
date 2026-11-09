@@ -26,7 +26,7 @@ const DangerZone = () => {
   const confirmed = confirmText.trim() === orgName;
 
   const afterOrgGone = () => {
-    navigate({ to: ROUTES.NOORGANIZATION.path }).catch(() => {});
+    navigate({ to: ROUTES.NOORGANIZATION.path as never }).catch(() => {});
   };
 
   return (

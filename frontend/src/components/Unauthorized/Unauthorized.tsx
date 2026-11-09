@@ -13,7 +13,7 @@ const Unauthorized = () => {
       <div>
         <h1>🔒 Access Denied</h1>
         <p>You don't have permission to view this page.</p>
-        <Link to="/login">Go to Login</Link>
+        <Link to={"/login" as never}>Go to Login</Link>
       </div>
     </div>
   );

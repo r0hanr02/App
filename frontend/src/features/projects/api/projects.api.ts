@@ -43,11 +43,11 @@ export const useCreateProjects = (orgId: string) => {
     mutationKey: ["create_project", orgId],
   });
 };
-export const useGetAllProjects = (orgId: string | null) => {
+export const useGetAllProjects = (orgId: string | null, limit = 10) => {
   return useApiQuery<AllProjectsDataResponse>({
-    path:`/organization/${orgId}/projects`,
-    queryKey:["get_all_projects",orgId],
-    method:"GET",
+    path: `/organization/${orgId}/projects?limit=${limit}`,
+    queryKey: ["get_all_projects", orgId, limit],
+    method: "GET",
     options: { enabled: Boolean(orgId) },
   });
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { usePopoverPosition } from "../../../hooks/usePopoverPosition";
 import "./style.scss";
 
 export interface SelectOption {
@@ -28,6 +29,9 @@ export const DropDown: React.FC<DropDownProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const listPosition = usePopoverPosition(rootRef, open, {
+    matchAnchorWidth: true,
+  });
 
   const selected = options.find((opt) => opt.value === value);
 
@@ -79,7 +83,11 @@ export const DropDown: React.FC<DropDownProps> = ({
       </button>
 
       {open && (
-        <ul className="ui-select__list" role="listbox">
+        <ul
+          className="ui-select__list"
+          role="listbox"
+          style={listPosition ?? { visibility: "hidden" }}
+        >
           {options.map((opt) => (
             <li
               key={opt.value}

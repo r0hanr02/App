@@ -1,0 +1,56 @@
+@use "../../../../styles/typography" as type;
+
+.task-status,
+.task-priority {
+  @include type.label-xs-mixin;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-10);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-sunken);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.task-status--in_progress,
+.task-status--done {
+  background: var(--bg-green-00);
+  border-color: var(--bg-green-200);
+  color: var(--text-success);
+}
+
+.task-status--in_review {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.task-status--cancelled {
+  opacity: 0.7;
+}
+
+.task-priority--low {
+  background: var(--bg-green-00);
+  border-color: var(--bg-green-200);
+  color: var(--text-success);
+}
+
+.task-priority--medium {
+  background: var(--bg-yellow-00);
+  border-color: var(--bg-yellow-200);
+  color: var(--text-warning);
+}
+
+.task-priority--high {
+  background: var(--bg-orange-00);
+  border-color: var(--bg-orange-200);
+  color: var(--bg-orange-900);
+}
+
+.task-priority--critical {
+  background: var(--bg-red-00);
+  border-color: var(--border-danger);
+  color: var(--text-danger);
+}

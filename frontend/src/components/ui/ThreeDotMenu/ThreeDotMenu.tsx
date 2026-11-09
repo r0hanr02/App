@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { usePopoverPosition } from "../../../hooks/usePopoverPosition";
 import "./style.scss"
 
 export interface ThreeDotMenuItem {
@@ -29,6 +30,7 @@ export const ThreeDotMenu: React.FC<MenuProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const listPosition = usePopoverPosition(rootRef, open, { align });
 
   useEffect(() => {
     if (!open) return;
@@ -75,7 +77,11 @@ export const ThreeDotMenu: React.FC<MenuProps> = ({
       </button>
 
       {open && (
-        <ul className={`ui-menu__list ui-menu__list--${align}`} role="menu">
+        <ul
+          className={`ui-menu__list ui-menu__list--${align}`}
+          role="menu"
+          style={listPosition ?? { visibility: "hidden" }}
+        >
           {items.map((item) => (
             <React.Fragment key={item.key}>
               {item.dividerBefore && <li className="ui-menu__divider" role="separator" />}

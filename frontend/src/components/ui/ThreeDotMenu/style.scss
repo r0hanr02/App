@@ -33,24 +33,18 @@
   }
 
   &__list {
-    position: absolute;
-    top: calc(100% + var(--space-3));
-    z-index: 30;
+    position: fixed;
+    z-index: 150;
     min-width: 180px;
+    max-width: calc(100vw - 16px);
+    max-height: 280px;
+    overflow-y: auto;
     list-style: none;
     margin: 0;
     padding: var(--space-3) 0;
     background: var(--bg-surface);
     @include themes.border(var(--border-subtle), var(--radius-3));
     box-shadow: var(--shadow-medium);
-
-    &--right {
-      right: 0;
-    }
-
-    &--left {
-      left: 0;
-    }
   }
 
   &__item {

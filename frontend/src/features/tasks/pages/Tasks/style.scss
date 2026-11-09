@@ -1,0 +1,345 @@
+@use "../../../../styles/typography" as type;
+
+.tasks-page {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  color: var(--text-default);
+
+  .org-muted {
+    color: var(--text-secondary);
+  }
+
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    overflow: hidden;
+  }
+
+  .page-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-8);
+    margin-bottom: var(--space-8);
+
+    .eyebrow {
+      @include type.subheading-xs-mixin;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0 0 var(--space-3);
+    }
+
+    p {
+      @include type.para-sm-mixin;
+      margin: var(--space-2) 0 0;
+      color: var(--text-muted);
+    }
+
+    .heading-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      flex-shrink: 0;
+    }
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+
+    .project-picker {
+      min-width: 180px;
+    }
+
+    .toolbar-search {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    > .ui-select {
+      min-width: 150px;
+    }
+  }
+
+  .view-switch {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+    margin-left: auto;
+
+    button {
+      @include type.label-sm-mixin;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 7px 12px;
+      border-radius: var(--radius-4);
+      cursor: pointer;
+
+      &.active {
+        background: var(--bg-surface);
+        color: var(--text-default);
+        box-shadow: var(--shadow-x-small);
+      }
+    }
+  }
+
+  .tasks-meta {
+    @include type.para-xs-mixin;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    color: var(--text-secondary);
+  }
+
+  .text-button {
+    @include type.label-sm-mixin;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 0;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .cell-sub {
+    @include type.para-xs-mixin;
+    display: block;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 340px;
+  }
+
+  .due-date {
+    white-space: nowrap;
+
+    &.is-overdue {
+      color: var(--text-danger);
+      font-weight: 600;
+    }
+  }
+
+  .row-menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    .ui-menu {
+      position: relative;
+    }
+  }
+
+  .tasks-empty {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    > svg {
+      color: var(--text-subtlest);
+    }
+
+    h2 {
+      @include type.title-sm-mixin;
+      margin: 0;
+    }
+
+    p {
+      margin: 0;
+      max-width: 560px;
+    }
+  }
+
+  .tasks-loading {
+    @include type.para-sm-mixin;
+    padding: 32px;
+    text-align: center;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-6);
+  }
+
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(220px, 1fr));
+    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .kanban-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    overflow: hidden;
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding: 14px 18px 0;
+    margin-bottom: 10px;
+
+    h2 {
+      @include type.label-sm-mixin;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+  }
+
+  .count-pill {
+    @include type.para-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-10);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  .kanban-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 14px 14px;
+  }
+
+  .kanban-card {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-4);
+    padding: 12px;
+    background: var(--bg-surface);
+    cursor: pointer;
+    transition: border-color 150ms ease;
+
+    &:hover {
+      border-color: var(--border-default);
+    }
+
+    strong {
+      @include type.label-sm-mixin;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    p {
+      @include type.para-xs-mixin;
+      color: var(--text-secondary);
+      margin: 0 0 10px;
+    }
+  }
+
+  .kanban-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .task-type {
+    @include type.label-xs-mixin;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: var(--radius-10);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-sunken);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .kanban-actions {
+    margin-top: 8px;
+
+    .ui-select {
+      width: 100%;
+    }
+  }
+
+  .kanban-empty {
+    padding: 12px;
+    text-align: center;
+  }
+
+  .tasks-board-note {
+    margin: 10px 0 0;
+  }
+
+  @media (max-width: 1100px) {
+    .kanban {
+      grid-template-columns: repeat(5, 240px);
+    }
+  }
+
+  @media (max-width: 650px) {
+    .page-heading {
+      flex-direction: column;
+
+      .heading-actions {
+        width: 100%;
+
+        .button-base {
+          flex: 1;
+        }
+      }
+    }
+
+    .toolbar {
+      .project-picker {
+        flex: 1 1 100%;
+      }
+
+      > .ui-select {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .toolbar-search {
+        flex: 1 1 100%;
+      }
+    }
+
+    .view-switch {
+      margin-left: 0;
+      width: 100%;
+
+      button {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+}
